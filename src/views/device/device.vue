@@ -268,7 +268,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <div slot="footer" class="dialog-footer">
+      <div style="position: absolute;bottom: 10px;right:20px;">
         <el-button @click="processDialogVisible = false">{{$t('table.cancel')}}</el-button>
         <el-button type="primary" @click="compMonitor()">组件进程监控</el-button>
       </div>
@@ -296,7 +296,8 @@
     <el-dialog title="请填写路径" :visible.sync="reportDialogVisible" width="40%">
       <el-form :rules="pathRules" ref="reportForm" :model="pathTemp"  label-width="100px" style='width: 80%; margin:0 auto;'>
         <el-form-item label="部署路径" prop="reportPath">
-          <el-input v-model="pathTemp.reportPath" @keyup.enter.native="reportDevice"/>
+          <el-input style="display: none;"></el-input>
+          <el-input v-model="pathTemp.reportPath" @keyup.enter.native.prevent="reportDevice" placeholder="例如：D:/test/"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
