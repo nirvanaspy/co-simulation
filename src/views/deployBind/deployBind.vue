@@ -55,6 +55,7 @@
                                 @selection-change="handleCheckedCompsChange" id="compTable">
                         <el-table-column
                           type="selection"
+                          :selectable='checkboxIsBind'
                           width="55"
                           align="center">
                         </el-table-column>
@@ -425,7 +426,13 @@
           })
         })
       },
-
+      checkboxIsBind(row) {
+        if(row.isBind === true) {
+          return 0
+        } else {
+          return 1
+        }
+      },
       handleCheckedCompsChange(val) {          //所选的组件，checkbox
 
         this.checkedComps = val;
