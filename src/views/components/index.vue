@@ -59,7 +59,7 @@
       </el-table-column>-->
       <el-table-column min-width="100px" :label="$t('table.compPath')">
         <template slot-scope="scope">
-          <span>{{scope.row.deployPath}}</span>
+          <span>{{scope.row.relativePath}}</span>
         </template>
       </el-table-column>
       <el-table-column min-width="100px" :label="$t('table.compDesc')">
@@ -91,6 +91,9 @@
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -146,8 +149,8 @@
           <el-form-item :label="$t('table.compVersion')" prop="version">
             <el-input v-model="temp.version"></el-input>
           </el-form-item>
-          <el-form-item :label="$t('table.compPath')" prop="deployPath">
-            <el-input v-model="temp.deployPath" placeholder="/test/，必须以斜杠开头，斜杠结尾"></el-input>
+          <el-form-item :label="$t('table.compPath')" prop="relativePath">
+            <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
           </el-form-item>
           <el-form-item :label="$t('table.compDesc')" prop="desc">
             <el-input v-model="temp.description"></el-input>
@@ -183,8 +186,8 @@
             <el-form-item :label="$t('table.compVersion')" prop="version">
               <el-input v-model="temp.version"></el-input>
             </el-form-item>
-            <el-form-item :label="$t('table.compPath')" prop="deployPath">
-              <el-input v-model="temp.deployPath" placeholder="/test/，必须以斜杠开头，斜杠结尾"></el-input>
+            <el-form-item :label="$t('table.compPath')" prop="relativePath">
+              <el-input v-model="temp.relativePath" placeholder="/test/，必须以斜杠开头，斜杠结尾"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
@@ -239,7 +242,8 @@
     },
     data() {
       const validatePath = (rule, value, callback) => {
-        let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
+        let pattern = /^(\/([a-zA-Z0-9]+))$/;
+        // let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -280,7 +284,7 @@
           id: '',
           name: '',
           version: '',
-          deployPath: '',
+          relativePath: '',
           description: '',
           fileAll: ''
         },
@@ -300,7 +304,7 @@
         componentRules: {
           name: [{ required: true, message: '请输入组件名', trigger: 'blur' }],
           version: [{ required: true, message: '请输入版本', trigger: 'blur' }],
-          deployPath: [{ required: true, trigger: 'blur', validator: validatePath }]
+          relativePath: [{ required: true, trigger: 'blur', validator: validatePath }]
         },
         downloadLoading: false,
         managerLoading: false,
@@ -393,7 +397,7 @@
           id: '',
           name: '',
           version: '',
-          deployPath: '',
+          relativePath: '',
           description: '',
           fileAll: ''
         }
@@ -434,7 +438,7 @@
             console.log(this.fileAll,'所有文件')*/
             formData.append('name', this.temp.name);
             formData.append('version', this.temp.version);
-            formData.append('deployPath', this.temp.deployPath);
+            formData.append('relativePath', this.temp.relativePath);
             //formData.append('size', this.size);
             formData.append('description', this.temp.description);
             //开始上传后去掉暂停和删除按钮
@@ -657,7 +661,7 @@
 
             formData.append('name', this.temp.name);
             formData.append('version', this.temp.version);
-            formData.append('deployPath', this.temp.deployPath);
+            formData.append('relativePath', this.temp.relativePath);
             //formData.append('size', this.size);
             formData.append('description', this.temp.description);
 
@@ -676,7 +680,7 @@
             let data = {
               name: this.temp.name,
               version: this.temp.version,
-              deployPath: this.temp.deployPath,
+              relativePath: this.temp.relativePath,
               description: this.temp.description
             }
             let qs = require('qs')
@@ -950,8 +954,17 @@
             message: '已取消恢复'
           })
         })
+      },
+      historyVersion(row) {
+        this.$router.push({
+          name: 'componentHistory',
+          params: {
+            name: row.name,
+            id: row.id
+          }
+        })
       }
-    },
+     },
     computed: {
       listA: function () {
         let self = this;

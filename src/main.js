@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import uploader from 'vue-simple-uploader'
 import axios from 'axios'
+import SparkMD5 from 'spark-md5'
 Vue.prototype.$axios = axios;
 /* eslint-disable */
 Vue.use(uploader)
