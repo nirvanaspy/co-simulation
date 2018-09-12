@@ -1,11 +1,18 @@
 <template>
   <div class="fileComp">
     <div class="operationContainer" style="height: 40px;border-bottom:1px solid #ebeef5">
-      <div style="float: left;padding-left: 10px;">
+      <div style="float: left;padding-left: 10px;width: 80%">
         <el-breadcrumb separator-class="el-icon-arrow-right">
           <el-breadcrumb-item v-for="(item,index) in breadcrumbList" :key="index"><span style="cursor: pointer;color:rgb(0, 171, 235);" @click="switchFolder(item,index)">{{item.name}}</span></el-breadcrumb-item>
         </el-breadcrumb>
       </div>
+      <el-tooltip class="item" effect="dark" content="返回到组件选择目录" placement="top" style="float: right">
+              <span class="link-type"
+                    @click="backToComp"
+                    style="position:relative;top:-4px;display:inline-block;width:10%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis;text-align: right;">
+                返回
+              </span>
+      </el-tooltip>
       <!--<div style="float: right;color:rgb(0, 171, 235);cursor: pointer;padding-right: 20px;">
         <span style="margin-right: 18px" @click="addFolder">
           <svg-icon icon-class="add"></svg-icon>
@@ -98,7 +105,7 @@
 
 <script>
   /*eslint-disable*/
-  import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder } from '@/api/component'
+  import { compList, compAll, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder } from '@/api/component'
   import { movefileTo, copyFileTo } from '@/api/component'
 
   export default {
@@ -126,6 +133,7 @@
         projectId:'',
         componentId: '',
         compName: '',
+        targetComponentId: '',
         parentNodeId: '',
         targetFolderId: '',
         targetName: '',
@@ -162,22 +170,6 @@
           fileAll: ''
         },
         downloadLoading: false,
-        options: {
-          // 可通过 https://github.com/simple-uploader/Uploader/tree/develop/samples/Node.js 示例启动服务
-          //target: '//localhost:3000/upload',
-          chunkSize: 1024 * 1024,
-          testChunks: true
-        },
-        attrs: {
-          accept: 'image/*'
-        },
-        statusText: {
-          success: '成功了',
-          error: '出错了',
-          uploading: '上传中',
-          paused: '暂停中',
-          waiting: '等待中'
-        },
         started: false,
         autoStart: '',
         fileInfo: [],
@@ -187,10 +179,20 @@
         fileClearData: [],          //文件需要清空的内容数组
         fileAll: [],
         searchQuery: '',
-        CheckedComps: []
+        CheckedComps: [],
+        listQuery: {
+          page: 0,
+          limit: 10,
+          importance: undefined,
+          title: undefined,
+          type: undefined,
+          sort: '+id',
+          deviceName: undefined
+        }
       }
     },
     created() {
+      this.projectId = this.$store.getters.projectId
       this.initData()
       this.ip = this.getCookie('ip')
       this.port= this.getCookie('port')
@@ -198,9 +200,27 @@
       this.getList();
     },
     methods: {
+      backToComp() {
+        compAll(this.projectId).then((res) => {
+          this.targetComponentId = ''
+          this.list = []
+          for(var i = 0; i < res.data.data.length; i++) {
+            res.data.data[i].isComponent = true
+            this.list.push(res.data.data[i])
+          }
+          this.breadcrumbList = []
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '加载出错！',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
       initData() {
-        this.projectId = this.$store.getters.projectId
         this.componentId = this.selectCompId
+        this.targetComponentId = this.selectCompId
         this.compName = this.selectCompName
         this.targetFolderId = this.componentId
         this.breadcrumbList = []
@@ -229,7 +249,11 @@
         })
       },
       loadListFile(row) {
-        if(row.folder){
+        if(row.folder || row.isComponent){
+          if(row.isComponent) {
+            this.componentId = row.id
+            this.targetComponentId = row.id
+          }
           this.parentNodeId = row.id
           this.listLoading = true
           getCompFiles(this.componentId,this.parentNodeId).then((res) => {
@@ -422,8 +446,10 @@
       classifyIcon () {
         return function (row) {
           let iconType = ''
-          if(row.type == null) {
+          if(row.folder == true) {
             iconType = 'folder'
+          } else if(row.isComponent) {
+            iconType = '组件'
           } else if(row.type === 'png' || row.type === 'jpg' || row.type === 'gif'){
             iconType = 'image'
           } else if(row.type === 'rar' || row.type === 'zip') {
@@ -452,7 +478,7 @@
       listFolder: function () {
         let self = this;
         return self.list.filter(function (item) {
-          return item.type == null
+          return item.folder == true || item.isComponent == true
         })
       }
     },
