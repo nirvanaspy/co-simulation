@@ -22,7 +22,7 @@
       </el-table-column>
       <el-table-column width="140px" align="center" :label="$t('table.deviceIP')">
         <template slot-scope="scope">
-          <span>{{scope.row.ip}}</span>
+          <span>{{scope.row.hostAddress}}</span>
         </template>
       </el-table-column>
       <el-table-column min-width="100px" :label="$t('table.devicePath')">
@@ -34,35 +34,35 @@
       <el-table-column min-width="80px" align="center" label="CPU">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
-          <span v-else>{{Math.round(scope.row.cpuclock/1000*100)/100}}GHz</span>
+          <span v-else>{{Math.round(scope.row.cpuClock/1000*100)/100}}GHz</span>
         </template>
       </el-table-column>
       <el-table-column min-width="100px" align="center" label="CPU利用率">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
-          <span v-else>{{scope.row.cpuutilization}}%</span>
+          <span v-else>{{scope.row.cpuUtilization}}%</span>
         </template>
       </el-table-column>
       <el-table-column min-width="100px" align="center" label="内存利用率">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
-          <span v-else-if="scope.row.ifChangeColor < 70">{{Math.round((scope.row.ramsize - scope.row.freeRAMSize)/scope.row.ramsize*10000)/100}}%</span>
-          <span v-else-if="scope.row.ifChangeColor >= 70 && scope.row.ifChangeColor < 85" style="color: #FF8C00;">{{Math.round((scope.row.ramsize - scope.row.freeRAMSize)/scope.row.ramsize*10000)/100}}%</span>
-          <span v-else-if="scope.row.ifChangeColor >= 85" style="color: #FF0000;">{{Math.round((scope.row.ramsize - scope.row.freeRAMSize)/scope.row.ramsize*10000)/100}}%</span>
+          <span v-else-if="scope.row.ifChangeColor < 70">{{Math.round((scope.row.ramTotalSize - scope.row.ramFreeSize)/scope.row.ramTotalSize*10000)/100}}%</span>
+          <span v-else-if="scope.row.ifChangeColor >= 70 && scope.row.ifChangeColor < 85" style="color: #FF8C00;">{{Math.round((scope.row.ramTotalSize - scope.row.ramFreeSize)/scope.row.ramTotalSize*10000)/100}}%</span>
+          <span v-else-if="scope.row.ifChangeColor >= 85" style="color: #FF0000;">{{Math.round((scope.row.ramTotalSize - scope.row.ramFreeSize)/scope.row.ramTotalSize*10000)/100}}%</span>
         </template>
       </el-table-column>
       <el-table-column min-width="80px" align="center" label="上行速度">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <!--<span v-else>{{scope.row.upstreamSpeed}}</span>-->
-          <span v-else>{{computedUpStream(scope.row.upstreamSpeed)}}</span>
+          <span v-else>{{computedUpStream(scope.row.upLoadSpeed)}}</span>
         </template>
       </el-table-column>
       <el-table-column min-width="80px" align="center" label="下行速度">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <!--<span v-else>{{scope.row.downstreamSpeed}}</span>-->
-          <span v-else>{{computedDownStream(scope.row.downstreamSpeed)}}</span>
+          <span v-else>{{computedDownStream(scope.row.downLoadSpeed)}}</span>
         </template>
       </el-table-column>
       <el-table-column align="center" :label="$t('table.deviceState')">
@@ -129,7 +129,7 @@
       </el-table-column>
       <el-table-column width="140px" align="center" :label="$t('table.deviceIP')">
         <template slot-scope="scope">
-          <span>{{scope.row.ip}}</span>
+          <span>{{scope.row.hostAddress}}</span>
         </template>
       </el-table-column>
       <el-table-column min-width="100px" :label="$t('table.devicePath')">
@@ -184,8 +184,8 @@
         <el-form-item :label="$t('table.deviceName')" prop="name">
           <el-input v-model="temp.name"></el-input>
         </el-form-item>
-        <el-form-item :label="$t('table.deviceIP')" prop="ip">
-          <el-input v-model="temp.ip"></el-input>
+        <el-form-item :label="$t('table.deviceIP')" prop="hostAddress">
+          <el-input v-model="temp.hostAddress"></el-input>
         </el-form-item>
         <el-form-item :label="$t('table.devicePath')" prop="deployPath">
           <el-input v-model="temp.deployPath" placeholder="例如：D:/test/"></el-input>
@@ -204,8 +204,8 @@
                   :countTime="list[currentDeviceIndex].countTime"
                   :cpuData="list[currentDeviceIndex].cpuData"
                   :ramData="list[currentDeviceIndex].ramData"
-                  :upSpeed="list[currentDeviceIndex].upstreamSpeed"
-                  :downSpeed="list[currentDeviceIndex].downstreamSpeed"
+                  :upSpeed="list[currentDeviceIndex].upLoadSpeed"
+                  :downSpeed="list[currentDeviceIndex].downLoadSpeed"
                   style="margin-bottom: 10px;"
       >
       </lineMarker>
@@ -248,6 +248,7 @@
     <el-dialog title="进程" :visible.sync="processDialogVisible" class="processDialog">
       <el-table :key='tableKey' :data="taskprocess" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
                 stripe
+                height="100%"
                 style="width: 100%"
                 @selection-change="handleCheckedProcess">
         <!-- <el-table :data="list" row-key="id"  v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">-->
@@ -265,6 +266,11 @@
         <el-table-column align="center" :label="$t('table.processName')">
           <template slot-scope="scope">
             <span>{{scope.row.name}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="占用内存">
+          <template slot-scope="scope">
+            <span>{{computedSize(scope.row.ramUsedSize)}}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -342,7 +348,7 @@
         }
       }
       const validatePath = (rule, value, callback) => {
-        let pattern = /^([a-zA-Z]:(\\))([a-zA-Z]*)|(\/([a-zA-Z]+))*\/$/;
+        let pattern = /^([a-zA-Z]:(\\))([a-zA-Z]*)|(\/([a-zA-Z]+))*$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -373,7 +379,7 @@
         },
         reportData: {
           name: '',
-          ip: '',
+          hostAddress: '',
           deployPath: ''
         },
         proId: '',
@@ -392,7 +398,7 @@
         newList: [],
         temp: {
           name: '',
-          ip: '',
+          hostAddress: '',
           deployPath: '',
           description: ''
         },
@@ -424,7 +430,7 @@
         },
         deviceRules: {
           name: [{ required: true, message: '请输入设备名', trigger: 'blur' }],
-          ip: [{ required: true, trigger: 'blur', validator: validateIP }],
+          hostAddress: [{ required: true, trigger: 'blur', validator: validateIP }],
           deployPath: [{ required: true, trigger: 'blur', validator: validatePath }]
         },
         pathRules: {
@@ -491,10 +497,12 @@
         let stompClient = Stomp.over(socket);
         let that = this;
         stompClient.connect({}, function (frame) {
-          stompClient.subscribe('/topic/onlineheartbeatmessages', function (response) {
+          stompClient.subscribe('/onlineDevice', function (response) {
             let resBody = response.body;
             let resBody2 = resBody.replace(/[\\]/g, '');
             that.webResBody = JSON.parse(resBody2);
+            console.log('1===============')
+            console.log(that.webResBody)
             $("#onlineheartbeatmessages").html(resBody);
 
             if(that.list.length > 0){
@@ -508,29 +516,32 @@
               }
             }
 
-            if(that.webResBody.length > 0){
-              for(let i=0;i<that.webResBody.length;i++){
+            if(that.webResBody){
+              /*for(let i=0;i<that.webResBody.length;i++){
+
+              }*/
+              $.each(that.webResBody, function (key, value) {
                 let listIfExist = false;
                 let tempList = [];
                 if(that.list.length > 0){
                   for(let j=0;j<that.list.length;j++){
                     if(that.list[j].virtual !== true){       //虚拟设备不需要再赋值  或者在每次查之前把虚拟且离线的设备删除
-                      if(that.webResBody[i].inetAddress === that.list[j].ip){      //查找在线设备
+                      if(value.hostAddress === that.list[j].hostAddress){      //查找在线设备
                         that.list[j].online = true;
-                        that.list[j].cpuclock = that.webResBody[i].cpuclock;
-                        that.list[j].cpuutilization = that.webResBody[i].cpuutilization;
-                        that.list[j].ramsize = that.webResBody[i].ramsize;
-                        that.list[j].freeRAMSize = that.webResBody[i].freeRAMSize;
-                        that.list[j].ifChangeColor = (that.webResBody[i].ramsize - that.webResBody[i].freeRAMSize)/that.webResBody[i].ramsize*100;
+                        that.list[j].cpuClock = value.cpuClock;
+                        that.list[j].cpuUtilization = value.cpuUtilization;
+                        that.list[j].ramTotalSize = value.ramTotalSize;
+                        that.list[j].ramFreeSize = value.ramFreeSize;
+                        that.list[j].ifChangeColor = (value.ramTotalSize - value.ramFreeSize)/value.ramTotalSize*100;
                         that.list[j].virtual = false;
                         // that.countTime = that.webResBody[i].createTime
                         // that.cpuData = parseInt(that.webResBody[i].cpuutilization)
                         // that.ramData = Math.round((that.webResBody[i].ramsize - that.webResBody[i].freeRAMSize)/that.webResBody[i].ramsize*10000)/100
-                        that.list[j].countTime = that.webResBody[i].createTime;
-                        that.list[j].cpuData = parseInt(that.webResBody[i].cpuutilization);
-                        that.list[j].ramData = Math.round((that.webResBody[i].ramsize - that.webResBody[i].freeRAMSize)/that.webResBody[i].ramsize*10000)/100;
-                        that.list[j].upstreamSpeed = that.webResBody[i].upstreamSpeed;
-                        that.list[j].downstreamSpeed = that.webResBody[i].downstreamSpeed;
+                        that.list[j].countTime = value.createTime;
+                        that.list[j].cpuData = parseInt(value.cpuUtilization);
+                        that.list[j].ramData = Math.round((value.ramTotalSize - value.ramFreeSize)/value.ramTotalSize*10000)/100;
+                        that.list[j].upLoadSpeed = value.upLoadSpeed;
+                        that.list[j].downLoadSpeed = value.downLoadSpeed;
                         listIfExist = true;
                         break;
                       }
@@ -539,24 +550,24 @@
                 }
 
                 if(!listIfExist && !that.isHistory){       //添加虚拟设备
-                  console.log(that.webResBody[i].inetAddress);
-                  tempList.name = that.webResBody[i].inetAddress;
-                  tempList.ip = that.webResBody[i].inetAddress;
-                  tempList.cpuclock = that.webResBody[i].cpuclock;
-                  tempList.cpuutilization = that.webResBody[i].cpuutilization;
-                  tempList.ramsize = that.webResBody[i].ramsize;
-                  tempList.freeRAMSize = that.webResBody[i].freeRAMSize;
-                  tempList.ifChangeColor = (that.webResBody[i].ramsize - that.webResBody[i].freeRAMSize)/that.webResBody[i].ramsize*100;
+                  console.log(value.hostAddress);
+                  tempList.name = value.hostAddress;
+                  tempList.hostAddress = value.hostAddress;
+                  tempList.cpuClock = value.cpuClock;
+                  tempList.cpuUtilization = value.cpuUtilization;
+                  tempList.ramTotalSize = value.ramTotalSize;
+                  tempList.ramFreeSize = value.ramFreeSize;
+                  tempList.ifChangeColor = (value.ramTotalSize - value.ramFreeSize)/value.ramTotalSize*100;
                   tempList.virtual = true;
                   tempList.online = true;
-                  tempList.countTime = that.webResBody[i].createTime;
-                  tempList.cpuData = parseInt(that.webResBody[i].cpuutilization);
-                  tempList.ramData = Math.round((that.webResBody[i].ramsize - that.webResBody[i].freeRAMSize)/that.webResBody[i].ramsize*10000)/100;
-                  tempList.upstreamSpeed = that.webResBody[i].upstreamSpeed;
-                  tempList.downstreamSpeed = that.webResBody[i].downstreamSpeed;
+                  tempList.countTime = value.createTime;
+                  tempList.cpuData = parseInt(value.cpuUtilization);
+                  tempList.ramData = Math.round((value.ramTotalSize - value.ramFreeSize)/value.ramTotalSize*10000)/100;
+                  tempList.upLoadSpeed = value.upLoadSpeed;
+                  tempList.downLoadSpeed = value.downLoadSpeed;
                   that.list.push(tempList);
                 }
-              }
+              })
             }
 
             if(that.list.length > 0) {
@@ -592,7 +603,7 @@
       resetTemp() {
         this.temp = {
           name: '',
-          ip: '',
+          hostAddress: '',
           deployPath: '',
           description: ''
         }
@@ -611,7 +622,7 @@
             this.creDevLoading = true
             let formData = new FormData();
             formData.append('name', this.temp.name);
-            formData.append('ip', this.temp.ip);
+            formData.append('hostAddress', this.temp.hostAddress);
             formData.append('deployPath', this.temp.deployPath);
             formData.append('description', this.temp.description);
             saveDevices(this.proId, formData).then((res) => {
@@ -679,13 +690,13 @@
             let qs = require('qs');
             let data = qs.stringify({
               'name': this.temp.name,
-              'ip': this.temp.ip,
+              'hostAddress': this.temp.hostAddress,
               'deployPath': this.temp.deployPath,
               'description': this.temp.description
             });
             let deviceData = new FormData()
             deviceData.append('name',this.temp.name)
-            deviceData.append('ip',this.temp.ip)
+            deviceData.append('hostAddress',this.temp.hostAddress)
             deviceData.append('deployPath',this.temp.deployPath)
             deviceData.append('description',this.temp.description)
             deviceData.append('enctype', "multipart/form-data")
@@ -851,14 +862,14 @@
       handleReport(row) {
         this.reportDialogVisible = true
         this.reportData.name = row.name
-        this.reportData.ip = row.ip
+        this.reportData.hostAddress = row.hostAddress
         this.$nextTick(() => {
           this.$refs['reportForm'].clearValidate()
         })
       },
       resetReport() {
         this.reportData.name = ''
-        this.reportData.ip = ''
+        this.reportData.hostAddress = ''
         this.reportData.deployPath = ''
         this.pathTemp.reportPath = ''
       },
@@ -869,7 +880,7 @@
             let qs = require('qs')
             let RpData = qs.stringify({
               "name": this.reportData.name,
-              "ip": this.reportData.ip,
+              "hostAddress": this.reportData.hostAddress,
               "deployPath": this.reportData.deployPath,
               "description": ''
             })
@@ -1003,7 +1014,7 @@
           name: 'connectvnc',
           params: {
             id: row.id,
-            ip: row.ip
+            ip: row.hostAddress
           }
         })
       },
@@ -1113,6 +1124,17 @@
           if(!speed) {
             return 0 + 'KB/S'
           }
+        }
+      },
+      computedSize() {
+        return function (size) {
+          if(size < 1) {
+            return size*1024 + 'KB'
+          } else if(size < 1000) {
+            return size + 'MB'
+          } else {
+            return size/1024 + 'GB'
+           }
         }
       }
       /*listenCpuData() {
