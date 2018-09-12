@@ -16,17 +16,20 @@
     >
       <el-table-column min-width="140" align="center" :label="$t('table.deviceName')">
         <template slot-scope="scope">
-          <span>{{scope.row.name}}</span>
+          <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.name}}</span>
+          <span v-else>暂未绑定设备</span>
         </template>
       </el-table-column>
       <el-table-column min-width="140" align="center" :label="$t('table.deviceIP')">
         <template slot-scope="scope">
-          <span>{{scope.row.ip}}</span>
+          <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
+          <span v-else>暂未绑定设备</span>
         </template>
       </el-table-column>
       <el-table-column min-width="120" align="center" :label="$t('table.devicePath')">
         <template slot-scope="scope">
-          <span>{{scope.row.deployPath}}</span>
+          <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.deployPath}}</span>
+          <span v-else>暂未绑定设备</span>
         </template>
       </el-table-column>
       <el-table-column min-width="110" align="center" :label="$t('table.deviceState')">
@@ -54,8 +57,8 @@
       </el-table-column>
       <el-table-column min-width="130" align="center" :label="$t('table.actions')">
         <template slot-scope="scope">
-          <el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online"
-                     @click="deployDevice(scope.row)" :loading="scope.row.deployLoading">部署</el-button>
+          <el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
+                     @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -86,7 +89,8 @@
 </template>
 
 <script>
-  import { doDeploy, getDeployDevice } from '@/api/deploy'
+  import { doDeploy, getDeployDevice, deployNode } from '@/api/deploy'
+  import { deployNodeList } from '@/api/deployDesignNode'
   import waves from '@/directive/waves' // 水波纹指令
   import service from '@/utils/request'
   import Stomp from 'stompjs'
@@ -141,8 +145,9 @@
     methods: {
       getList() {    //获取设备信息
         this.listLoading = true
-        getDeployDevice(this.deployPlanId, this.listQuery).then(response => {
-          this.list = response.data.data
+        // getDeployDevice(this.deployPlanId, this.listQuery).then(response => {
+        deployNodeList(this.deployPlanId, this.listQuery).then(response => {
+          this.list = response.data.data.content
           this.total = response.data.data.totalElements
           this.listLoading = false
           for(let i=0;i<this.list.length;i++){
@@ -163,7 +168,7 @@
         let stompClient = Stomp.over(socket);
         let that = this;
         stompClient.connect({}, function (frame) {
-          stompClient.subscribe('/topic/onlineheartbeatmessages', function (response) {
+          stompClient.subscribe('/onlineDevice', function (response) {
             let resBody = response.body;
             let resBody2 = resBody.replace(/[\\]/g, '');
             that.webResBody = JSON.parse(resBody2);
@@ -182,7 +187,7 @@
 
             console.log("设备")
             console.log(that.webResBody)
-            if(that.webResBody.length > 0){
+            /*if(that.webResBody.length > 0){
               for(let i=0;i<that.webResBody.length;i++){
                 let listIfExist = false;
                 let tempList = [];
@@ -201,6 +206,32 @@
                   }
                 }
               }
+            }*/
+            if(that.webResBody) {
+              $.each(that.webResBody, function (key, value) {
+                let listIfExist = false;
+                let tempList = [];
+                if(that.list.length > 0){
+                  for(let j=0;j<that.list.length;j++){
+                    if(that.list[j].virtual !== true){       //虚拟设备不需要再赋值  或者在每次查之前把虚拟且离线的设备删除
+                      console.log(value.hostAddress)
+                      console.log(that.list[j])
+                      if(that.list[j].deviceEntity !== null) {
+                        if(value.hostAddress === that.list[j].deviceEntity.hostAddress){      //查找在线设备
+                          that.list[j].online = true;
+                          that.list[j].cpuClock = value.cpuClock;
+                          that.list[j].cpuUtilization = value.cpuUtilization;
+                          that.list[j].ramTotalSize = value.ramTotalSize;
+                          that.list[j].ramFreeSize = value.ramFreeSize;
+                          that.list[j].virtual = false;
+                          listIfExist = true;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+              })
             }
 
             if(that.list.length > 0) {
@@ -212,7 +243,7 @@
             }
           });
 
-          stompClient.subscribe('/topic/deployprogress/' + that.deployPlanId, function (response) {
+          stompClient.subscribe('/deployProgress/' + that.deployPlanId, function (response) {
             let progressBody = response.body;
             let progressBody2 = progressBody.replace(/[\\]/g, '');
             that.webProgressBody.push(JSON.parse(progressBody2));
@@ -239,7 +270,7 @@
 
       },
 
-      deployDevice: function (row) {
+      deployByNode: function (row) {
         let id = row.id;
         let online = false;
         let thisState;
@@ -267,7 +298,7 @@
               let deployData = qs.stringify(data);
               // this.deployLoading = true
               row.deployLoading = true
-              doDeploy(this.deployPlanId, id, deployData).then(() => {
+              deployNode(row.id).then(() => {
                 // this.deployLoading = false
                 row.deployLoading = false
                 this.dialogFormVisible = false
@@ -280,8 +311,6 @@
                 /*setInterval(() => {
                   this.getList()
                 }, 10 * 1000);*/
-
-                this.setProjectNum(this.listLength)
 
               }).catch(err => {
                 // console.log("提示---------");
@@ -496,7 +525,11 @@
         console.log(self.list);
         if(self.list !== null){
           return self.list.filter(function (item) {
-            return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+            if(item.deviceEntity !== null) {
+              return item.deviceEntity.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+            } else {
+              return item.descript.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+            }
           })
         }
 
