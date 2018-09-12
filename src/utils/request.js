@@ -77,9 +77,9 @@ service.interceptors.response.use(
   response => {
     timeStamp = getExpire()
 //判断是否超过刷新token
-    console.log("时间比较-----------")
-    console.log(timeStamp)
-    console.log(new Date() /1000)
+   // console.log("时间比较-----------")
+   // console.log(timeStamp)
+   // console.log(new Date() /1000)
     /*if (refreshTimeStamp < (new Date() /1000)) {       //超过刷新token则重新登录*/
     if (timeStamp && timeStamp < (new Date()) / 1000){      //目前是让过期就回到登录页面
       console.log("超过刷新token了，重新登录----------");

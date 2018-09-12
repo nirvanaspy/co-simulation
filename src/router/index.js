@@ -315,6 +315,12 @@ export const asyncRouterMap = [
     children: [{ path: 'deployBind/:id', component: _import('deployBind/deployBind'), name: 'deployBind', meta: { title: 'deployBind', icon: 'example' }}]
   },
   {
+    path: '/deployDesignNode',
+    component: Layout,
+    hidden: true,
+    children: [{ path: 'deployDesignNode/:id', component: _import('deployDesignNode/designNode'), name: 'designNode', meta: { title: 'designNode', icon: 'example' }}]
+  },
+  {
     path: '/usermanage',
     component: Layout,
     meta: {
@@ -370,5 +376,11 @@ export const asyncRouterMap = [
     component: Layout,
     hidden: true,
     children: [{ path: 'monitor/:id', component: _import('monitor/monitor'), name: 'monitor', meta: { title: 'monitor', icon: 'table' }}]
+  },
+  {
+    path: '/componentHistory',
+    component: Layout,
+    hidden: true,
+    children: [{ path: 'componentHistory/:id', component: _import('componentHistory/index'), name: 'componentHistory', meta: { title: 'componentHistory', icon: 'table', noCache: true }}]
   }
 ]

@@ -267,3 +267,10 @@ code {
 .scanResTable table{
   width: 100% !important;
 }
+
+.nodeTable .fixed-width .el-button--mini {
+  padding: 7px 6px;
+}
+.el-radio__label{
+  display: none!important
+}
