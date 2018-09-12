@@ -31,7 +31,7 @@ export function deleteUser(id) {
 }
 export function addUser(data) {
   return request({
-    url: 'users',
+    url: 'users/user',
     method: 'post',
     data
   })
