@@ -58,7 +58,7 @@
     </div>
     <div style="width:33%;float:left;margin-top: 10px;border:1px solid #ebeef5;height: 90%;">
       <el-table :data="deviceList" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
-                style="width: 100%;height:100%;"
+                style="width: 100%;height:100%;overflow-y: scroll"
                 :row-key="getRowKeysComp"
                 :expand-row-keys="deviceExpands"
                 class="deviceList"
@@ -79,12 +79,12 @@
               <el-table-column label="组件名" align="left" width="160">
                 <template slot-scope="scope">
                   <span class="link-type"
-                        @dblclick="handleSelectComp(scope.row)">{{scope.row.componentEntity.name}}</span>
+                        @dblclick="handleSelectComp(scope.row)">{{scope.row.componentHistoryEntity.name}}</span>
                 </template>
               </el-table-column>
               <el-table-column label="路径" align="left">
                 <template slot-scope="scope">
-                  <span>{{scope.row.componentEntity.deployPath}}</span>
+                  <span>{{scope.row.componentHistoryEntity.relativePath}}</span>
                 </template>
               </el-table-column>
               <!--<el-table-column label="描述">
@@ -108,12 +108,14 @@
         </el-table-column>
         <el-table-column align="left" :label="$t('table.deviceName')" min-width="160">
           <template slot-scope="scope">
-            <span class="link-type" @dblclick="getDetailByDevice(scope.row, scope.$index)">{{scope.row.name}}</span>
+            <span v-if="scope.row.deviceEntity !== null" class="link-type" @dblclick="getDetailByNode(scope.row, scope.$index)">{{scope.row.deviceEntity.name}}</span>
+            <span v-else>暂未绑定设备</span>
           </template>
         </el-table-column>
         <el-table-column align="left" label="IP" min-width="130">
           <template slot-scope="scope">
-            <span class="link-type">{{scope.row.ip}}</span>
+            <span v-if="scope.row.deviceEntity !== null" class="link-type">{{scope.row.deviceEntity.hostAddress}}</span>
+            <span v-else>暂未绑定设备</span>
           </template>
         </el-table-column>
         <el-table-column align="left" label="状态" width="100">
@@ -205,18 +207,18 @@
         </el-table-column>
         <el-table-column align="center" label="组件名" min-width="130">
           <template slot-scope="scope">
-            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentEntity.name}}</span>
+            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.name}}</span>
             <!--<span class="link-type" v-else>{{scope.row.componentEntity.name}}</span>-->
           </template>
         </el-table-column>
         <el-table-column align="center" label="版本" width="130">
           <template slot-scope="scope">
-            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentEntity.version}}</span>
+            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.version}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" label="路径" min-width="130">
           <template slot-scope="scope">
-            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentEntity.deployPath}}</span>
+            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.deployPath}}</span>
           </template>
         </el-table-column>
         <!--<el-table-column align="center" label="文件" min-width="130">
@@ -260,7 +262,8 @@
 <script>
   /*eslint-disable*/
   import { deployplanDevice, getDeployDetailByDevice } from '@/api/deployplan'
-  import { scanDevice, scanComp, scanQucikByDev, scanQucikByComp } from '@/api/scan'
+  import { scanDevice, scanComp, scanQucikByDev, scanQucikByComp, scanNode, scanNodeDetail, scanQuickNode, scanQuickNodeDetail, getResultByOrder } from '@/api/scan'
+  import { deployNodeList, getNodeDetail } from '@/api/deployDesignNode'
   import Stomp from 'stompjs'
   import SockJS from 'sockjs-client'
   import Vue from 'vue'
@@ -285,8 +288,19 @@
         deviceDetail: [],
         fileInfo: [],
         fileResult: [],
+        total: 0,
+        listQuery: {
+          page: 0,
+          size: 20,
+          limit: 5,
+          tagname: ''
+        },
+        indexedDB: null,
+        myDB: null,
+        dbRequest: null,
+        dbObjectStore: null,
         getRowKeys(row) {
-          return row.componentEntity.id
+          return row.componentHistoryEntity.id
         },
         getRowKeysComp(row) {
           return row.id
@@ -307,9 +321,129 @@
       // alert(this.$route.params.id)
       this.deployPlanId = this.$route.params.id
       this.deployplanName = this.$route.params.name
-      this.getDevices(this.deployPlanId)
+      // this.getDevices(this.deployPlanId)
+      this.getNodeList()
+      this.initIndexedDB('indexedDB-orderConfig', 1)
     },
     methods: {
+      initIndexedDB(name, version) {
+        let that = this
+        this.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+        if(!this.indexedDB)
+        {
+          alert("你的浏览器不支持IndexedDB");
+        }
+        // const request = this.indexedDB.open(name, version)
+        this.dbRequest = this.indexedDB.open(name, version)
+        this.dbRequest.onerror = function(e) {
+          console.log(e.currentTarget.error.message);
+        };
+
+        this.dbRequest.onsuccess = function(e) {
+          that.myDB = e.target.result;
+          /*const transaction = this.myDB.transaction(["orderId"], "readwrite");
+          this.dbObjectStore = transaction.objectStore("orderId");
+          console.log('成功打开DB');*/
+        };
+
+        this.dbRequest.onupgradeneeded = function(e) {
+          that.myDB = e.target.result;
+          console.log(this.myDB)
+          if (!that.myDB.objectStoreNames.contains('orderConfig')) {
+            console.log("我需要创建一个新的存储对象");
+            //如果表格不存在，创建一个新的表格（keyPath，主键 ； autoIncrement,是否自增），会返回一个对象（objectStore）
+            that.dbObjectStore = that.myDB.createObjectStore('orderConfig', {
+              keyPath: "id",
+              autoIncrement: true
+            });
+
+            //指定可以被索引的字段，unique字段是否唯一
+
+            /*that.dbObjectStore.createIndex("deployplanId", "deployplanId", {
+              unique: false
+            });
+
+            that.dbObjectStore.createIndex("designNodeId", "designNodeId", {
+              unique: false
+            });
+            that.dbObjectStore.createIndex("nodeDetailId", "nodeDetailId", {
+              unique: false
+            });*/
+            that.dbObjectStore.createIndex("id", "id", {
+              unique: true
+            });
+          }
+          console.log('数据库版本更改为： ' + version);
+        };
+      },
+      addOrder(id, orderId) {
+        if(!this.myDB) {
+          alert('none')
+          return
+        }
+        var tx = this.myDB.transaction('orderConfig', 'readwrite');
+        var store = tx.objectStore('orderConfig');
+        var req = store.put({
+          id: id,
+          deployplanId: this.deployPlanId,
+          designNodeId: this.selectedDeviceId,
+          nodeDetailId: this.selectedCompId,
+          orderId: orderId });
+        req.onsuccess = function (evt) {
+          alert('sucess')
+        };
+        req.onerror = function() {
+          alert('error')
+        };
+      },
+      checkOrder(id) {
+        let that = this
+        if(!this.myDB) {
+          alert('noneDB')
+          return
+        }
+        var tx = this.myDB.transaction('orderConfig', 'readwrite');
+        var store = tx.objectStore('orderConfig');
+        var req = store.get(id);
+        req.onsuccess = function (evt) {
+          // alert('getsucess')
+          // alert(evt.target.result.orderId)
+          if(evt.target.result) {
+            getResultByOrder(evt.target.result.orderId).then((res) => {
+              const compResult = res.data.data
+              that.expands = []
+              that.deviceDetail = compResult
+              for (var j = 0; j < that.deviceDetail.length; j++) {
+                that.expands.push(that.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity.id)
+                that.deviceDetail[j].componentHistoryEntity = that.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
+                that.deviceDetail[j].correctFiles = []
+                that.deviceDetail[j].missingFiles = []
+                that.deviceDetail[j].modifyedFiles = []
+                that.deviceDetail[j].unknownFiles = []
+                that.deviceDetail[j].result.forEach((item) => {
+                  if(item.type === 0) {
+                    that.deviceDetail[j].correctFiles.push(item)
+                  }
+                  if(item.type === 1) {
+                    that.deviceDetail[j].modifyedFiles.push(item)
+                  }
+                  if(item.type === 2) {
+                    that.deviceDetail[j].unknownFiles.push(item)
+                  }
+                  if(item.type === 3) {
+                    that.deviceDetail[j].missingFiles.push(item)
+                  }
+                })
+              }
+            })
+          } else {
+            console.log('noOrderId')
+          }
+        };
+        req.onerror = function() {
+          alert('error')
+        };
+      },
       querySearch(queryString, cb) {
         cb(this.typeSuggest)
       },
@@ -323,13 +457,28 @@
           this.getList2()
         })
       },
+      getNodeList() {
+        this.listLoading = true;
+        deployNodeList(this.deployPlanId, this.listQuery).then(response => {
+          /*this.deviceList = []
+          response.data.data.content.forEach((item) => {
+            if(item.deviceEntity) {
+              this.deviceList.push(item)
+            }
+          })*/
+          this.deviceList = response.data.data.content
+          this.listLoading = false
+          this.total = response.data.data.totalElements
+          this.getList2()
+        })
+      },
       getList2() {
         let url = service.defaults.baseURL + '/OMS'
         let socket = new SockJS(url)
         let stompClient = Stomp.over(socket)
         let that = this
         stompClient.connect({}, function(frame) {
-          stompClient.subscribe('/topic/onlineheartbeatmessages', function(response) {
+          stompClient.subscribe('/onlineDevice', function(response) {
             let resBody = response.body
             let resBody2 = resBody.replace(/[\\]/g, '')
             that.webResBody = JSON.parse(resBody2)
@@ -339,7 +488,7 @@
                 that.deviceList[i].online = false
               }
             }
-            if (that.webResBody.length > 0) {
+            /*if (that.webResBody.length > 0) {
               for (let i = 0; i < that.webResBody.length; i++) {
                 let listIfExist = false
                 let tempList = []
@@ -352,6 +501,22 @@
                   }
                 }
               }
+            }*/
+            if(that.webResBody){
+              $.each(that.webResBody, function (key, value) {
+                let listIfExist = false;
+                let tempList = [];
+                if(that.deviceList.length > 0){
+                  for(let j=0;j<that.deviceList.length;j++){
+                    if(that.deviceList[j].deviceEntity) {
+                      if(value.hostAddress === that.deviceList[j].deviceEntity.hostAddress){      //查找在线设备
+                        that.deviceList[j].online = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+              })
             }
 
             if (that.deviceList.length > 0) {
@@ -365,20 +530,35 @@
         })
 
       },
-      getDetailByDevice(row, index) {
+      getDetailByNode(row, index) {
         // this.isExpand = false
+        let uniqueId = this.deployPlanId + row.id
         this.selectedDeviceId = row.id
-        this.selectedDeviceName = row.name
-        getDeployDetailByDevice(this.deployPlanId, row.id).then((res) => {
+        this.selectedDeviceName = row.deviceEntity.name
+        this.selectedCompId = ''
+        this.selectedCompName = ''
+        // getDeployDetailByDevice(this.deployPlanId, row.id).then((res) => {
+        getNodeDetail(row.id).then((res) => {
           this.deviceDetail = res.data.data
+          this.expands = []
           this.deviceList[index].comps = res.data.data
           this.deviceExpands.push(row.id)
+          this.checkOrder(uniqueId)
         })
       },
       handleSelectComp(row) {
-        this.selectedCompId = row.componentEntity.id
-        this.selectedCompName = row.componentEntity.name
+        // this.selectedCompId = row.componentHistoryEntity.id
+        this.selectedCompId = row.id
+        this.selectedDeviceId = row.deploymentDesignNodeEntity.id
+        this.selectedDeviceName = row.deploymentDesignNodeEntity.deviceEntity.name
+        console.log('row===========')
+        console.log(row)
+        this.selectedCompName = row.componentHistoryEntity.name
         this.deviceDetail = [row]
+        let uniqueId = this.deployPlanId + this.selectedDeviceId + row.id
+        this.expands = []
+        this.checkOrder(uniqueId)
+
       },
       scanAllByDevice() {
         if (this.selectedDeviceId == '') {
@@ -398,72 +578,37 @@
                 duration: 2000
               })
               this.scanLoading = true
-              scanDevice(this.deployPlanId, this.selectedDeviceId).then((res) => {
+              // scanDevice(this.deployPlanId, this.selectedDeviceId).then((res) => {
+              scanNode(this.selectedDeviceId).then((res) => {
+                let uniqueId = this.deployPlanId + this.selectedDeviceId
+                this.addOrder(uniqueId, res.data.data[0].orderId)
                 this.isExpand = false
                 this.scanLoading = false
                 const compResult = res.data.data
                 this.expands = []
                 this.deviceDetail = compResult
-                for (var i = 0; i < this.deviceDetail.length; i++) {
-                  this.expands.push(this.deviceDetail[i].componentEntity.id)
-                }
-                /*for (var i = 0; i < compResult.length; i++) {
-                  for (var j = 0; j < this.deviceDetail.length; j++) {
-                    if (this.deviceDetail[j].componentEntity.id === compResult[i].componentEntity.id) {
-                      // this.deviceDetail[j].correctFiles = compResult[i].correctFiles
-                      // this.deviceDetail[j].missingFiles = compResult[i].missingFiles
-                      // this.deviceDetail[j].modifyedFiles = compResult[i].modifyedFiles
-                      // this.deviceDetail[j].unknownFiles = compResult[i].unknownFiles
-                      const correctFiles = compResult[i].correctFiles
-                      const missingFiles = compResult[i].missingFiles
-                      const modifyedFiles = compResult[i].modifyedFiles
-                      const unknownFiles = compResult[i].unknownFiles
-                      /!*for (var k = 0; k < correctFiles.length; k++) {
-                        correctFiles[k].correct = true
-                        correctFiles[k].componentEntity = compResult[i].componentEntity
-                        // const pos = correctFiles[k].deployPath.lastIndexOf('/')
-                        // correctFiles[k].fileName = correctFiles[k].deployPath.substr(pos + 1)
-                      }
-                      for (var l = 0; l < modifyedFiles.length; l++) {
-                        modifyedFiles[l].modifyed = true
-                        modifyedFiles[l].componentEntity = compResult[i].componentEntity
-                        // const pos1 = modifyedFiles[l].deployPath.lastIndexOf('/')
-                        // modifyedFiles[l].fileName = modifyedFiles[l].deployPath.substr(pos1 + 1)
-                      }
-                      for (var m = 0; m < missingFiles.length; m++) {
-                        missingFiles[m].missing = true
-                        missingFiles[m].componentEntity = compResult[i].componentEntity
-                        // const pos2 = missingFiles[m].deployPath.lastIndexOf('/')
-                        // missingFiles[m].fileName = missingFiles[m].deployPath.substr(pos2 + 1)
-                      }
-                      for (var n = 0; n < unknownFiles.length; n++) {
-                        unknownFiles[n].unknown = true
-                        unknownFiles[n].componentEntity = compResult[i].componentEntity
-                        // const pos3 = unknownFiles[n].deployPath.lastIndexOf('/')
-                        // unknownFiles[n].fileName = unknownFiles[n].deployPath.substr(pos3 + 1)
-                      }*!/
-                      /!* if (correctFiles) {
-                        correctFiles.forEach(item => {
-                          item.correct = true
-                        })
-                      }
-                      missingFiles.forEach(function(value, index, arr) {
-                        value.missing = true
-                      })
-                      modifyedFiles.forEach(function(value, index, arr) {
-                        value.modifyed = true
-                      })
-                      unknownFiles.forEach(function(value, index, arr) {
-                        value.unknown = true
-                      })*!/
-                      this.deviceDetail[j].correctFiles = correctFiles
-                      this.deviceDetail[j].modifyedFiles = modifyedFiles
-                      this.deviceDetail[j].unknownFiles = unknownFiles
-                      this.deviceDetail[j].missingFiles = missingFiles
-                      this.expands.push(this.deviceDetail[j].componentEntity.id)
+                for (var j = 0; j < this.deviceDetail.length; j++) {
+                  this.expands.push(this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity.id)
+                  this.deviceDetail[j].componentHistoryEntity = this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
+                  this.deviceDetail[j].correctFiles = []
+                  this.deviceDetail[j].missingFiles = []
+                  this.deviceDetail[j].modifyedFiles = []
+                  this.deviceDetail[j].unknownFiles = []
+                  this.deviceDetail[j].result.forEach((item) => {
+                    if(item.type === 0) {
+                      this.deviceDetail[j].correctFiles.push(item)
                     }
-                  }
-                }*/
+                    if(item.type === 1) {
+                      this.deviceDetail[j].modifyedFiles.push(item)
+                    }
+                    if(item.type === 2) {
+                      this.deviceDetail[j].unknownFiles.push(item)
+                    }
+                    if(item.type === 3) {
+                      this.deviceDetail[j].missingFiles.push(item)
+                    }
+                  })
+                }
                 this.$notify({
                   title: '成功',
                   message: '扫描成功',
@@ -559,15 +704,37 @@
           if (this.selectedDeviceId == this.deviceList[i].id) {
             if (this.deviceList[i].online === true) {
               this.scanLoading = true
-              scanComp(this.deployPlanId, this.selectedDeviceId, this.selectedCompId).then((res) => {
+              scanNodeDetail(this.selectedCompId).then((res) => {
+                let uniqueId = this.deployPlanId + this.selectedDeviceId + this.selectedCompId
+                this.addOrder(uniqueId, res.data.data.orderId)
                 this.scanLoading = false
                 this.deviceDetail = []
                 this.expands = []
                 this.deviceDetail.push(res.data.data)
-                this.expands.push(res.data.data.componentEntity.id)
-                /*for(var i=0; i < res.data.data.length; i++){
-                  this.expands.push(res.data.data.componentEntity.id)
-                }*/
+                // this.expands.push(res.data.data.componentEntity.id)
+                this.expands.push(res.data.data.deploymentDesignDetailEntity.componentHistoryEntity.id)
+
+                for(var j = 0; j < this.deviceDetail.length; j++ ) {
+                  this.deviceDetail[j].componentHistoryEntity = this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
+                  this.deviceDetail[j].correctFiles = []
+                  this.deviceDetail[j].missingFiles = []
+                  this.deviceDetail[j].modifyedFiles = []
+                  this.deviceDetail[j].unknownFiles = []
+                  this.deviceDetail[j].result.forEach((item) => {
+                    if(item.type === 0) {
+                      this.deviceDetail[j].correctFiles.push(item)
+                    }
+                    if(item.type === 1) {
+                      this.deviceDetail[j].modifyedFiles.push(item)
+                    }
+                    if(item.type === 2) {
+                      this.deviceDetail[j].unknownFiles.push(item)
+                    }
+                    if(item.type === 3) {
+                      this.deviceDetail[j].missingFiles.push(item)
+                    }
+                  })
+                }
                 console.log(this.expands)
                 console.log('组件扫描')
                 console.log(this.deviceDetail)
@@ -649,14 +816,34 @@
                 duration: 2000
               })
               this.scanLoading = true
-              scanQucikByDev(this.deployPlanId, this.selectedDeviceId, this.type1).then((res) => {
+              // scanQucikByDev(this.deployPlanId, this.selectedDeviceId, this.type1).then((res) => {
+              scanQuickNode(this.selectedDeviceId, this.type1).then((res) => {
                 this.scanLoading = false
                 // this.deviceDetail = []
                 // this.deviceDetail.push(res.data.data)
                 this.deviceDetail = res.data.data
                 this.expands = []
-                for (var k = 0; k < res.data.data.length; k++) {
-                  this.expands.push(res.data.data[k].componentEntity.id)
+                for (var k = 0; k < this.deviceDetail.length; k++) {
+                  this.expands.push(this.deviceDetail[k].deploymentDesignDetailEntity.componentHistoryEntity.id)
+                  this.deviceDetail[k].componentHistoryEntity = this.deviceDetail[k].deploymentDesignDetailEntity.componentHistoryEntity
+                  this.deviceDetail[k].correctFiles = []
+                  this.deviceDetail[k].missingFiles = []
+                  this.deviceDetail[k].modifyedFiles = []
+                  this.deviceDetail[k].unknownFiles = []
+                  this.deviceDetail[k].result.forEach((item) => {
+                    if(item.type === 0) {
+                      this.deviceDetail[k].correctFiles.push(item)
+                    }
+                    if(item.type === 1) {
+                      this.deviceDetail[k].modifyedFiles.push(item)
+                    }
+                    if(item.type === 2) {
+                      this.deviceDetail[k].unknownFiles.push(item)
+                    }
+                    if(item.type === 3) {
+                      this.deviceDetail[k].missingFiles.push(item)
+                    }
+                  })
                 }
                 this.dialogFormVisible = false
                 this.$notify({
@@ -695,12 +882,36 @@
                 duration: 2000
               })
               this.scanLoading = true
-              scanQucikByComp(this.deployPlanId, this.selectedDeviceId, this.selectedCompId, this.type1).then((res) => {
+              // scanQucikByComp(this.deployPlanId, this.selectedDeviceId, this.selectedCompId, this.type1).then((res) => {
+              scanQuickNodeDetail(this.selectedCompId, this.type1).then((res) => {
                 this.scanLoading = false
                 this.deviceDetail = []
                 this.deviceDetail.push(res.data.data)
                 this.expands = []
-                this.expands.push(res.data.data.componentEntity.id)
+                // this.expands.push(res.data.data.componentEntity.id)
+                this.expands.push(res.data.data.deploymentDesignDetailEntity.componentHistoryEntity.id)
+
+                for(var j = 0; j < this.deviceDetail.length; j++ ) {
+                  this.deviceDetail[j].componentHistoryEntity = this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
+                  this.deviceDetail[j].correctFiles = []
+                  this.deviceDetail[j].missingFiles = []
+                  this.deviceDetail[j].modifyedFiles = []
+                  this.deviceDetail[j].unknownFiles = []
+                  this.deviceDetail[j].result.forEach((item) => {
+                    if(item.type === 0) {
+                      this.deviceDetail[j].correctFiles.push(item)
+                    }
+                    if(item.type === 1) {
+                      this.deviceDetail[j].modifyedFiles.push(item)
+                    }
+                    if(item.type === 2) {
+                      this.deviceDetail[j].unknownFiles.push(item)
+                    }
+                    if(item.type === 3) {
+                      this.deviceDetail[j].missingFiles.push(item)
+                    }
+                  })
+                }
                 this.dialogFormVisible = false
                 this.$notify({
                   title: '成功',
@@ -756,7 +967,15 @@
             }
           }
         }
-      }
+      },
+      /*deviceListB: function () {
+        let self = this;
+        return self.deviceList.filter(function (item) {
+          if(item.deviceEntity) {
+            return item
+          }
+        })
+      },*/
     }
   }
 </script>
