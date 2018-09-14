@@ -354,6 +354,11 @@ export const asyncRouterMap = [
     children: [{ path: 'vnc/:id', component: _import('connectVNC/index'), name: 'connectvnc', meta: { title: 'vnc', icon: 'example' }}]
   },
   {
+    path: '/novnc',
+    component: Layout,
+    children: [{ path: 'flexNovnc', component: _import('novnc/flexNovnc'), name: 'flexNovnc', meta: { title: '多布局VNC', icon: 'log' }}]
+  },
+  {
     path: '/comps',
     component: Layout,
     hidden: true,

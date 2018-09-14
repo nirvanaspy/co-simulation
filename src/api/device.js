@@ -1,5 +1,15 @@
 import request from '../utils/request'
 
+export function getDevice(proId) {
+  return request({
+    url: '/projects/' + proId + '/device',
+    method: 'get',
+    params: {
+      deleted: false
+    }
+  })
+}
+
 export function getDevices(proId, listQuery) {
   return request({
     url: '/projects/' + proId + '/devices',
