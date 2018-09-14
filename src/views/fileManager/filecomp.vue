@@ -162,8 +162,7 @@
                 @file-success="folderFileSuccess"
                 v-loading="md5Loading"
                 element-loading-text="正在校验文件夹身份，请勿关闭"
-                @file-complete="folderComplete"
-                class="manage-uploader">
+                class="manage-uploaderFolder">
         <uploader-unsupport></uploader-unsupport>
         <uploader-drop>
           <p>拖拽文件到此处或</p>
@@ -321,7 +320,8 @@
         token: '',
         folderFileInfo: [],
         fileInfoList: [],
-        fileCompleteLength: 0
+        fileCompleteLength: 0,
+        folderfileCompleteLength: 0
       }
     },
     created() {
@@ -482,6 +482,7 @@
           this.$refs.uploaderFolder.uploader.opts.target = this.target
           this.$refs.uploaderFolder.uploader.opts.headers.Authorization = this.token
           this.folderFileInfo = []
+          $('.manage-uploaderFolder .uploader-btn').css('display','inline-block')
         })
       },
 
@@ -797,7 +798,9 @@
         console.log('complete', arguments[0])
       },
       folderAdded(fileAdded, fileList) {
+        $('.manage-uploaderFolder .uploader-btn').css('display','none')
         let listLength = fileAdded.length
+        this.folderfileCompleteLength = fileAdded.length
         // alert(listLength)
         this.md5Loading = true
         let chunkSize = this.$refs.uploaderFolder.uploader.opts.chunkSize
@@ -819,11 +822,15 @@
                 }
                 that.listLoading = false
                 that.folderFileInfo.push(infoList)
-                fileAdded.splice(i,1)
+                // fileAdded.splice(i,1)
+                // that.$refs.uploaderFolder.uploader.files.splice(i, 1)
+                that.$refs.uploaderFolder.uploader.removeFile(fileA)
                 console.log(fileAdded.length);
                 if(completeFlag === listLength) {
                   that.md5Loading = false
-                  if(fileAdded.length === 0) {
+                  // console.log(fileAdded)
+                  // console.log(that.$refs.uploaderFolder.uploader.files)
+                  /*if(fileAdded.length === 0) {
                     let datapost = JSON.stringify(that.folderFileInfo)
                     console.log(datapost)
                     uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
@@ -845,7 +852,7 @@
                         duration: 2000
                       })
                     })
-                  }
+                  }*/
                   that.$refs.uploaderFolder.uploader.upload()
                 }
 
@@ -884,12 +891,12 @@
                   }
                   that.getList()
                 })*/
-              } else if (res.data.data == false) {
+              } else if (res.data.data === false) {
                 completeFlag++
                 if(completeFlag === listLength) {
                   that.md5Loading = false
                   console.log(fileAdded.length)
-                  if(fileAdded.length === 0) {
+                  /*if(fileAdded.length === 0) {
                     let datapost = JSON.stringify(that.folderFileInfo)
                     console.log(datapost)
                     uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
@@ -910,7 +917,7 @@
                         duration: 2000
                       })
                     })
-                  }
+                  }*/
                   that.$refs.uploaderFolder.uploader.upload()
                 }
               }
@@ -1310,6 +1317,24 @@
         // console.log()
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
           let datapost = JSON.stringify(this.fileInfoList)
+          uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
+            this.listLoading = false
+            this.$notify({
+              title: '成功',
+              message: '上传成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getList()
+          })
+        }
+      },
+      folderFileLength(newValue, oldValue) {
+        // alert(this.fileCompleteLength)
+        // console.log()
+        if(this.folderfileCompleteLength === this.folderFileInfo.length && this.folderFileInfo.length !== 0) {
+          // alert(this.folderfileCompleteLength)
+          let datapost = JSON.stringify(this.folderFileInfo)
           uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
             this.listLoading = false
             this.$notify({
