@@ -252,8 +252,9 @@
               for(let i=0;i<that.webProgressBody.length;i++){
                 if(that.list.length > 0){
                   for(let j=0;j<that.list.length;j++){
-                    if(that.webProgressBody[i].hostName == that.list[j].ip){      //查找此设备
-                      that.list[j].progress = parseFloat(that.webProgressBody[i].progress.toFixed(2));
+                    if(that.webProgressBody[i].hostAddress == that.list[j].deviceEntity.hostAddress){      //查找此设备
+                      // that.list[j].progress = parseFloat(that.webProgressBody[i].progress.toFixed(2));
+                      that.list[j].progress = parseInt(that.webProgressBody[i].progress);
                       that.list[j].speed = parseFloat(that.webProgressBody[i].speed.toFixed(2));
                       that.list[j].state = that.webProgressBody[i].state;
                       that.list[j].fileState = that.webProgressBody[i].state;
@@ -285,7 +286,7 @@
         }
 
         if (online) {
-          if(thisState !== 1){      //部署状态为1时表示正在部署
+          if(thisState !== 3){      //部署状态为3时表示正在部署
             this.$confirm('确认部署吗？', '提示', {
               confirmButtonText: '确定',
               cancelButtonText: '取消',
@@ -308,14 +309,7 @@
                   type: 'success',
                   duration: 2000
                 })
-                /*setInterval(() => {
-                  this.getList()
-                }, 10 * 1000);*/
-
               }).catch(err => {
-                // console.log("提示---------");
-                // console.log(err.response.data.data);
-                // this.deployLoading = false
                 row.deployLoading = false
                 if(err.response.data.data.length != 0){
                   this.$notify({
@@ -333,7 +327,6 @@
               })
             })
           }else{
-            // this.deployLoading = true
             row.deployLoading = false
             this.$message({
               message: '此设备正在部署!',

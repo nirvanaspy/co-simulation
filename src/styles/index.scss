@@ -230,7 +230,7 @@ code {
 }
 .modDeviceDialog .el-dialog{
   max-height: 70%;
-  overflow-y: scroll;
+  overflow-y: auto;
   .el-dialog__body {
     // overflow-y: scroll;
     // overflow: hidden;

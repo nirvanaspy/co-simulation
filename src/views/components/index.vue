@@ -156,8 +156,8 @@
             <el-input v-model="temp.description"></el-input>
           </el-form-item>
           <div class="button-container">
-            <el-button @click="dialogFormVisible = false">{{$t('table.cancel')}}</el-button>
-            <el-button type="primary" @click="createData" :loading="creComLoading">{{$t('table.confirm')}}</el-button>
+            <el-button @click="dialogFormVisible = false">关闭</el-button>
+            <el-button v-if="showConfirmBtn" type="primary" @click="createData" :loading="creComLoading">{{$t('table.confirm')}}</el-button>
           </div>
         </div>
         <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px"
@@ -187,13 +187,13 @@
               <el-input v-model="temp.version"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compPath')" prop="relativePath">
-              <el-input v-model="temp.relativePath" placeholder="/test/，必须以斜杠开头，斜杠结尾"></el-input>
+              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
             </el-form-item>
             <div class="button-container">
-              <el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>
+              <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
               <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
             </div>
             <!--去除修改组件时的文件上传模块-->
@@ -242,8 +242,8 @@
     },
     data() {
       const validatePath = (rule, value, callback) => {
-        let pattern = /^(\/([a-zA-Z0-9]+))$/;
         // let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
+        let pattern = /^(\/([a-zA-Z0-9]+))+$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -342,7 +342,10 @@
           username: '',
           password: ''
         },
-        errorMessage: '操作失败'
+        errorMessage: '操作失败',
+        showConfirmBtn: true,
+        showConfirmBtn1: true,
+        originalCompTemp: null
       }
     },
     components: {
@@ -403,6 +406,7 @@
         }
       },
       handleCreate() {
+        this.showConfirmBtn = true
         this.managerLoading = true
         this.resetTemp();
         this.selectedId = ''
@@ -451,6 +455,7 @@
             }*/
             // debugger
             createComp(this.projectId, formData).then((res) => {
+              this.showConfirmBtn = false
               this.creComLoading = false
               createloading.close()
               // this.list.unshift(this.temp)
@@ -466,6 +471,7 @@
               })
               this.getList()
             }).catch((error) => {
+              this.showConfirmBtn = true
               this.creComLoading = false
               createloading.close()
               this.errorMessage = '操作失败！'
@@ -483,11 +489,14 @@
         })
       },
       handleUpdate(row) {
+        this.originalCompTemp = {}
         this.selectedId = row.id;
         this.selectdName = row.name
         this.temp = Object.assign({}, row) // copy obj
+        this.originalCompTemp = Object.assign({}, row)
         this.temp.timestamp = new Date(this.temp.timestamp)
         this.dialogStatus = 'update'
+        this.showConfirmBtn1 = true
         this.dialogFormVisible = true
         this.$nextTick(() => {
           /*if(this.$refs.createComFile.list) {
@@ -652,6 +661,17 @@
               spinner: 'el-icon-loading',
               fullscreen: true
             })*/
+            if(this.originalCompTemp.name === this.temp.name
+              && this.originalCompTemp.version === this.temp.version
+              && this.originalCompTemp.relativePath === this.temp.relativePath
+              && this.originalCompTemp.description === this.temp.description)
+            {
+              this.$message({
+                type: 'info',
+                message: '组件信息未修改'
+              })
+              return
+            }
             this.upComLoading = true
             let id = this.selectedId;
 
@@ -694,6 +714,7 @@
                 }
               }*/
               // updateloading.close()
+              this.showConfirmBtn1 = false
               this.upComLoading = false
               this.dialogFormVisible = false
               this.$notify({
@@ -704,6 +725,7 @@
               })
               this.getList()
             }).catch((error) => {
+              this.showConfirmBtn = true
               this.errorMessage = '操作失败！'
               this.upComLoading = false
               if(error.response.data.message){
@@ -765,7 +787,7 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.getIP() + 'components/' + id + '/exportfiles';
+        this.exportUrl = this.getIP() + 'components/' + id + '/export';
 
         console.log(this.exportUrl);
         window.open(this.exportUrl);

@@ -1,10 +1,11 @@
 <template>
   <div class="app-container calendar-list-container"
        style="position: absolute;top: 85px;bottom: 0;width: 100%;height: 90%">
+    <div style="height: 30px;padding:4px 4px;color:#777;">当前部署设计：{{currentName}}</div>
     <split-pane split="vertical" class="splicClass" style="height: 96%">
       <template slot="paneL">
         <div class="filter-container" style="padding: 10px 0 5px 5px">
-          <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="名称"
+          <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="请输入已绑定设备ip"
                     v-model="searchQuery">
           </el-input>
           <el-button class="filter-item" style="margin-left: 10px;float:right;" @click="addNode" type="primary"
@@ -58,7 +59,11 @@
                   </div>-->
 
                   <div style="height: 425px;overflow-y: auto;margin-top: 0;" id="deviceTab">
-                    <el-table :key='tableKey' :data="currentDeviceList" v-loading="deviceLoading"
+                    <div class="filter-container">
+                      <el-input style="width: 240px;" class="filter-item" placeholder="请输入用户ip" v-model="searchQueryDevice">
+                      </el-input>
+                    </div>
+                    <el-table :key='tableKey' :data="listAbleDevice" v-loading="deviceLoading"
                               element-loading-text="给我一点时间" border fit
                               highlight-current-row
                               ref="deviceTable"
@@ -152,11 +157,13 @@
                               highlight-current-row
                               style="width: 100%;"
                               :row-key="getRowKeysComp"
+                              :expand-row-keys="compExpands"
                               @expand-change="expandRow"
                               @selection-change="handleCheckedCompsChange" id="compTable">
                       <el-table-column
                         type="selection"
                         :selectable='checkboxIsBind'
+                        :reserve-selection="true"
                         width="40"
                         align="center">
                       </el-table-column>
@@ -285,7 +292,7 @@
                 <router-link :to='{name:"deploy",params:{id:scope.row.id}}' v-if="!scope.row.deleted"><el-button size="mini" type="success">部署</el-button></router-link>
               </template>
             </el-table-column>-->
-            <el-table-column align="center" :label="$t('table.actions')" width="200">
+            <el-table-column align="center" :label="$t('table.actions')" width="120">
               <template slot-scope="scope">
                 <el-dropdown trigger="click" v-if="!scope.row.deleted">
                   <span class="el-dropdown-link" v-if="!scope.row.virtual">
@@ -461,7 +468,7 @@
     deleteBindDetail
   } from '@/api/deployDesignNode'
   import {compList} from '@/api/component'
-  import {getDevices} from '@/api/device'
+  import {getDevices, getAllDevices} from '@/api/device'
   import {doDeployBind, getDeployComLists, deleteBind} from '@/api/deployBind'
   import {compHisVersion, compHisVersions} from '@/api/component'
   import waves from '@/directive/waves' // 水波纹指令
@@ -544,6 +551,7 @@
         creBasLoading: false,
         upBasLoading: false,
         searchQuery: '',
+        searchQueryDevice: '',
         errorMessage: '操作失败！',
         deviceList: [],
         deviceTotal: 0,
@@ -574,7 +582,9 @@
         watchArr: [],
         radio: '',
         nodeDetail: [],
-        currentNodeInfo: {}
+        currentNodeInfo: {},
+        compExpands: [],
+        currentName: ''
       }
     },
     created() {
@@ -582,6 +592,7 @@
       this.isHistory = false
       this.deployPlanId = this.$route.params.id
       this.deployPlanName = this.$route.params.name
+      this.currentName = this.$route.query.name
       this.getList()
       this.getDeviceList()
     },
@@ -631,9 +642,9 @@
       },
       getDeviceList() {
         let projectId = this.getCookie('projectId');
-        getDevices(projectId, this.listQuery).then(response => {
-          this.deviceList = response.data.data.content
-          this.deviceTotal = response.data.data.totalElements
+        getAllDevices(projectId).then(response => {
+          this.deviceList = response.data.data
+          this.deviceTotal = response.data.data.length
           this.deviceLoading = false
           for (let i = 0; i < this.list.length; i++) {
             this.deviceList[i].online = false;
@@ -793,12 +804,17 @@
         })
       },
       checkNodeDevice() {
+        this.searchQueryDevice = ''
+        this.deviceLoading = true
         this.currentDeviceList = this.deviceList.slice() // 注意：复制数组，防止原数组被修改！！
         getAllBindDevices(this.deployPlanId).then((res) => {
           this.bindedDeviceList = res.data.data
           for (var i = 0; i < this.bindedDeviceList.length; i++) {
             this.currentDeviceList.splice(this.currentDeviceList.findIndex(item => item.id === this.bindedDeviceList[i].id), 1)
           }
+          this.deviceLoading = false
+        }).catch(() => {
+          this.deviceLoading = false
         })
       },
       handleSelectRowDevice(val) {
@@ -941,6 +957,7 @@
               this.nodeDetail = res.data.data
               // this.nodeDetail[0].currentNodeInfo = res.data.data[0].deploymentDesignNodeEntity
             })
+            this.compExpands = []
             this.$notify({
               title: '成功',
               message: '组件历史版本绑定成功',
@@ -999,7 +1016,7 @@
               type: 'success',
               duration: 2000
             })
-
+            this.compExpands = []
             /*getDeployComLists(this.deployPlanId, this.deviceCHId).then((res) => {
               this.bindedDeviceList = res.data.data
             })*/
@@ -1120,6 +1137,7 @@
             type: 'success',
             duration: 2000
           })
+          this.compExpands = []
           this.beforeSubmit(this.currentNodeId)
           getNodeDetail(this.currentNodeId).then((res) => {
             this.nodeDetail = res.data.data
@@ -1492,11 +1510,17 @@
       }
     },
     computed: {
+      listAbleDevice () {
+        let self = this;
+        return self.currentDeviceList.filter(function (item) {
+          return item.hostAddress.toLowerCase().indexOf(self.searchQueryDevice.toLowerCase()) !== -1;
+        })
+      },
       listA: function () {
         let self = this;
         return self.list.filter(function (item) {
-          if (item.name) {
-            return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+          if (item.deviceEntity) {
+            return item.deviceEntity.hostAddress.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
           } else {
             return item
           }

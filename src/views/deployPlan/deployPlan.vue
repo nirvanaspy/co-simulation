@@ -15,7 +15,7 @@
     <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
               style="width: 100%">
 
-      <el-table-column align="center" :label="$t('table.deployPlanName')" width="200">
+      <el-table-column align="center" :label="$t('table.deployPlanName')" min-width="200">
         <template slot-scope="scope">
           <span class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
         </template>
@@ -28,20 +28,20 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80" align="center" :label="$t('table.deployPlanDesc')">
+      <el-table-column min-width="200" align="center" :label="$t('table.deployPlanDesc')">
         <template slot-scope="scope">
           <span>{{scope.row.description}}</span>
         </template>
       </el-table-column>
       <el-table-column align="center" width="200" label="部署操作" v-if="!isHistory">
         <template slot-scope="scope">
-          <router-link :to='{name:"designNode",params:{id:scope.row.id, name: scope.row.name}}' v-if="!scope.row.deleted && !scope.row.baseline">
+          <router-link :to='{name:"designNode",params:{id:scope.row.id, name: scope.row.name},query:{name: scope.row.name}}' v-if="!scope.row.deleted && !scope.row.baseline">
             <el-button size="mini" type="primary">
               设计
             </el-button>
           </router-link>
-          <el-button size="mini" type="primary" v-if="!scope.row.deleted && scope.row.baseline" disabled="disabled">
-            设计
+          <el-button size="mini" type="primary" v-if="!scope.row.deleted && scope.row.baseline" @click="checkNodeBaseLine(scope.row)">
+            查看
           </el-button>
           <router-link :to='{name:"deploy",params:{id:scope.row.id}}' v-if="!scope.row.deleted">
             <el-button size="mini" type="success">部署</el-button>
@@ -175,6 +175,10 @@
         <el-button type="primary" @click="modifyBaseline" :loading="upBasLoading">{{$t('table.confirm')}}</el-button>
       </div>
     </el-dialog>
+    <!--查看部署设计快照对话框-->
+    <el-dialog title="基线详情" :visible.sync="snapshootFormVisible" width="80%">
+      <designSnapshoot :deployPlanId="deployPlanId" :deployPlanName="deployPlanName"></designSnapshoot>
+    </el-dialog>
   </div>
 </template>
 
@@ -183,6 +187,7 @@
   import { saveDeploymentDesignSnapshots, getDeploymentDesignSnapshots, deleteDeploymentDesignSnapshots, modifySnapshots, baselineDeployDesign } from '@/api/baseline'
   import waves from '@/directive/waves' // 水波纹指令
   import Sortable from 'sortablejs'
+  import designSnapshoot from '../designNodeSnapshoot/deployDesignSnapshoot'
 
   /* eslint-disable */
   export default {
@@ -190,8 +195,13 @@
     directives: {
       waves
     },
+    components: {
+      designSnapshoot
+    },
     data() {
       return {
+        deployPlanId: '',
+        deployPlanName: '',
         isHistory: false,
         selectedId: '',
         deployName: '',
@@ -220,6 +230,7 @@
         baselineVisible: false,
         baselineDetailVisible: false,
         modifyBaselineVisible: false,
+        snapshootFormVisible: false,
         baselineTemp: {
           id: '',
           name: '',
@@ -340,6 +351,11 @@
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
         })
+      },
+      checkNodeBaseLine(row) {
+        this.snapshootFormVisible = true
+        this.deployPlanId = row.id
+        this.deployPlanName = row.name
       },
       createData() {
         this.$refs['dataForm'].validate((valid) => {

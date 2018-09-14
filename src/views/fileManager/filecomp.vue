@@ -60,6 +60,16 @@
           </span>
         </template>
       </el-table-column>
+      <el-table-column label="种类" width="100">
+        <template slot-scope="scope">
+          <span v-if="scope.row.folder !== true && !scope.row.newFolder">
+            {{scope.row.fileEntity.type}}
+          </span>
+          <span v-if="scope.row.folder == true && !scope.row.newFolder">
+            文件夹
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column width="200px" :label="$t('table.compSize')">
         <template slot-scope="scope">
           <span v-if="scope.row.folder !== true">{{computedSize(scope.row.fileEntity.size)}}</span>
@@ -119,6 +129,7 @@
                 @complete="complete"
                 @files-added="checkMd5"
                 @file-success="fileSuccess"
+                @file-removed="fileRemove"
                 v-loading="md5Loading"
                 element-loading-text="正在校验文件身份，请勿关闭"
       >
@@ -131,8 +142,8 @@
           <uploader-list ref="uploaderList"></uploader-list>
         </uploader>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="uploadDialog = false">取 消</el-button>
-        <el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>
+        <el-button @click="uploadDialog = false">关 闭</el-button>
+        <!--<el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>-->
       </span>
     </el-dialog>
     <!--上传文件夹弹框-->
@@ -161,7 +172,7 @@
         <uploader-list ref="uploaderFolderList"></uploader-list>
       </uploader>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="uploadFolderDialog = false">取 消</el-button>
+        <el-button @click="uploadFolderDialog = false">关 闭</el-button>
         <!--<el-button type="primary" @click="upload_Folder" :loading="upFolderLoading">确 定</el-button>-->
       </span>
     </el-dialog>
@@ -308,7 +319,9 @@
         CheckedComps: [],
         target: '',
         token: '',
-        folderFileInfo: []
+        folderFileInfo: [],
+        fileInfoList: [],
+        fileCompleteLength: 0
       }
     },
     created() {
@@ -456,6 +469,10 @@
           this.$refs.uploader.uploader.cancel() //清空文件上传列表
           this.$refs.uploader.uploader.opts.target = this.target
           this.$refs.uploader.uploader.opts.headers.Authorization = this.token
+          $('.uploader-list ul').html('')
+          this.fileCompleteLength = 0
+          this.fileInfoList = []
+          $('.manage-uploader .uploader-btn').css('display','inline-block')
         })
       },
       handleUploadFolder() {
@@ -468,8 +485,320 @@
         })
       },
 
+      // 上传文件的几个方法
+      checkMd5 (fileAdded, fileList) {
+        // console.log(this.$refs.uploader.uploader.files)
+        this.md5Loading = true
+        console.log(fileAdded)
+        console.log(fileAdded.length)
+        $('.manage-uploader .uploader-btn').css('display','none')
+        this.fileCompleteLength += fileAdded.length
+        // let SparkMD5 = require('spark-md5')
+        // let SparkMD5 = require('spark-md5')
+        let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
+        let completeFlag = 0
+        let that = this
+        for(var i = 0; i < fileAdded.length; i++) {
+          let fileA = fileAdded[i]
+          console.log(new Date())
+          this.resolveMd5(fileA, chunkSize).then(function (result) {
+            console.log(result)
+            fileA.md5 = result
+            fileA.uniqueIdentifier = result
+            /*axios.get('http://192.168.31.13:8080/files/hasmd5',{
+              headers: {
+                "content-type": "application/x-www-form-urlencoded"
+              },
+              params: {
+                MD5: fileA.md5
+              }
+            })*/
+            hasMd5(fileA.md5).then((res) => {
+              if (res.data.data.id) {
+                completeFlag++
+                let infoList = {
+                  fileId: res.data.data.id,
+                  MD5: fileA.md5,
+                  name: fileA.name,
+                  relativePath: '/' + fileA.relativePath
+                }
+                that.fileInfoList.push(infoList)
+                let resVal = ''
+                let val = fileA.size
+                if( val < 1024 ) {
+                  resVal = val + ' B'
+                } else if(val >= 1024 && val < 1048576 ) {
+                  resVal = Math.round(val/1024*10)/10 + ' KB'
+                } else if(val >= 1048576 && val < 1073741824) {
+                  resVal = Math.round(val/1048576*10)/10 + ' MB'
+                } else if(val >= 1073741824) {
+                  // 2653276160
+                  resVal = Math.round(val/1073741824*10)/10 + ' G'
+                }
+                $('.manage-uploader .uploader-list ul').prepend('<div status="success" class="uploader-file">' +
+                  '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
+                  '<div class="uploader-file-info">' +
+                  '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
+                  '</div> <div class="uploader-file-size">'+ resVal +
+                  '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
+                that.$refs.uploader.uploader.removeFile(fileA)
+                that.fileCompleteLength += 1 // 中和上传控件触发的removeFile事件的自减1
+                // let notiMes = '文件' + fileA.name + '上传成功！'
+                that.listLoading = false
+                /*that.$notify({
+                  title: '成功',
+                  message: notiMes,
+                  type: 'success',
+                  duration: 2000
+                })*/
+
+                if(completeFlag === fileAdded.length) {
+                  that.md5Loading = false
+                  /*if(that.$refs.uploader.uploader.files.length === 0) {
+                    let datapost = JSON.stringify(that.fileInfoList)
+                    console.log(datapost)
+                    uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
+                      that.listLoading = false
+                      that.$notify({
+                        title: '成功',
+                        message: '文件上传成功',
+                        type: 'success',
+                        duration: 2000
+                      })
+
+                      that.getList()
+                    }).catch(() => {
+                      that.listLoading = false
+                      that.$notify({
+                        title: '失败',
+                        message: '文件上传失败',
+                        type: 'error',
+                        duration: 2000
+                      })
+                    })
+                  }*/
+                  that.$refs.uploader.uploader.upload()
+                }
+                // let datapost = JSON.stringify(infoList)
+                /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
+                  headers: {
+                    'content-type': 'application/json;charset=utf-8', //设置请求头信息
+                    'parentNodeId': that.parentNodeId
+                  }
+                })*/
+                // that.listLoading = false
+                /*uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
+                  let resVal = ''
+                  let val = fileA.size
+                  if( val < 1024 ) {
+                    resVal = val + ' B'
+                  } else if(val >= 1024 && val < 1048576 ) {
+                    resVal = Math.round(val/1024*10)/10 + ' KB'
+                  } else if(val >= 1048576 && val < 1073741824) {
+                    resVal = Math.round(val/1048576*10)/10 + ' MB'
+                  } else if(val >= 1073741824) {
+                    // 2653276160
+                    resVal = Math.round(val/1073741824*10)/10 + ' G'
+                  }
+                  $('.uploader-list ul').prepend('<div status="success" class="uploader-file">' +
+                    '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
+                    '<div class="uploader-file-info">' +
+                    '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
+                    '</div> <div class="uploader-file-size">'+ resVal +
+                    '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
+                  that.$refs.uploader.uploader.removeFile(fileA)
+                  let notiMes = '文件' + fileA.name + '上传成功！'
+                  that.listLoading = false
+                  that.$notify({
+                    title: '成功',
+                    message: notiMes,
+                    type: 'success',
+                    duration: 2000
+                  })
+
+                  if(completeFlag === fileAdded.length) {
+                    that.md5Loading = false
+                    that.$refs.uploader.uploader.upload()
+                  }
+                  that.getList()
+                })*/
+              } else if (res.data.data == false) {
+                completeFlag++
+                if(completeFlag === fileAdded.length) {
+                  console.log(fileAdded)
+                  console.log('-------')
+                  that.md5Loading = false
+                  /*if(that.$refs.uploader.uploader.files.length === 0) {
+                    let datapost = JSON.stringify(that.fileInfoList)
+                    console.log(datapost)
+                    uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
+                      that.listLoading = false
+                      that.$notify({
+                        title: '成功',
+                        message: '文件上传成功',
+                        type: 'success',
+                        duration: 2000
+                      })
+                      that.getList()
+                    }).catch(() => {
+                      that.listLoading = false
+                      that.$notify({
+                        title: '失败',
+                        message: '文件上传失败',
+                        type: 'error',
+                        duration: 2000
+                      })
+                    })
+                  }*/
+                  // let allFile = that.$refs.uploader.uploader.files
+                  // console.log(allFile)
+                  that.$refs.uploader.uploader.upload()
+                }
+              }
+            })
+          })
+        }
+      },
+      resolveMd5(zenfile,chunkSize) {
+        return new Promise((resolve, reject) => {
+          let file = zenfile.file
+          // let spark = new SparkMD5.ArrayBuffer()
+          if(zenfile.md5){
+            resolve(zenfile.md5)
+          }else{
+            let spark = new SparkMD5()
+            let fileReader = new FileReader()
+            let blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
+            let chunks = Math.ceil(file.size / chunkSize)
+            let currentChunk = 0
+
+            fileReader.onload = e => {
+              spark.appendBinary(e.target.result)
+              currentChunk++
+              if (currentChunk < chunks) {
+                let a = 'deal with' + currentChunk + '剩余' + (chunks - currentChunk)
+                console.log(a)
+                load()
+              } else {
+                resolve(spark.end())
+                // console.log(new Date())
+              }
+              fileReader.onerror = e => reject(e)
+            }
+
+            let load = () => {
+              var start = currentChunk * chunkSize
+              var end = start + chunkSize >= file.size ? file.size : start + chunkSize
+              fileReader.readAsBinaryString(file.slice(start, end))
+            }
+            load()
+          }
+        })
+      },
+      fileRemove() {
+        // alert('removed')
+        console.log('removed')
+        this.fileCompleteLength -=1
+      },
+      mergeFile (md5, chunkNum, totalSize, name, path) {
+        var qs = require('qs')
+        let data = {
+          'identifier': md5,
+          'totalChunks': chunkNum,
+          'totalSize': totalSize,
+          'filename': name,
+          'relativePath': path
+        }
+        let datapost = qs.stringify(data)
+        /*axios.post('http://192.168.31.13:8080/files/chunks/merge', datapost, {
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded'
+          }
+        })*/
+        mergeFile(datapost).then(() => {
+        }).catch(() => {
+          this.$notify({
+
+          })
+        })
+      },
+      // 上传文件时 fileSuccess 第一个参数为根文件， 第二个参数为上传的文件
+      fileSuccess () {
+        console.log('fileSuccess', arguments)
+        // this.fileMd5HeadTailTime(arguments[1].file, this.$refs.uploader.uploader.opts.chunkSize)
+        // this.mergeFile(arguments[1].uniqueIdentifier, arguments[1].chunks.length, arguments[1].size, arguments[1].name, arguments[1].relativePath)
+        let data = {
+          'identifier': arguments[1].uniqueIdentifier,
+          'totalChunks': arguments[1].chunks.length,
+          'totalSize': arguments[1].size,
+          'filename': arguments[1].name,
+          'relativePath': arguments[1].relativePath
+        }
+        let datapost = qs.stringify(data)
+        /*axios.post('http://192.168.31.13:8080/files/chunks/merge', datapost, {
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded'
+          }
+        })*/
+        this.listLoading = true
+        mergeFile(datapost).then((res)=> {
+          let infoList = {
+            fileId: res.data.data.id,
+            MD5: arguments[1].md5,
+            name: arguments[1].name,
+            relativePath: '/' + arguments[1].relativePath
+          }
+          this.fileInfoList.push(infoList)
+          // let datapost = JSON.stringify(infoList)
+          /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
+            headers: {
+              'content-type': 'application/json;charset=utf-8', //设置请求头信息
+              'parentNodeId': this.parentNodeId
+            }
+          })*/
+          /*let notiMes = '文件' + arguments[1].name + '上传成功！'
+          uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
+            this.listLoading = false
+            this.$notify({
+              title: '成功',
+              message: notiMes,
+              type: 'success',
+              duration: 2000
+            })
+
+            this.getList()
+          })*/
+        })
+
+      },
+      // 上传文件夹时 fileComplete 第一个参数为根文件（文件夹），第二个参数为最后一个上传的文件
+      fileComplete () {
+        console.log('filecomplete=======')
+        console.log('file complete', arguments)
+        console.log(this.$refs.uploader.uploader.files)
+        // alert(arguments[1].uniqueIdentifier)
+        // this.mergeFile(zenFile.md5, chunks, file.size)
+        // this.mergeFile(arguments[0].uniqueIdentifier, arguments[0].chunks.length, arguments[0].size)
+        /*let datapost = JSON.stringify(this.fileInfoList)
+        let notiMes = '文件' + arguments[1].name + '上传成功！'
+        uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
+          this.listLoading = false
+          this.$notify({
+            title: '成功',
+            message: notiMes,
+            type: 'success',
+            duration: 2000
+          })
+          this.getList()
+        })*/
+      },
+      complete () {
+        console.log('complete', arguments)
+        console.log('complete', arguments[0])
+      },
       folderAdded(fileAdded, fileList) {
         let listLength = fileAdded.length
+        // alert(listLength)
         this.md5Loading = true
         let chunkSize = this.$refs.uploaderFolder.uploader.opts.chunkSize
         let completeFlag = 0
@@ -635,163 +964,6 @@
           })*/
         })
       },
-
-
-
-      // 上传文件的几个方法
-      checkMd5 (fileAdded, fileList) {
-        // console.log(this.$refs.uploader.uploader.files)
-        this.md5Loading = true
-        console.log(fileAdded)
-        console.log(fileAdded.length)
-        // let SparkMD5 = require('spark-md5')
-        // let SparkMD5 = require('spark-md5')
-        let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
-        let completeFlag = 0
-        let that = this
-        for(var i = 0; i < fileAdded.length; i++) {
-          let fileA = fileAdded[i]
-          console.log(new Date())
-          this.resolveMd5(fileA, chunkSize).then(function (result) {
-            console.log(result)
-            fileA.md5 = result
-            fileA.uniqueIdentifier = result
-            /*axios.get('http://192.168.31.13:8080/files/hasmd5',{
-              headers: {
-                "content-type": "application/x-www-form-urlencoded"
-              },
-              params: {
-                MD5: fileA.md5
-              }
-            })*/
-            hasMd5(fileA.md5).then((res) => {
-              if (res.data.data.id) {
-                completeFlag++
-                let infoList = [{
-                  fileId: res.data.data.id,
-                  MD5: fileA.md5,
-                  name: fileA.name,
-                  relativePath: '/' + fileA.relativePath
-                }]
-                let datapost = JSON.stringify(infoList)
-                /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
-                  headers: {
-                    'content-type': 'application/json;charset=utf-8', //设置请求头信息
-                    'parentNodeId': that.parentNodeId
-                  }
-                })*/
-                that.listLoading = false
-                uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
-                  let resVal = ''
-                  let val = fileA.size
-                  if( val < 1024 ) {
-                    resVal = val + ' B'
-                  } else if(val >= 1024 && val < 1048576 ) {
-                    resVal = Math.round(val/1024*10)/10 + ' KB'
-                  } else if(val >= 1048576 && val < 1073741824) {
-                    resVal = Math.round(val/1048576*10)/10 + ' MB'
-                  } else if(val >= 1073741824) {
-                    // 2653276160
-                    resVal = Math.round(val/1073741824*10)/10 + ' G'
-                  }
-                  $('.uploader-list ul').prepend('<div status="success" class="uploader-file">' +
-                    '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
-                    '<div class="uploader-file-info">' +
-                    '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
-                    '</div> <div class="uploader-file-size">'+ resVal +
-                    '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
-                  that.$refs.uploader.uploader.removeFile(fileA)
-                  let notiMes = '文件' + fileA.name + '上传成功！'
-                  that.listLoading = false
-                  that.$notify({
-                    title: '成功',
-                    message: notiMes,
-                    type: 'success',
-                    duration: 2000
-                  })
-
-                  if(completeFlag === fileAdded.length) {
-                    that.md5Loading = false
-                    that.$refs.uploader.uploader.upload()
-                  }
-                  that.getList()
-                })
-              } else if (res.data.data == false) {
-                completeFlag++
-                if(completeFlag === fileAdded.length) {
-                  console.log(fileAdded)
-                  console.log('-------')
-                  that.md5Loading = false
-                  let allFile = that.$refs.uploader.uploader.files
-                  console.log(allFile)
-                  that.$refs.uploader.uploader.upload()
-                }
-              }
-            })
-          })
-        }
-      },
-      resolveMd5(zenfile,chunkSize) {
-        return new Promise((resolve, reject) => {
-          let file = zenfile.file
-          // let spark = new SparkMD5.ArrayBuffer()
-          if(zenfile.md5){
-            resolve(zenfile.md5)
-          }else{
-            let spark = new SparkMD5()
-            let fileReader = new FileReader()
-            let blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
-            let chunks = Math.ceil(file.size / chunkSize)
-            let currentChunk = 0
-
-            fileReader.onload = e => {
-              spark.appendBinary(e.target.result)
-              currentChunk++
-              if (currentChunk < chunks) {
-                let a = 'deal with' + currentChunk + '剩余' + (chunks - currentChunk)
-                console.log(a)
-                load()
-              } else {
-                resolve(spark.end())
-                // console.log(new Date())
-              }
-              fileReader.onerror = e => reject(e)
-            }
-
-            let load = () => {
-              var start = currentChunk * chunkSize
-              var end = start + chunkSize >= file.size ? file.size : start + chunkSize
-              fileReader.readAsBinaryString(file.slice(start, end))
-            }
-            load()
-          }
-        })
-      },
-      mergeFile (md5, chunkNum, totalSize, name, path) {
-        var qs = require('qs')
-        let data = {
-          'identifier': md5,
-          'totalChunks': chunkNum,
-          'totalSize': totalSize,
-          'filename': name,
-          'relativePath': path
-        }
-        let datapost = qs.stringify(data)
-        /*axios.post('http://192.168.31.13:8080/files/chunks/merge', datapost, {
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded'
-          }
-        })*/
-        mergeFile(datapost).then(() => {
-        }).catch(() => {
-          this.$notify({
-
-          })
-        })
-      },
-      complete () {
-        console.log('complete', arguments)
-      },
       folderComplete() {
         console.log(arguments)
         let datapost = JSON.stringify(this.folderFileInfo)
@@ -806,62 +978,6 @@
           })
           this.getList()
         })
-      },
-      // 上传文件夹时 fileComplete 第一个参数为根文件（文件夹），第二个参数为最后一个上传的文件
-      fileComplete () {
-        console.log('file complete', arguments)
-        console.log(this.$refs.uploader.uploader.files)
-        // alert(arguments[1].uniqueIdentifier)
-        // this.mergeFile(zenFile.md5, chunks, file.size)
-        // this.mergeFile(arguments[0].uniqueIdentifier, arguments[0].chunks.length, arguments[0].size)
-      },
-      // 上传文件时 fileSuccess 第一个参数为根文件， 第二个参数为上传的文件
-      fileSuccess () {
-        console.log('fileSuccess', arguments)
-        // this.fileMd5HeadTailTime(arguments[1].file, this.$refs.uploader.uploader.opts.chunkSize)
-        // this.mergeFile(arguments[1].uniqueIdentifier, arguments[1].chunks.length, arguments[1].size, arguments[1].name, arguments[1].relativePath)
-        let data = {
-          'identifier': arguments[1].uniqueIdentifier,
-          'totalChunks': arguments[1].chunks.length,
-          'totalSize': arguments[1].size,
-          'filename': arguments[1].name,
-          'relativePath': arguments[1].relativePath
-        }
-        let datapost = qs.stringify(data)
-        /*axios.post('http://192.168.31.13:8080/files/chunks/merge', datapost, {
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded'
-          }
-        })*/
-        this.listLoading = true
-        mergeFile(datapost).then((res)=> {
-          let infoList = [{
-            fileId: res.data.data.id,
-            MD5: arguments[1].md5,
-            name: arguments[1].name,
-            relativePath: '/' + arguments[1].relativePath
-          }]
-          let datapost = JSON.stringify(infoList)
-          /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
-            headers: {
-              'content-type': 'application/json;charset=utf-8', //设置请求头信息
-              'parentNodeId': this.parentNodeId
-            }
-          })*/
-          let notiMes = '文件' + arguments[1].name + '上传成功！'
-          uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
-            this.listLoading = false
-            this.$notify({
-              title: '成功',
-              message: notiMes,
-              type: 'success',
-              duration: 2000
-            })
-
-            this.getList()
-          })
-        })
-
       },
       uploadFile() {
         this.listLoading = true
@@ -1163,6 +1279,12 @@
           }
           return resVal
         }
+      },
+      fileInfoListLength() {
+        return this.fileInfoList.length
+      },
+      folderFileLength() {
+        return this.folderFileInfo.length
       }
     },
     watch: {
@@ -1178,6 +1300,26 @@
         this.parentNodeId = ''
         if(this.componentId) {
           this.initData()
+        }
+      },
+      /*fileInfoListLength(newValue, oldValue) {
+        alert(this.fileInfoListLength)
+      },*/
+      fileInfoListLength(newValue, oldValue) {
+        // alert(this.fileCompleteLength)
+        // console.log()
+        if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
+          let datapost = JSON.stringify(this.fileInfoList)
+          uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
+            this.listLoading = false
+            this.$notify({
+              title: '成功',
+              message: '上传成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getList()
+          })
         }
       }
     }

@@ -125,6 +125,18 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="currentPage"
+        :page-sizes="[20,50,100]"
+        :page-size="10"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="this.total"
+        background
+        style="text-align: center;margin-top:20px"
+      >
+      </el-pagination>
     </div>
     <div style="width:65%;height:90%;float: right;margin-top: 10px;margin-bottom: 10px;border:1px solid #ebeef5">
       <el-table :data="deviceDetail" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
@@ -218,7 +230,7 @@
         </el-table-column>
         <el-table-column align="center" label="路径" min-width="130">
           <template slot-scope="scope">
-            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.deployPath}}</span>
+            <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.relativePath}}</span>
           </template>
         </el-table-column>
         <!--<el-table-column align="center" label="文件" min-width="130">
@@ -295,6 +307,9 @@
           limit: 5,
           tagname: ''
         },
+        total: null,
+        pagesize:10,//每页的数据条数
+        currentPage:1,//默认开始页面
         indexedDB: null,
         myDB: null,
         dbRequest: null,
@@ -326,6 +341,16 @@
       this.initIndexedDB('indexedDB-orderConfig', 1)
     },
     methods: {
+      handleSizeChange(val) {
+        this.listQuery.size = val
+        this.pagesize = val
+        this.getNodeList()
+      },
+      handleCurrentChange(val) {
+        this.listQuery.page = val - 1
+        this.currentPage = val
+        this.getNodeList()
+      },
       initIndexedDB(name, version) {
         let that = this
         this.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
@@ -378,7 +403,6 @@
       },
       addOrder(id, orderId) {
         if(!this.myDB) {
-          alert('none')
           return
         }
         var tx = this.myDB.transaction('orderConfig', 'readwrite');
@@ -390,7 +414,6 @@
           nodeDetailId: this.selectedCompId,
           orderId: orderId });
         req.onsuccess = function (evt) {
-          alert('sucess')
         };
         req.onerror = function() {
           alert('error')
@@ -399,7 +422,6 @@
       checkOrder(id) {
         let that = this
         if(!this.myDB) {
-          alert('noneDB')
           return
         }
         var tx = this.myDB.transaction('orderConfig', 'readwrite');
