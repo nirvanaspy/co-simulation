@@ -1,5 +1,9 @@
 <template>
-  <div class="login-container1">
+  <div class="login-container1"
+       v-loading.fullscreen.lock="jumpLoading"
+       element-loading-text="正在跳转中"
+       element-loading-spinner="el-icon-loading"
+  >
     <el-form class="login-form" autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left">
       <div class="title-container">
         <h3 class="title">{{$t('login.register')}}</h3>
@@ -125,6 +129,7 @@
       }
       return {
         ifExist: false,
+        jumpLoading: false,
         loginForm: {
           ipConfig: '192.168.0.117',
           port: '8080',
@@ -208,7 +213,33 @@
                 duration: 2000
               })
               this.loading = false
-              this.$router.replace('/login')
+              // this.$router.replace('/login')
+              let formData = qs.stringify({
+                "username": this.loginForm.username,
+                'password': this.loginForm.password,
+                'grant_type': 'password',
+                'scope': 'SCOPES',
+                'client_id': 'OAUTH_CLIENT_ID',
+                'enctype': 'OAUTH_CLIENT_ID'
+              })
+              this.jumpLoading = true
+              this.$store.dispatch('LoginByUsername', formData).then(() => {
+                this.jumpLoading = false
+                this.loading = false
+                /*getUserId().then((res) => {
+                  this.setCookie('userId', res.data.data.id)
+                })*/
+                this.$router.push({ path: '/projectManage' })
+              }).catch(() => {
+                this.loading = false
+                this.jumpLoading = false
+                this.$notify({
+                  title: '失败',
+                  message: '登录失败',
+                  type: 'error',
+                  duration: 1000
+                })
+              })
             }).catch((error) => {
               this.loading = false
               this.errorMessage = '注册失败，请检查信息填写是否正确！'
@@ -256,6 +287,7 @@
       }*/
     },
     created() {
+      this.jumpLoading = false
       if(this.getCookie('ip')) {
         this.loginForm.ipConfig = this.getCookie('ip')
       }
