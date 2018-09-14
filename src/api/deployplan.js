@@ -2,7 +2,7 @@ import request from '../utils/request'
 
 export function deployplanList(projectId, listQuery) {
   return request({
-    url: 'projects/' + projectId + '/deploymentdesign',
+    url: 'projects/' + projectId + '/deploymentdesigns',
     method: 'get',
     params: {
       size: listQuery.size,
@@ -25,6 +25,13 @@ export function updateDeployplan(data, id) {
     url: 'deploymentdesigns/' + id,
     method: 'patch',
     data
+  })
+}
+
+export function copyDeployplan(id) {
+  return request({
+    url: 'deploymentdesigns/' + id + '/copy',
+    method: 'post'
   })
 }
 
@@ -62,7 +69,7 @@ export function getDeployDetailByDevice(deploymentDesignId, deviceid) {
 // 获取历史部署设计
 export function hisDeployplan(projectId, listQuery) {
   return request({
-    url: 'projects/' + projectId + '/deploymentdesign',
+    url: 'projects/' + projectId + '/deploymentdesigns',
     method: 'get',
     params: {
       size: listQuery.size,

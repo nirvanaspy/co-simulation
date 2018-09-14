@@ -32,7 +32,7 @@
 
     <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
               style="width: 100%">
-      <el-table-column width="220px" align="center" label="部署设计名称">
+      <!--<el-table-column width="220px" align="center" label="部署设计名称">
         <template slot-scope="scope">
           <span>{{scope.row.name}}</span>
         </template>
@@ -41,11 +41,10 @@
         <template slot-scope="scope">
           <span>{{scope.row.deployMethod}}</span>
         </template>
-      </el-table-column>
+      </el-table-column>-->
       <el-table-column width="200px" align="center" label="类型">
         <template slot-scope="scope">
-          <span v-if="scope.row.deployType == 0">部署设计</span>
-          <span v-else>部署快照</span>
+          <span>部署设计</span>
         </template>
       </el-table-column>
       <el-table-column min-width="140px" align="center" label="部署时间">
@@ -55,7 +54,7 @@
        </el-table-column>
       <el-table-column width="160px" align="center" label="部署详情">
         <template slot-scope="scope">
-          <el-button type="text"  @click="deployDetails(scope.row)">查看</el-button>
+          <el-button type="primary" plain  @click="deployDetails(scope.row)">查看</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -74,7 +73,7 @@
             <span>{{scope.row.hostName}}</span>
           </template>
         </el-table-column>
-        <el-table-column align="center" width="160px" label="组件名称">
+        <el-table-column align="center" min-width="160px" label="组件名称">
           <template slot-scope="scope">
             <span>{{scope.row.componentName}}</span>
           </template>
@@ -84,9 +83,9 @@
             <span>{{scope.row.componentVersion}}</span>
           </template>
         </el-table-column>
-        <el-table-column align="center" min-width="220px" label="目标路径">
+        <el-table-column align="left" min-width="220px" label="目标路径">
           <template slot-scope="scope">
-            <span>{{scope.row.targetFilePath}}</span>
+            <span>{{scope.row.targetPath}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" width="120px" label="部署状态">
@@ -136,7 +135,7 @@
         },
         listQuery2: {
           page: 0,
-          limit: 20
+          limit: 10
         },
         total: 0,
         pagesize:10,//每页的数据条数
@@ -395,7 +394,7 @@
       listA: function () {
         let self = this;
         return self.list.filter(function (item) {
-          return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+          return item.createTime.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
         })
       },
     }

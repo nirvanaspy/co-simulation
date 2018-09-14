@@ -1,5 +1,9 @@
 <template>
-  <div class="login-container1">
+  <div class="login-container1"
+       v-loading.fullscreen.lock="jumpLoading"
+       element-loading-text="正在跳转中"
+       element-loading-spinner="el-icon-loading"
+  >
     <el-form class="login-form" autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left">
       <div class="title-container">
         <h3 class="title">{{$t('login.register')}}</h3>
@@ -93,7 +97,7 @@
           callback(new Error('账号必须是5-15位的英文字母或数字！'))
         } else {
           service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port
-          UserIfExist(this.loginForm.username).then((res) => {
+          /*UserIfExist(this.loginForm.username).then((res) => {
             if(res.data.data) {
               callback(new Error('用户已存在'))
             }else {
@@ -101,7 +105,8 @@
             }
           }).catch(() => {
             callback()
-          })
+          })*/
+          callback()
         }
       }
       const validatePassword = (rule, value, callback) => {
@@ -124,6 +129,7 @@
       }
       return {
         ifExist: false,
+        jumpLoading: false,
         loginForm: {
           ipConfig: '192.168.0.117',
           port: '8080',
@@ -139,7 +145,8 @@
         passwordType: 'password',
         passwordTypeAgin: 'password',
         loading: false,
-        showDialog: false
+        showDialog: false,
+        errorMessage: '操作失败！'
       }
     },
     methods: {
@@ -186,6 +193,8 @@
       },
       registerUser: function () {
         service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port
+        this.setCookie('ip', this.loginForm.ipConfig)
+        this.setCookie('port', this.loginForm.port)
         this.$refs['loginForm'].validate((valid) => {
           if(valid) {
             this.loading = true
@@ -196,6 +205,7 @@
             }
             let datapost = qs.stringify(data)
             addUser(datapost).then(() => {
+              this.setCookie('username',this.loginForm.username)
               this.$notify({
                 title: '成功',
                 message: '注册成功',
@@ -203,12 +213,42 @@
                 duration: 2000
               })
               this.loading = false
-              this.$router.replace('/login')
-            }).catch(() => {
+              // this.$router.replace('/login')
+              let formData = qs.stringify({
+                "username": this.loginForm.username,
+                'password': this.loginForm.password,
+                'grant_type': 'password',
+                'scope': 'SCOPES',
+                'client_id': 'OAUTH_CLIENT_ID',
+                'enctype': 'OAUTH_CLIENT_ID'
+              })
+              this.jumpLoading = true
+              this.$store.dispatch('LoginByUsername', formData).then(() => {
+                this.jumpLoading = false
+                this.loading = false
+                /*getUserId().then((res) => {
+                  this.setCookie('userId', res.data.data.id)
+                })*/
+                this.$router.push({ path: '/projectManage' })
+              }).catch(() => {
+                this.loading = false
+                this.jumpLoading = false
+                this.$notify({
+                  title: '失败',
+                  message: '登录失败',
+                  type: 'error',
+                  duration: 1000
+                })
+              })
+            }).catch((error) => {
               this.loading = false
+              this.errorMessage = '注册失败，请检查信息填写是否正确！'
+              if(error.response.data.message){
+                this.errorMessage = error.response.data.message
+              }
               this.$notify({
                 title: '失败',
-                message: '注册失败',
+                message: this.errorMessage,
                 type: 'error',
                 duration: 2000
               })
@@ -247,6 +287,7 @@
       }*/
     },
     created() {
+      this.jumpLoading = false
       if(this.getCookie('ip')) {
         this.loginForm.ipConfig = this.getCookie('ip')
       }

@@ -67,7 +67,9 @@ export default {
     deployPlanDetail: '绑定详情',
     deployBind: '绑定',
     files: '组件文件',
-    monitor: '在线监控'
+    monitor: '在线监控',
+    componentHistory: '组件历史版本',
+    designNode: '部署设计节点'
   },
   navbar: {
     logOut: '退出登录',

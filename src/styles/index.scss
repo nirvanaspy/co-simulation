@@ -230,7 +230,7 @@ code {
 }
 .modDeviceDialog .el-dialog{
   max-height: 70%;
-  overflow-y: scroll;
+  overflow-y: auto;
   .el-dialog__body {
     // overflow-y: scroll;
     // overflow: hidden;
@@ -266,4 +266,11 @@ code {
 }
 .scanResTable table{
   width: 100% !important;
+}
+
+.nodeTable .fixed-width .el-button--mini {
+  padding: 7px 6px;
+}
+.el-radio__label{
+  display: none!important
 }

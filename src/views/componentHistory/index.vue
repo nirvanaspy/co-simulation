@@ -1,48 +1,19 @@
 <template>
   <div class="app-container calendar-list-container" id="components">
-    <div class="filter-container">
+    <!--<div class="filter-container">
       <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" placeholder="标题" v-model="searchQuery">
       </el-input>
-
-      <el-button id="addComBtn"
-                 v-show="!isHistory"
-                 class="filter-item pull-right"
-                 style="float: right;margin-left: 10px;"
-                 @click="handleCreate" type="primary"
-                 icon="el-icon-edit">{{$t('table.add')}}
-      </el-button>
-
-      <!--<router-link to="/componentTypes/index">
-        <el-button class="filter-item pull-right" style="float: right;margin-left: 10px;" type="primary"
-                   icon="el-icon-edit">组件分类
-        </el-button>
-      </router-link>-->
-
-      <el-upload style="float: right;"
-                 class="upload-demo"
-                 action=""
-                 :file-list="fileList"
-                 :httpRequest="uploadCom"
-                 :show-file-list="false"
-                 multiple>
-
-        <!--<el-button class="filter-item" type="primary" style="margin-left: 10px;" v-waves icon="el-icon-download">导入</el-button>-->
-
-      </el-upload>
-      <el-button type="danger" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
-        回收站
-      </el-button>
-      <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
-        退出回收站
-      </el-button>
-    </div>
+    </div>-->
 
     <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit
               highlight-current-row
+              stripe
+              :default-sort = "{prop: 'tag', order: 'descending'}"
               style="width: 100%">
 
       <el-table-column :label="$t('table.compName')" min-width="100">
         <template slot-scope="scope">
+          <svg-icon icon-class="history1" style="font-size: 18px;"></svg-icon>
           <span v-if="!scope.row.deleted" class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
           <span v-else>{{scope.row.name}}</span>
         </template>
@@ -52,11 +23,6 @@
           <span>{{scope.row.version}}</span>
         </template>
       </el-table-column>
-      <!--<el-table-column min-width="100px" :label="$t('table.compSize')">
-        <template slot-scope="scope">
-          <span>{{Math.round(scope.row.size/1024/1024*100)/100}}M</span>
-        </template>
-      </el-table-column>-->
       <el-table-column min-width="100px" :label="$t('table.compPath')">
         <template slot-scope="scope">
           <span>{{scope.row.relativePath}}</span>
@@ -65,6 +31,11 @@
       <el-table-column min-width="100px" :label="$t('table.compDesc')">
         <template slot-scope="scope">
           <span>{{scope.row.description}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column min-width="100px" label="修改时间" sortable prop="tag">
+        <template slot-scope="scope">
+          <span>{{computedTimeTag(scope.row.tag)}}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.actions')" width="140" class-name="small-padding fixed-width" align="center">
@@ -80,29 +51,24 @@
               <el-button type="success" plain>更多操作</el-button>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
+              <!--<el-dropdown-item>
                 <span style="display:inline-block;padding:0 10px;" @click="handleUpdate(scope.row)">编辑</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="compCopy(scope.row)">复制</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided>
+              </el-dropdown-item>-->
+              <el-dropdown-item>
                 <span style="display:inline-block;padding:0 10px;" @click="exportLink(scope.row)">导出</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
-              </el-dropdown-item>
+              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
-          <el-dropdown trigger="click" v-else>
-            <!--<el-tooltip class="item" effect="dark" content="更多操作" placement="top">
-              <span class="el-dropdown-link">
-              <svg-icon icon-class="ellipsis"></svg-icon>
-            </span>
-            </el-tooltip>-->
+          <!--<el-dropdown trigger="click" v-else>
             <span class="el-dropdown-link">
               <el-button type="success" plain>更多操作</el-button>
             </span>
@@ -114,13 +80,7 @@
                 <span style="display:inline-block;padding:0 10px;" @click="handleResHisCom(scope.row)">恢复</span>
               </el-dropdown-item>
             </el-dropdown-menu>
-          </el-dropdown>
-          <!--<el-button size="mini" type="success" @click="compCopy(scope.row)">复制</el-button>
-          <a @click="exportLink(scope.row)">
-            <el-button size="mini" type="info">导出</el-button>
-          </a>
-          <el-button size="mini" type="danger" @click="handleDelete(scope.row)">{{$t('table.delete')}}
-          </el-button>-->
+          </el-dropdown>-->
         </template>
       </el-table-column>
 
@@ -132,69 +92,31 @@
                      layout="total, sizes, prev, pager, next, jumper" :total="total">
       </el-pagination>
     </div>
-
-    <!--创建-->
-    <el-dialog :title="textMap[dialogStatus]"
-               :visible.sync="dialogFormVisible"
-               top="10vh" width="86%"
-               class="filesDialog"
-               v-if="dialogStatus == 'create'"
-    >
-      <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
-               style='width: 100%;height: 100%'>
-        <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
-          <el-form-item :label="$t('table.compName')" prop="name">
-            <el-input v-model="temp.name"></el-input>
-          </el-form-item>
-          <el-form-item :label="$t('table.compVersion')" prop="version">
-            <el-input v-model="temp.version"></el-input>
-          </el-form-item>
-          <el-form-item :label="$t('table.compPath')" prop="relativePath">
-            <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
-          </el-form-item>
-          <el-form-item :label="$t('table.compDesc')" prop="desc">
-            <el-input v-model="temp.description"></el-input>
-          </el-form-item>
-          <div class="button-container">
-            <el-button @click="dialogFormVisible = false">关闭</el-button>
-            <el-button v-if="showConfirmBtn" type="primary" @click="createData" :loading="creComLoading">{{$t('table.confirm')}}</el-button>
-          </div>
-        </div>
-        <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px"
-             v-loading="managerLoading"
-             element-loading-text="请先填写组件的基本信息并创建"
-        >
-          <comFileManage ref="createComFile" :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
-        </div>
-      </el-form>
-    </el-dialog>
-
     <!-- 修改 -->
-    <el-dialog :title="textMap[dialogStatus]"
+    <el-dialog title="历史组件详情"
                :visible.sync="dialogFormVisible"
                top="7vh" width="86%"
                class="filesDialog"
-               v-else
     >
 
         <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
                  style='width: 100%;height: 100%'>
           <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
             <el-form-item :label="$t('table.compName')" prop="name">
-              <el-input v-model="temp.name"></el-input>
+              <el-input v-model="temp.name" disabled="disabled"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compVersion')" prop="version">
-              <el-input v-model="temp.version"></el-input>
+              <el-input v-model="temp.version" disabled="disabled"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compPath')" prop="relativePath">
-              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
+              <el-input v-model="temp.relativePath" placeholder="/test/，必须以斜杠开头，斜杠结尾" disabled="disabled"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compDesc')" prop="desc">
-              <el-input v-model="temp.description"></el-input>
+              <el-input v-model="temp.description" disabled="disabled"></el-input>
             </el-form-item>
             <div class="button-container">
-              <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
-              <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
+              <el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>
+              <!--<el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>-->
             </div>
             <!--去除修改组件时的文件上传模块-->
             <!--<el-form-item :label="$t('table.compUpload')" prop="fileAll">
@@ -230,20 +152,20 @@
 
 <script>
   /* eslint-disable */
-  import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compListHistory, compSingle, restoreCom, cleanCom } from '@/api/component'
+  import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compListHistory, compSingle, restoreCom, cleanCom, compHisVersion} from '@/api/component'
   import waves from '@/directive/waves' // 水波纹指令
   import { Loading } from 'element-ui'
-  import comFileManage from '@/views/fileManager/filecomp'
+  import comFileManage from '@/views/fileManager/historyFile'
 
   export default {
-    name: 'components',
+    name: 'componentHistory',
     directives: {
       waves
     },
     data() {
       const validatePath = (rule, value, callback) => {
+        let pattern = /^(\/([a-zA-Z0-9]+))$/;
         // let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
-        let pattern = /^(\/([a-zA-Z0-9]+))+$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -257,6 +179,8 @@
       return {
         isHistory: false,
         projectId: '',
+        componentId: '',
+        componentName: '',
         selectedId: '',
         selectdName: '',
         treeInfo: [],
@@ -342,16 +266,15 @@
           username: '',
           password: ''
         },
-        errorMessage: '操作失败',
-        showConfirmBtn: true,
-        showConfirmBtn1: true,
-        originalCompTemp: null
+        errorMessage: '操作失败'
       }
     },
     components: {
       comFileManage
     },
     created() {
+      this.componentId = this.$route.params.id
+      this.componentName = this.$route.params.name
       this.isHistory = false
       this.projectId = this.$store.getters.projectId
       this.userData.username = this.getCookie('username')
@@ -364,18 +287,11 @@
     methods: {
       getList() {
         this.listLoading = true
-        compList(this.projectId,this.listQuery).then(response => {
+        compHisVersion(this.componentId,this.listQuery).then(response => {
           this.isHistory = false
           this.list = response.data.data.content
           this.total = response.data.data.totalElements
           this.listLoading = false
-          /*this.oldList = this.list.map(v => v.id);
-          this.newList = this.oldList.slice();
-          this.$nextTick(() => {
-            this.setSort()
-          })*/
-
-          //console.log(this.list);
         })
       },
       handleSizeChange(val) {
@@ -405,216 +321,16 @@
           fileAll: ''
         }
       },
-      handleCreate() {
-        this.showConfirmBtn = true
-        this.managerLoading = true
-        this.resetTemp();
-        this.selectedId = ''
-        this.selectdName = ''
-        this.dialogStatus = 'create'
-        this.dialogFormVisible = true
-        this.$nextTick(() => {
-          if(this.$refs.createComFile.list) {
-            this.$refs.createComFile.list = []
-            this.$refs.createComFile.breadcrumbList = []
-          }
-          this.$refs['dataForm'].clearValidate()
-
-          /*console.log("文件信息");
-          console.log(this.$refs.uploader.uploader.files);
-          this.$refs.uploader.uploader.files.splice(0,this.$refs.uploader.uploader.files.length);
-          console.log(this.$refs.uploader.uploader.files);*/
-          // this.getList()
-        })
-        // this.getList()
-      },
-      createData() {
-        this.$refs['dataForm'].validate((valid) => {
-          if (valid) {
-            const createloading = Loading.service({
-              lock: true,
-              text: 'Loading',
-              spinner: 'el-icon-loading'
-            })
-            this.creComLoading = true
-            let formData = new FormData();
-            /*this.fileAll = this.$refs.uploader.uploader.files;
-            console.log(this.fileAll,'所有文件')*/
-            formData.append('name', this.temp.name);
-            formData.append('version', this.temp.version);
-            formData.append('relativePath', this.temp.relativePath);
-            //formData.append('size', this.size);
-            formData.append('description', this.temp.description);
-            //开始上传后去掉暂停和删除按钮
-            /*$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
-            $(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");*/
-            //formData.append('enctype', "multipart/form-data")
-            /*for (var i = 0; i < this.fileAll.length; i++) {
-              //判断数组里是文件夹还是文件
-              formData.append('componentEntityFiles', this.fileAll[i].file);
-            }*/
-            // debugger
-            createComp(this.projectId, formData).then((res) => {
-              this.showConfirmBtn = false
-              this.creComLoading = false
-              createloading.close()
-              // this.list.unshift(this.temp)
-              // this.dialogFormVisible = false
-              this.selectedId = res.data.data.id
-              this.selectdName = res.data.data.name
-              this.managerLoading = false
-              this.$notify({
-                title: '成功',
-                message: '创建成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
-            }).catch((error) => {
-              this.showConfirmBtn = true
-              this.creComLoading = false
-              createloading.close()
-              this.errorMessage = '操作失败！'
-              if(error.response.data.message){
-                this.errorMessage = error.response.data.message
-              }
-              this.$notify({
-                title: '失败',
-                message: this.errorMessage,
-                type: 'error',
-                duration: 2000
-              })
-            })
-          }
-        })
-      },
       handleUpdate(row) {
-        this.originalCompTemp = {}
         this.selectedId = row.id;
         this.selectdName = row.name
         this.temp = Object.assign({}, row) // copy obj
-        this.originalCompTemp = Object.assign({}, row)
         this.temp.timestamp = new Date(this.temp.timestamp)
         this.dialogStatus = 'update'
-        this.showConfirmBtn1 = true
         this.dialogFormVisible = true
         this.$nextTick(() => {
-          /*if(this.$refs.createComFile.list) {
-            this.$refs.createComFile.list = []
-            this.$refs.createComFile.breadcrumbList = []
-          }*/
           this.$refs['dataForm'].clearValidate()
         })
-        /*this.$nextTick(() => {
-          this.$refs['dataForm'].clearValidate();
-
-          //树
-          compSingle(this.selectedId).then(response => {
-            this.singleComp = response.data.data;
-            this.listLoading = false
-
-            console.log("树信息-------------------");
-            console.log(this.singleComp);
-
-            //对比时，是路径节点与根节点下的孩子节点比较
-            let componentFile = this.singleComp.componentDetailEntities;//组件
-
-            let zNodes = [];
-            let item;
-            for (let m = 0; m < componentFile.length; m++) {
-
-              this.treeInfo.push(componentFile[m]);//放所有文件信息，用于树点击id的选择
-
-              item = this.singleComp;
-
-              let path = (componentFile[m].savePath).split('/');
-
-              for (let i = 1; i < path.length; i++) {
-                item = this.$options.methods.handleInfo(item, path[i]);
-              }
-            };
-
-            zNodes.push(this.singleComp);
-
-            console.log(zNodes);
-
-            let forderTemp = [];
-
-            for (let i = 0; i < this.singleComp.componentDetailEntities.length; i++) {
-              let info = this.singleComp.componentDetailEntities[i].savePath.split('/');
-              let clearId = this.singleComp.componentDetailEntities[i].id;
-
-              if (info.length > 2) {
-
-                if (forderTemp.length > 0) {
-                  let flag = true;
-
-                  for (let j = 0; j < forderTemp.length; j++) {
-                    if (forderTemp[j].name == info[1]) {
-                      flag = false;
-                    }
-                  }
-
-                  if (flag) {
-                    let info2 = {};
-                    info2.name = info[1];
-                    forderTemp.push(info2);
-                  }
-
-                } else {
-                  let info2 = {};
-                  info2.name = info[1];
-                  forderTemp.push(info2);
-                }
-
-
-                this.folderClearData.push(clearId);
-                console.log(this.folderClearData);
-              } else {
-                this.fileInfo.push(this.singleComp.componentDetailEntities[i]);
-                this.fileClearData.push(clearId);
-              }
-            }
-
-            console.log(forderTemp);
-
-            for (let i = 0; i < forderTemp.length; i++) {
-              this.folderInfo.push(forderTemp[i]);
-            }
-
-
-            let setting = {
-              view: {
-                dblClickExpand: false,
-                addHoverDom: this.addHoverDom,
-                removeHoverDom: this.removeHoverDom,
-                selectedMulti: this.true
-              },
-              edit: {
-                enable: true,
-                showRenameBtn: false,
-                showRemoveBtn: false
-              },
-              data: {
-                simpleData: {
-                  enable: true
-                }
-              },
-              callback: {
-                beforeDrag: this.beforeDrag,
-                beforeEditName: this.beforeEditName,
-                beforeRemove: this.beforeRemove,
-                beforeRename: this.beforeRename,
-                onRemove: this.onRemove,
-                onRename: this.onRename,
-                onClick: this.zTreeOnClick
-              }
-            };
-
-            $.fn.zTree.init($("#treeDemo"), setting, zNodes);
-          });
-
-        })*/
       },
       compCopy(row) {
         let qs = require('qs');
@@ -655,23 +371,6 @@
       updateData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
-            /*const updateloading = Loading.service({
-              lock: true,
-              text: 'Loading',
-              spinner: 'el-icon-loading',
-              fullscreen: true
-            })*/
-            if(this.originalCompTemp.name === this.temp.name
-              && this.originalCompTemp.version === this.temp.version
-              && this.originalCompTemp.relativePath === this.temp.relativePath
-              && this.originalCompTemp.description === this.temp.description)
-            {
-              this.$message({
-                type: 'info',
-                message: '组件信息未修改'
-              })
-              return
-            }
             this.upComLoading = true
             let id = this.selectedId;
 
@@ -684,19 +383,7 @@
             formData.append('relativePath', this.temp.relativePath);
             //formData.append('size', this.size);
             formData.append('description', this.temp.description);
-
-            //开始上传后去掉暂停和删除按钮
-            //$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
-            //$(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");
-
             formData.append('enctype', "multipart/form-data");
-
-            /*for (var i = 0; i < this.fileAll.length; i++) {
-              //判断数组里是文件夹还是文件
-              formData.append('componentEntityFiles', this.fileAll[i].file);
-
-            }*/
-            // patch暂时不支持修改文件
             let data = {
               name: this.temp.name,
               version: this.temp.version,
@@ -706,15 +393,6 @@
             let qs = require('qs')
             let newdata = qs.stringify(data)
             updateComp(newdata,id).then(() => {
-              /*for (const v of this.list) {
-                if (v.id === this.temp.id) {
-                  const index = this.list.indexOf(v)
-                  this.list.splice(index, 1, this.temp)
-                  break
-                }
-              }*/
-              // updateloading.close()
-              this.showConfirmBtn1 = false
               this.upComLoading = false
               this.dialogFormVisible = false
               this.$notify({
@@ -725,7 +403,6 @@
               })
               this.getList()
             }).catch((error) => {
-              this.showConfirmBtn = true
               this.errorMessage = '操作失败！'
               this.upComLoading = false
               if(error.response.data.message){
@@ -741,25 +418,6 @@
           }
         })
       },
-      /*setSort() {
-        const el = document.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
-        this.sortable = Sortable.create(el, {
-          ghostClass: 'sortable-ghost', // Class name for the drop placeholder,
-          setData: function (dataTransfer) {
-            dataTransfer.setData('Text', '')
-            // to avoid Firefox bug
-            // Detail see : https://github.com/RubaXa/Sortable/issues/1012
-          },
-          onEnd: evt => {
-            const targetRow = this.list.splice(evt.oldIndex, 1)[0]
-            this.list.splice(evt.newIndex, 0, targetRow)
-
-            // for show the changes, you can delete in you code
-            const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
-            this.newList.splice(evt.newIndex, 0, tempIndex)
-          }
-        })
-      },*/
       handleDelete(row) {
         let id = row.id;
         this.$confirm('确认删除吗？', '提示', {
@@ -787,7 +445,7 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.getIP() + 'components/' + id + '/export';
+        this.exportUrl = this.getIP() + 'componenthistorys/' + id + '/export';
 
         console.log(this.exportUrl);
         window.open(this.exportUrl);
@@ -978,13 +636,7 @@
         })
       },
       historyVersion(row) {
-        this.$router.push({
-          name: 'componentHistory',
-          params: {
-            name: row.name,
-            id: row.id
-          }
-        })
+
       }
      },
     computed: {
@@ -993,6 +645,18 @@
         return self.list.filter(function (item) {
           return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
         })
+      },
+      computedTimeTag() {
+        return function (tag) {
+          let date = new Date(tag);
+          let Y = date.getFullYear() + '-';
+          let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+          let D = date.getDate() < 10 ? '0'+ date.getDate() + ' ' : date.getDate() + ' '
+          let h = date.getHours() < 10 ? '0'+ date.getHours() + ':' : date.getHours() + ':'
+          let m = date.getMinutes() < 10 ? '0' + date.getMinutes() + ':' : date.getMinutes() + ':'
+          let s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
+          return Y+M+D+h+m+s
+        }
       }
     }
   }

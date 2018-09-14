@@ -1,5 +1,5 @@
 <template>
-  <div :class="className" :id="id" :style="{height:height,width:width,top:top}" :list="detaillist"></div>
+  <div :class="className" :id="id" :style="{height:height,width:width,top:top}" :list="detaillist" :currentNodeInfo="currentNodeInfo"></div>
 </template>
 
 <script>
@@ -13,6 +13,10 @@
       detaillist: {
         type: Array,
         default:[]
+      },
+      currentNodeInfo: {
+        type: Object,
+        default: {}
       },
       className: {
         type: String,
@@ -39,6 +43,7 @@
       return {
         chart: null,
         list: [],
+        // currentNodeInfo: null,
         dataList: [],
         dataItem: {},
         linksList: [],
@@ -76,11 +81,12 @@
               var res
               if(x.data.deviceInfo) {
                 res='<div><p>名称：'+x.data.deviceInfo.name+'</p></div>'
-                  + '<div><p>IP：'+x.data.deviceInfo.ip+'</p></div>'
+                  + '<div><p>IP：'+x.data.deviceInfo.hostAddress+'</p></div>'
               } else if(x.data.info){
                 res='<div><p>名称：'+x.data.info.componentEntity.name+'</p></div>'
-                  + '<div><p>路径：'+x.data.info.componentEntity.deployPath+'</p></div>'
+                  + '<div><p>路径：'+x.data.info.componentEntity.relativePath+'</p></div>'
                   + '<div><p>版本：'+x.data.info.componentEntity.version+'</p></div>'
+                  + '<div><p>时间：'+x.data.info.componentEntity.createTime+'</p></div>'
               }
               /*for(var i=0;i<params.length;i++){
                 res+='<p>'+params[i].seriesName+':'+params[i].data+'</p>'
@@ -174,23 +180,59 @@
         })
       },
       initConfig() {
-        if(this.list[0]) {
-          this.centerDevice = {
-            name: this.list[0].deviceEntity.name,
-            /*x: this.centerX,
-            y: this.centerY,*/
-            symbolSize: 40,
-            itemStyle: {
-              normal: {
-                color: '#42b983',
-              }
-            },
-            deviceInfo: this.list[0].deviceEntity
+        console.log(this.currentNodeInfo)
+        if(this.list.length > 0) { // 绑定了组件
+          console.log(this.list[0])
+          if(this.list[0].deploymentDesignNodeEntity.deviceEntity !== null) { // 绑定了设备和组件
+            this.centerDevice = {
+              name: this.list[0].deploymentDesignNodeEntity.deviceEntity.name,
+              /*x: this.centerX,
+              y: this.centerY,*/
+              symbolSize: 40,
+              itemStyle: {
+                normal: {
+                  color: '#42b983',
+                }
+              },
+              deviceInfo: this.list[0].deploymentDesignNodeEntity.deviceEntity
+            }
+          } else { // 未绑定设备， 绑定了组件
+            this.centerDevice = {
+              name: '暂未绑定设备',
+              symbolSize: 40,
+              itemStyle: {
+                normal: {
+                  color: '#42b983',
+                }
+              },
+              deviceInfo: {}
+            }
           }
-        }
-        else {
-          this.centerDevice = {
+        } else { // 未绑定组件
+          if (this.currentNodeInfo.deviceEntity === null) { // 未绑定组件 未绑定设备
+            this.centerDevice = {
+              name: '暂未绑定设备与组件',
+              symbolSize: 40,
+              itemStyle: {
+                normal: {
+                  color: '#42b983',
+                }
+              },
+              deviceInfo: {}
+            }
+          } else {
+            this.centerDevice = { // 未绑定组件 绑定了设备
+              name: this.currentNodeInfo.deviceEntity.hostAddress + '暂未绑定组件',
+              symbolSize: 40,
+              itemStyle: {
+                normal: {
+                  color: '#42b983',
+                }
+              },
+              deviceInfo: this.currentNodeInfo.deviceEntity
+            }
           }
+
         }
 
         this.dataList = []
@@ -198,15 +240,18 @@
         this.dataList.push(this.centerDevice)
         for(let i=0;i<this.list.length;i++) {
           this.dataItem = {
-            name: this.list[i].componentEntity.name,
+            name: this.list[i].componentHistoryEntity.name,
+            // name: this.list[i].componentEntity.name,
             /*x: this.childX,
             y: this.stepY*i,*/
             info: this.list[i],
-            id: this.list[i].componentEntity.id
+            id: this.list[i].componentHistoryEntity.id
+            // id: this.list[i].componentEntity.id
           }
           this.linksItem = {
             source: this.centerDevice.name,
-            target: this.list[i].componentEntity.id,
+            target: this.list[i].componentHistoryEntity.id,
+            // target: this.list[i].componentEntity.id,
             // id: this.list[i].componentEntity.id
           }
           this.dataList.push(this.dataItem)
@@ -217,7 +262,7 @@
         if(this.linksList.length > 0) {
           this.title = '设备组件关系图'
         } else {
-          this.title = '设备组件关系图(此设备未绑定组件)'
+          this.title = '设备组件关系图(该节点暂无信息)'
         }
       }
     },
@@ -225,10 +270,18 @@
       detaillist () {
         /*console.log('我变啦！！')
         console.log(this.detaillist)*/
+        // alert('我变啦！')
+        console.log('detailList=========')
+        console.log(this.detaillist)
         this.list = this.detaillist
         this.initConfig()
         this.initChart()
-      }
+      },
+      /*currentNodeInfo () {
+        this.list = this.detaillist
+        this.initConfig()
+        this.initChart()
+      }*/
     }
   }
 </script>

@@ -2,7 +2,7 @@ import request from '../utils/request'
 
 export function compList(proId, listQuery) {
   return request({
-    url: '/projects/' + proId + '/component',
+    url: '/projects/' + proId + '/components',
     method: 'get',
     params: {
       // isShowHistory: false,
@@ -12,16 +12,44 @@ export function compList(proId, listQuery) {
     }
   })
 }
-
-export function compListHistory(proId, listQuery) {
+// 全部组件无分页
+export function compAll(proId) {
   return request({
     url: '/projects/' + proId + '/component',
+    method: 'get',
+    params: {
+      deleted: false
+    }
+  })
+}
+// 已删除组件
+export function compListHistory(proId, listQuery) {
+  return request({
+    url: '/projects/' + proId + '/components',
     method: 'get',
     params: {
       deleted: true,
       size: listQuery.limit,
       page: listQuery.page
     }
+  })
+}
+// 组件历史版本 -- 分页
+export function compHisVersion(id, listQuery) {
+  return request({
+    url: '/components/' + id + '/history',
+    method: 'get',
+    params: {
+      size: listQuery.limit,
+      page: listQuery.page
+    }
+  })
+}
+// 组件历史版本 -- 无分页
+export function compHisVersions(id) {
+  return request({
+    url: '/components/' + id + '/historys',
+    method: 'get'
   })
 }
 
@@ -150,12 +178,13 @@ export function saveFiles(id, data) {
   })
 }
 // saveFolder
-export function saveFolder(id, data) {
+export function saveFolder(id, parentNodeId, data) {
   return request({
-    url: '/components/' + id + '/componentfiles/savefolder',
+    url: '/components/' + id + '/createfolder',
     method: 'post',
     headers: {
-      'content-type': 'application/x-www-form-urlencoded'
+      'content-type': 'application/x-www-form-urlencoded',
+      'parentNodeId': parentNodeId
     },
     data
   })
@@ -164,10 +193,10 @@ export function saveFolder(id, data) {
 // getfiles
 export function getCompFiles(id, parent) {
   return request({
-    url: '/components/' + id + '/componentfiles',
+    url: '/components/' + id + '/files',
     method: 'get',
-    params: {
-      parentnodeid: parent
+    headers: {
+      'parentNodeId': parent
     }
   })
 }
@@ -185,7 +214,7 @@ export function exportCompFiles(id) {
     method: 'get'
   })
 }
-// uploadFoldder
+// uploadFolder
 export function uploadFolder(id, data) {
   return request({
     url: '/components/' + id + '/componentfiles/uploadfolder',
@@ -196,7 +225,7 @@ export function uploadFolder(id, data) {
 // moveFileTo
 export function movefileTo(FileId, targetId, data) {
   return request({
-    url: '/componentfiles/' + FileId + '/moveto',
+    url: '/componentfiles/' + FileId + '/move',
     method: 'patch',
     data
   })
@@ -204,7 +233,7 @@ export function movefileTo(FileId, targetId, data) {
 // copyFileTo
 export function copyFileTo(FileId, targetId, data) {
   return request({
-    url: '/componentfiles/' + FileId + '/copyto',
+    url: '/componentfiles/' + FileId + '/copy',
     method: 'patch',
     data
   })
@@ -212,7 +241,7 @@ export function copyFileTo(FileId, targetId, data) {
 // renameFile
 export function renameFile(FileId, data) {
   return request({
-    url: '/componentfiles/' + FileId + '/rename',
+    url: '/componentfiles/' + FileId,
     method: 'patch',
     data
   })
@@ -232,5 +261,17 @@ export function cleanCom(comId) {
   return request({
     url: '/components/' + comId + '/clean',
     method: 'delete'
+  })
+}
+
+// 组件历史版本文件
+// 获取历史组件文件
+export function getHisCompFiles(id, parent) {
+  return request({
+    url: '/componenthistorys/' + id + '/files',
+    method: 'get',
+    headers: {
+      'parentNodeId': parent
+    }
   })
 }

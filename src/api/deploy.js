@@ -17,3 +17,10 @@ export function getDeployDevice(deployPlanId, listQuery) {
     }
   })
 }
+
+export function deployNode(id) {
+  return request({
+    url: 'deploymentdesignnodes/' + id + '/deploy',
+    method: 'put'
+  })
+}

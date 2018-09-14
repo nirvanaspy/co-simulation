@@ -242,10 +242,10 @@
         })
       },
       newFoler() {
-        let formData = new FormData();
+        /*let formData = new FormData();
         formData.append('name',this.newFolderName)
-        formData.append('parentnodeid',this.parentNodeId)
-        saveFolder(this.componentId, formData).then(() => {
+        formData.append('parentnodeid',this.parentNodeId)*/
+        saveFolder(this.componentId, this.parentNodeId).then(() => {
           this.newFolderName = ''
           this.getList()
         }).catch(() => {

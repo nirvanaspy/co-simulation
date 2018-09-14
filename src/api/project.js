@@ -13,9 +13,10 @@ export function projectList(listQuery) {
 
 export function projectList_user(id, listQuery) {
   return request({
-    url: '/users/' + id + '/project',
+    url: '/users/' + id + '/projects',
     method: 'get',
     params: {
+      deleted: false,
       size: listQuery.size,
       page: listQuery.page
     }

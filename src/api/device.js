@@ -11,6 +11,16 @@ export function getDevices(proId, listQuery) {
     }
   })
 }
+// 获取所有设备 无分页
+export function getAllDevices(proId) {
+  return request({
+    url: '/projects/' + proId + '/device',
+    method: 'get',
+    params: {
+      deleted: false
+    }
+  })
+}
 
 export function saveDevices(proId, data) {
   return request({

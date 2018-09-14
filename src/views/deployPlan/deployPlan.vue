@@ -15,32 +15,41 @@
     <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
               style="width: 100%">
 
-      <el-table-column align="center" :label="$t('table.deployPlanName')" width="200">
+      <el-table-column align="center" :label="$t('table.deployPlanName')" min-width="200">
         <template slot-scope="scope">
           <span class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80" align="center" :label="$t('table.deployPlanDesc')">
+      <el-table-column align="center" label="当前状态" width="100">
+        <template slot-scope="scope">
+          <span>
+            <svg-icon v-if="scope.row.baseline" icon-class="基线" style="font-size: 20px"></svg-icon>
+            <svg-icon v-else icon-class="部署设计" style="font-size: 16px"></svg-icon>
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column min-width="200" align="center" :label="$t('table.deployPlanDesc')">
         <template slot-scope="scope">
           <span>{{scope.row.description}}</span>
         </template>
       </el-table-column>
       <el-table-column align="center" width="200" label="部署操作" v-if="!isHistory">
         <template slot-scope="scope">
-          <!--<router-link class="pan-btn tiffany-btn" :to='{name:"deployPlanDetail",params:{id:scope.row.id}}'>查看</router-link>
-          <router-link class="pan-btn light-blue-btn" :to='{name:"deploy",params:{id:scope.row.id}}'>部署</router-link>
-          <router-link class="pan-btn green-btn" :to='{name:"deployBind",params:{id:scope.row.id}}'>设计</router-link>-->
-          <!--<router-link :to='{name:"deployPlanDetail",params:{id:scope.row.id}}'><el-button size="mini" type="primary">查看</el-button></router-link>-->
-          <router-link :to='{name:"deployBind",params:{id:scope.row.id}}' v-if="!scope.row.deleted"><el-button size="mini" type="primary">设计</el-button></router-link>
-          <router-link :to='{name:"deploy",params:{id:scope.row.id}}' v-if="!scope.row.deleted"><el-button size="mini" type="success">部署</el-button></router-link>
+          <router-link :to='{name:"designNode",params:{id:scope.row.id, name: scope.row.name},query:{name: scope.row.name}}' v-if="!scope.row.deleted && !scope.row.baseline">
+            <el-button size="mini" type="primary">
+              设计
+            </el-button>
+          </router-link>
+          <el-button size="mini" type="primary" v-if="!scope.row.deleted && scope.row.baseline" @click="checkNodeBaseLine(scope.row)">
+            查看
+          </el-button>
+          <router-link :to='{name:"deploy",params:{id:scope.row.id}}' v-if="!scope.row.deleted">
+            <el-button size="mini" type="success">部署</el-button>
+          </router-link>
         </template>
       </el-table-column>
       <el-table-column align="center" :label="$t('table.actions')" width="200">
         <template slot-scope="scope">
-          <!--<el-button size="mini" type="success">设计</el-button>-->
-          <!--<el-button type="primary" size="mini" @click="handleUpdate(scope.row)">{{$t('table.edit')}}</el-button>
-          <el-button size="mini" type="danger" @click="handleDelete(scope.row)">{{$t('table.delete')}}</el-button>
-          <el-button size="mini" type="info">基线</el-button>-->
           <el-dropdown trigger="click" v-if="!scope.row.deleted">
             <span class="el-dropdown-link" v-if="!scope.row.virtual">
               <el-button type="success" plain>更多操作</el-button>
@@ -50,59 +59,17 @@
                 <span style="display:inline-block;padding:0 10px;" @click="handleUpdate(scope.row)">编辑</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="handleCopy(scope.row)">复制</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleCreateBaseline(scope.row)">新建基线</span>
+                <span style="display:inline-block;padding:0 10px;" @click="baselineDeploy(scope.row)">新建基线</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
-                <!--<el-popover
-                  ref="popover4"
-                  placement="right"
-                  width="420"
-                  height="400"
-                  trigger="click"
-                  @show="getBaslines(scope.row)">
-                  <div class="filter-container">
-                    <el-input style="width: 200px;" class="filter-item" placeholder="组件名" v-model="searchQuery2">
-                    </el-input>
-                  </div>
-                  <div style="height: 425px;overflow-y: auto;margin-top: 0" id="compTab">
-                    <el-table :key='tableKey' :data="baslineList" v-loading="listLoading" element-loading-text="给我一点时间" border fit
-                              highlight-current-row
-                              style="width: 100%;"
-                              height="380"
-                              id="compTable">
-                      <el-table-column label="基线名称" width="140" align="center">
-                        <template slot-scope="scope">
-                          <span @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column width="100px" align="center" label="基线描述">
-                        <template slot-scope="scope">
-                          <span>{{scope.row.version}}</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column min-width="100px" align="center" :label="$t('table.compSize')">
-                        <template slot-scope="scope">
-                          <span>{{Math.round(scope.row.size/1024/1024*100)/100}}M</span>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="解绑" width="80" align="center">
-                        <template slot-scope="scope">
-                          &lt;!&ndash;<span>{{scope.row.isBind}}</span>&ndash;&gt;
-                          <el-button type="danger" icon="el-icon-delete" size="mini" circle v-if="scope.row.isBind" @click="deleteBindRelation(scope.row)"></el-button>
-                        </template>
-                      </el-table-column>
-
-                    </el-table>
-                  </div>
-                </el-popover>-->
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="checkBaselines(scope.row)">基线详情</span>
-              </el-dropdown-item>
-              <!--<el-dropdown-item divided>-->
-                <!--<span style="display:inline-block;padding:0 10px;" @click="handleMonitor(scope.row)">在线监控</span>-->
-              <!--</el-dropdown-item>-->
+              </el-dropdown-item>-->
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleMonitor(scope.row)">在线监控</span>
               </el-dropdown-item>
@@ -136,10 +103,6 @@
       style="text-align: center;margin-top:20px"
     >
     </el-pagination>
-    <!--<div class="pagination-container">
-      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="listQuery.page" :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit" layout="total, sizes, prev, pager, next, jumper" :total="total">
-      </el-pagination>
-    </div>-->
     <!--部署设计对话框-->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="40%">
       <el-form :rules="deployRules" ref="dataForm" :model="temp" label-width="100px" style='width: 80%; margin:0 auto;'>
@@ -212,14 +175,19 @@
         <el-button type="primary" @click="modifyBaseline" :loading="upBasLoading">{{$t('table.confirm')}}</el-button>
       </div>
     </el-dialog>
+    <!--查看部署设计快照对话框-->
+    <el-dialog title="基线详情" :visible.sync="snapshootFormVisible" width="80%">
+      <designSnapshoot :deployPlanId="deployPlanId" :deployPlanName="deployPlanName"></designSnapshoot>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-  import { deployplanList, createDeployplan, updateDeployplan, deleteDeployplan, hisDeployplan, cleanDeployplan, restoreDeployplan } from '@/api/deployplan'
-  import { saveDeploymentDesignSnapshots, getDeploymentDesignSnapshots, deleteDeploymentDesignSnapshots, modifySnapshots } from '@/api/baseline'
+  import { deployplanList, createDeployplan, updateDeployplan, deleteDeployplan, hisDeployplan, cleanDeployplan, restoreDeployplan, copyDeployplan } from '@/api/deployplan'
+  import { saveDeploymentDesignSnapshots, getDeploymentDesignSnapshots, deleteDeploymentDesignSnapshots, modifySnapshots, baselineDeployDesign } from '@/api/baseline'
   import waves from '@/directive/waves' // 水波纹指令
   import Sortable from 'sortablejs'
+  import designSnapshoot from '../designNodeSnapshoot/deployDesignSnapshoot'
 
   /* eslint-disable */
   export default {
@@ -227,8 +195,13 @@
     directives: {
       waves
     },
+    components: {
+      designSnapshoot
+    },
     data() {
       return {
+        deployPlanId: '',
+        deployPlanName: '',
         isHistory: false,
         selectedId: '',
         deployName: '',
@@ -257,6 +230,7 @@
         baselineVisible: false,
         baselineDetailVisible: false,
         modifyBaselineVisible: false,
+        snapshootFormVisible: false,
         baselineTemp: {
           id: '',
           name: '',
@@ -378,6 +352,11 @@
           this.$refs['dataForm'].clearValidate()
         })
       },
+      checkNodeBaseLine(row) {
+        this.snapshootFormVisible = true
+        this.deployPlanId = row.id
+        this.deployPlanName = row.name
+      },
       createData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
@@ -466,6 +445,28 @@
           }
         })
       },
+      handleCopy(row) {
+        copyDeployplan(row.id).then(() => {
+          this.getList()
+          this.$notify({
+            title: '成功',
+            message: '复制成功',
+            type: 'success',
+            duration: 2000
+          })
+        }).catch((error) => {
+          this.errorMessage = '操作失败！'
+          if(error.response.data.message){
+            this.errorMessage = error.response.data.message
+          }
+          this.$notify({
+            title: '失败',
+            message: this.errorMessage,
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
       setSort() {
         const el = document.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
         this.sortable = Sortable.create(el, {
@@ -513,6 +514,17 @@
             type: 'info',
             message: '已取消删除'
           })
+        })
+      },
+      baselineDeploy(row) {
+        baselineDeployDesign(row.id).then(() => {
+          this.$notify({
+            title: '成功',
+            message: '已设置为基线',
+            type: 'success',
+            duration: 2000
+          })
+          this.getList()
         })
       },
       handleCreateBaseline(row) {

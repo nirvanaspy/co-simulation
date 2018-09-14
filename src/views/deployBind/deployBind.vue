@@ -3,15 +3,15 @@
 
     <split-pane v-on:resize="resize" split="vertical" class="splicClass" style="height: 96%">
       <template slot="paneL">
-        <div class="left-container">
+        <div class="left-container" style="height: 100%">
           <div class="filter-container" style="margin-top:8px;padding-left: 6px;">
             <el-input style="width: 200px;" class="filter-item" placeholder="设备名" v-model="searchQuery">
             </el-input>
 
           </div>
-          <div style="height: 440px;overflow-y: auto;padding-left: 6px;">
+          <div style="height: 80%;padding-left: 6px;">
             <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
-                      style="width: 100%;">
+                      style="width: 100%;" height="100%">
               <!-- <el-table :data="list" row-key="id"  v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">-->
 
               <div>
@@ -105,7 +105,6 @@
                     </div>
                     <el-button type="primary" size="mini" icon="el-icon-arrow-right" slot="reference" @click="showPop"></el-button>
                   </el-popover>
-
                 </template>
               </el-table-column>
             </el-table>
@@ -443,7 +442,6 @@
         for(let i=0;i<this.checkedComps.length;i++){
           this.componentIds.push(this.checkedComps[i].id);
         }
-
         console.log(this.componentIds);
       },
 
@@ -474,7 +472,6 @@
            }
 
            let dataBindId = (this.componentIds + '').replace(/\[|]/g,'')
-           console.log(dataBindId, '99980')
            let data = {
              'deviceId': this.deviceCHId,
              'componentIds': dataBindId
