@@ -1,14 +1,17 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
+      <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
+        部署设计回收站
+      </div>
       <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="名称" v-model="searchQuery">
       </el-input>
-      <el-button class="filter-item" style="margin-left: 10px;float:right;" @click="handleCreate" type="primary" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
-      <el-button type="danger" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
+      <el-button class="filter-item" style="margin-left: 10px;float:right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
+      <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
         回收站
       </el-button>
       <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
-        退出回收站
+        返回
       </el-button>
     </div>
 
@@ -114,7 +117,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">{{$t('table.cancel')}}</el-button>
+        <el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>
         <el-button v-if="dialogStatus=='create'" type="primary" @click="createData" :loading="creDepLoading">{{$t('table.confirm')}}</el-button>
         <el-button v-else type="primary" @click="updateData" :loading="upDepLoading">{{$t('table.confirm')}}</el-button>
       </div>

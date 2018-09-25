@@ -6,12 +6,29 @@
           <el-breadcrumb-item v-for="(item,index) in breadcrumbList" :key="index"><span style="cursor: pointer;color:rgb(0, 171, 235);" @click="switchFolder(item,index)">{{item.name}}</span></el-breadcrumb-item>
         </el-breadcrumb>
       </div>
-      <el-tooltip class="item" effect="dark" content="返回到组件选择目录" placement="top" style="float: right">
-              <span class="link-type"
-                    @click="backToComp"
-                    style="position:relative;top:-4px;display:inline-block;width:10%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis;text-align: right;">
-                返回
-              </span>
+      <el-tooltip
+        class="item"
+        effect="dark"
+        content="返回到组件选择目录"
+        placement="top" style="float: right"
+        v-if="(list.length > 0 && !list[0].isComponent) || list.length == 0"
+      >
+        <span class="link-type"
+              @click="backToComp"
+              style="position:relative;top:-4px;display:inline-block;width:10%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis;text-align: right;">
+          返回
+        </span>
+      </el-tooltip>
+      <el-tooltip
+        class="item"
+        effect="dark"
+        content="单击组件名选择组件"
+        placement="top" style="float: right"
+        v-if="list.length > 0 && list[0].isComponent"
+      >
+        <span style="position:relative;top:-4px;display:inline-block;width:20%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis;text-align: right;">
+          选择组件
+        </span>
       </el-tooltip>
       <!--<div style="float: right;color:rgb(0, 171, 235);cursor: pointer;padding-right: 20px;">
         <span style="margin-right: 18px" @click="addFolder">
@@ -44,10 +61,10 @@
               style="width: 100%"
               class="fileList"
     >
-      <el-table-column label="文件夹" min-width="200">
+      <el-table-column label="名称" min-width="200">
         <template slot-scope="scope">
           <span @click="loadListFile(scope.row)">
-            <svg-icon icon-class="folder" style="font-size: 30px;margin-right: 10px;cursor: pointer;"></svg-icon>
+            <svg-icon :icon-class="classifyIcon(scope.row)" style="font-size: 28px;margin-right: 10px;cursor: pointer;"></svg-icon>
             <el-tooltip class="item" effect="dark" :content="scope.row.name" placement="top">
               <span v-if="!scope.row.newFolder" class="link-type"
                     style="position:relative;top:2px;display:inline-block;width:70%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis">
@@ -208,6 +225,7 @@
             res.data.data[i].isComponent = true
             this.list.push(res.data.data[i])
           }
+          console.log(this.list)
           this.breadcrumbList = []
         }).catch(() => {
           this.$notify({

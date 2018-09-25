@@ -116,7 +116,7 @@
     <!--上传文件弹框-->
     <el-dialog
       class="uploadDialog"
-      title="提示"
+      title="上传文件"
       :visible.sync="uploadDialog"
       append-to-body
       width="50%">
@@ -149,7 +149,7 @@
     <!--上传文件夹弹框-->
     <el-dialog
       class="uploadDialog"
-      title="提示"
+      title="上传文件夹"
       :visible.sync="uploadFolderDialog"
       append-to-body
       width="50%">
@@ -178,7 +178,7 @@
     <!--文件夹移动、复制操作-->
     <el-dialog
       class="maniFileDialog"
-      title="提示"
+      title="文件管理"
       :visible.sync="maniFileDialog"
       append-to-body
       v-loading="maniFileLoading"
@@ -698,7 +698,6 @@
       },
       fileRemove() {
         // alert('removed')
-        console.log('removed')
         this.fileCompleteLength -=1
       },
       mergeFile (md5, chunkNum, totalSize, name, path) {
@@ -775,8 +774,8 @@
       // 上传文件夹时 fileComplete 第一个参数为根文件（文件夹），第二个参数为最后一个上传的文件
       fileComplete () {
         console.log('filecomplete=======')
-        console.log('file complete', arguments)
-        console.log(this.$refs.uploader.uploader.files)
+        // console.log('file complete', arguments)
+        // console.log(this.$refs.uploader.uploader.files)
         // alert(arguments[1].uniqueIdentifier)
         // this.mergeFile(zenFile.md5, chunks, file.size)
         // this.mergeFile(arguments[0].uniqueIdentifier, arguments[0].chunks.length, arguments[0].size)
@@ -794,8 +793,8 @@
         })*/
       },
       complete () {
-        console.log('complete', arguments)
-        console.log('complete', arguments[0])
+        // console.log('complete', arguments)
+        // console.log('complete', arguments[0])
       },
       folderAdded(fileAdded, fileList) {
         $('.manage-uploaderFolder .uploader-btn').css('display','none')
@@ -940,7 +939,6 @@
             'content-type': 'application/x-www-form-urlencoded'
           }
         })*/
-        console.log(datapost)
         this.listLoading = true
         mergeFile(datapost).then((res)=> {
           let infoList = {
@@ -950,14 +948,14 @@
             relativePath: '/' + arguments[1].relativePath
           }
           this.folderFileInfo.push(infoList)
-          let datapost = JSON.stringify(infoList)
+          // let datapost = JSON.stringify(infoList)
           /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
             headers: {
               'content-type': 'application/json;charset=utf-8', //设置请求头信息
               'parentNodeId': this.parentNodeId
             }
           })*/
-          let notiMes = '文件' + arguments[1].name + '上传成功！'
+          // let notiMes = '文件' + arguments[1].name + '上传成功！'
           /*uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
             this.listLoading = false
             this.$notify({
@@ -1048,23 +1046,34 @@
         })
       },
       deleteFile(row) {
-        this.listLoading = true
-        deleteCompFiles(row.id).then((res) => {
-          this.listLoading = false
-          this.getList()
-          this.$notify({
-            title: '成功',
-            message: '删除成功',
-            type: 'success',
-            duration: 2000
+        this.$confirm('确认删除吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.listLoading = true
+          deleteCompFiles(row.id).then((res) => {
+            this.listLoading = false
+            this.getList()
+            this.$notify({
+              title: '成功',
+              message: row.name + '删除成功',
+              type: 'success',
+              duration: 2000
+            })
+          }).catch(() => {
+            this.listLoading = false
+            this.$notify({
+              title: '失败',
+              message: '删除失败',
+              type: 'error',
+              duration: 2000
+            })
           })
         }).catch(() => {
-          this.listLoading = false
-          this.$notify({
-            title: '失败',
-            message: '删除失败',
-            type: 'error',
-            duration: 2000
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
           })
         })
       },

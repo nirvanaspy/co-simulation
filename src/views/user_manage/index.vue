@@ -37,7 +37,7 @@
             <el-input style="width: 200px;" class="filter-item" placeholder="用户名" v-model="searchQuery">
             </el-input>
           </div>
-          <el-button size="mini" type="primary"
+          <el-button size="mini" type="success"
                      @click="handleCreate"
                      style="float:right;margin-top:2px;">添加
           </el-button>

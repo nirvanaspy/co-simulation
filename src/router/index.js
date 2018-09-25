@@ -320,7 +320,7 @@ export const asyncRouterMap = [
     hidden: true,
     children: [{ path: 'deployDesignNode/:id', component: _import('deployDesignNode/designNode'), name: 'designNode', meta: { title: 'designNode', icon: 'example' }}]
   },
-  {
+  /* {
     path: '/usermanage',
     component: Layout,
     meta: {
@@ -328,7 +328,7 @@ export const asyncRouterMap = [
       roles: ['admin'] // or you can only set roles in sub nav
     },
     children: [{ path: 'index', component: _import('usermanage/index'), name: 'usermanage', meta: { title: 'usermanage', icon: 'peoples' }}]
-  },
+  },*/
   {
     path: '/project',
     component: Layout,

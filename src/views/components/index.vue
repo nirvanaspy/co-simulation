@@ -1,14 +1,17 @@
 <template>
   <div class="app-container calendar-list-container" id="components">
     <div class="filter-container">
-      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" placeholder="标题" v-model="searchQuery">
+      <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
+        组件回收站
+      </div>
+      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
       </el-input>
-
       <el-button id="addComBtn"
                  v-show="!isHistory"
                  class="filter-item pull-right"
                  style="float: right;margin-left: 10px;"
-                 @click="handleCreate" type="primary"
+                 @click="handleCreate"
+                 type="success"
                  icon="el-icon-edit">{{$t('table.add')}}
       </el-button>
 
@@ -18,7 +21,7 @@
         </el-button>
       </router-link>-->
 
-      <el-upload style="float: right;"
+      <!--<el-upload style="float: right;"
                  class="upload-demo"
                  action=""
                  :file-list="fileList"
@@ -26,14 +29,14 @@
                  :show-file-list="false"
                  multiple>
 
-        <!--<el-button class="filter-item" type="primary" style="margin-left: 10px;" v-waves icon="el-icon-download">导入</el-button>-->
+        &lt;!&ndash;<el-button class="filter-item" type="primary" style="margin-left: 10px;" v-waves icon="el-icon-download">导入</el-button>&ndash;&gt;
 
-      </el-upload>
-      <el-button type="danger" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
+      </el-upload>-->
+      <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
         回收站
       </el-button>
       <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
-        退出回收站
+        返回
       </el-button>
     </div>
 
@@ -108,7 +111,7 @@
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <span style="display:inline-block;padding:0 10px;" @click="handleDelHisCom(scope.row)">删除</span>
+                <span style="display:inline-block;padding:0 10px;" @click="handleDelHisCom(scope.row)">清除</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleResHisCom(scope.row)">恢复</span>

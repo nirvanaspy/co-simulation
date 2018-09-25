@@ -5,7 +5,7 @@ export default {
     documentation: '文档',
     permission: '权限测试页',
     icons: '图标',
-    components: '组件',
+    components: '组件管理',
     componentTypes: '组件分类',
     componentIndex: '介绍',
     tinymce: '富文本编辑器',

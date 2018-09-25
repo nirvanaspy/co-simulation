@@ -8,7 +8,7 @@
           <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="请输入已绑定设备ip"
                     v-model="searchQuery">
           </el-input>
-          <el-button class="filter-item" style="margin-left: 10px;float:right;" @click="addNode" type="primary"
+          <el-button class="filter-item" style="margin-left: 10px;float:right;" @click="addNode" type="success"
                      icon="el-icon-edit" v-show="!isHistory">添加节点
           </el-button>
           <!--<el-button type="danger" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">

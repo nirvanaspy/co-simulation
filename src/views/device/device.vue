@@ -1,14 +1,17 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
+      <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
+        设备回收站
+      </div>
       <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
       </el-input>
-      <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="handleCreate" type="primary" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
-      <el-button type="danger" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
+      <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
+      <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
         回收站
       </el-button>
       <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
-        退出回收站
+        返回
       </el-button>
     </div>
     <el-table :key='tableKey' :data="listA" v-if="!isHistory" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row

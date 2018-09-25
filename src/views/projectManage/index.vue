@@ -27,23 +27,24 @@
     <div class="login-form" id="project-table">
       <div class="title-container">
         <h3 class="title" style="margin-bottom:30px">
-          项目管理
+          <span v-if="!isHistory">项目管理</span>
+          <span v-else>项目管理回收站</span>
         </h3>
         <div>
           <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
             <el-input style="width: 200px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
             </el-input>
           </div>
-          <el-button size="mini" type="danger" @click="showHistory" style="float: right;margin-top:2px;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
+          <el-button size="mini" type="success"
+                     v-if="this.role == 'editor' && !isHistory"
+                     @click="handleCreate($event)"
+                     style="float:right;margin-top:2px;margin-left: 8px">添加
+          </el-button>
+          <el-button size="mini" type="primary" @click="showHistory" style="float: right;margin-top:2px;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
             回收站
           </el-button>
           <el-button size="mini" type="success" @click="showNow" style="float: right;margin-top:2px;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
-            退出回收站
-          </el-button>
-          <el-button size="mini" type="primary"
-                     v-if="this.role == 'editor' && !isHistory"
-                     @click="handleCreate($event)"
-                     style="float:right;margin-top:2px;margin-right: 8px">添加
+            返回
           </el-button>
         </div>
       </div>
