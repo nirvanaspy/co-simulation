@@ -5,6 +5,7 @@ export function projectList(listQuery) {
     url: '/projects',
     method: 'get',
     params: {
+      deleted: false,
       size: listQuery.size,
       page: listQuery.page
     }
@@ -42,6 +43,46 @@ export function updateProject(data, id) {
 export function deleteProject(id) {
   return request({
     url: '/projects/' + id,
+    method: 'delete'
+  })
+}
+
+export function projectListHis(listQuery) {
+  return request({
+    url: '/projects',
+    method: 'get',
+    params: {
+      deleted: true,
+      size: listQuery.size,
+      page: listQuery.page
+    }
+  })
+}
+
+export function projectList_userHis(id, listQuery) {
+  return request({
+    url: '/users/' + id + '/projects',
+    method: 'get',
+    params: {
+      deleted: true,
+      size: listQuery.size,
+      page: listQuery.page
+    }
+  })
+}
+
+// 恢复已删除工程
+export function restorePro(id) {
+  return request({
+    url: '/projects/' + id + '/restore',
+    method: 'patch'
+  })
+}
+
+// 清除已删除工程
+export function cleanPro(id) {
+  return request({
+    url: '/projects/' + id + '/clean',
     method: 'delete'
   })
 }

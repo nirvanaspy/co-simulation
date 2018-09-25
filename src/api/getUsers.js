@@ -19,7 +19,7 @@ export function getUserId() {
 export function updateUser(data, id) {
   return request({
     url: '/users/' + id + '/password',
-    method: 'put',
+    method: 'patch',
     data
   })
 }

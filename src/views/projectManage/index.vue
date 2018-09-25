@@ -34,11 +34,16 @@
             <el-input style="width: 200px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
             </el-input>
           </div>
-
+          <el-button size="mini" type="danger" @click="showHistory" style="float: right;margin-top:2px;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
+            回收站
+          </el-button>
+          <el-button size="mini" type="success" @click="showNow" style="float: right;margin-top:2px;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
+            退出回收站
+          </el-button>
           <el-button size="mini" type="primary"
-                     v-if="this.role == 'editor'"
+                     v-if="this.role == 'editor' && !isHistory"
                      @click="handleCreate($event)"
-                     style="float:right;margin-top:2px;">添加
+                     style="float:right;margin-top:2px;margin-right: 8px">添加
           </el-button>
         </div>
       </div>
@@ -52,7 +57,8 @@
                 style="width: 100%;border-radius:8px;">
         <el-table-column min-width="150px" :label="$t('table.projectName')">
           <template slot-scope="scope">
-            <span class="link-type" @click="handleSelect(scope.row)">{{scope.row.name}}</span>
+            <span v-if="!isHistory" class="link-type" @click="handleSelect(scope.row)">{{scope.row.name}}</span>
+            <span v-if="isHistory">{{scope.row.name}}</span>
           </template>
         </el-table-column>
         <el-table-column min-width="150px" :label="$t('table.projectDesc')">
@@ -62,9 +68,10 @@
         </el-table-column>
         <el-table-column align="center" :label="$t('table.actions')" width="230" class-name="small-padding fixed-width">
           <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">{{$t('table.edit')}}</el-button>
-            <el-button size="mini" type="danger" @click="handleDelete(scope.row)" :loading="scope.row.delLoading">{{$t('table.delete')}}
-            </el-button>
+            <el-button v-if="!isHistory" type="primary" size="mini" @click="handleUpdate(scope.row)">{{$t('table.edit')}}</el-button>
+            <el-button v-if="!isHistory" size="mini" type="danger" @click="handleDelete(scope.row)" :loading="scope.row.delLoading">{{$t('table.delete')}}</el-button>
+            <el-button v-if="isHistory" type="primary" size="mini" @click="handleResHisPro(scope.row)">恢复</el-button>
+            <el-button v-if="isHistory" size="mini" type="danger" @click="handleDelHisPro(scope.row)" :loading="scope.row.delLoading">清除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -128,7 +135,7 @@
 <script>
   import PanThumb from '@/components/PanThumb'
   import { isvalidPwd } from '@/utils/validate'
-  import { projectList, projectList_user, createProject, updateProject, deleteProject } from '@/api/project'
+  import { projectList, projectList_user, createProject, updateProject, deleteProject, projectListHis, projectList_userHis, restorePro, cleanPro } from '@/api/project'
   import { getUserId, updateUser } from '@/api/getUsers'
   import store from '../../store'
 
@@ -230,7 +237,9 @@
         },
         token: '',
         role: '',
-        errorMessage: '操作失败！'
+        errorMessage: '操作失败！',
+        hisBtnLoading: false,
+        isHistory: false,
       }
     },
     created() {
@@ -512,6 +521,157 @@
         this.listQuery.page = val - 1
         this.currentPage = val
         this.getList()
+      },
+      showHistory: function(){
+        this.listLoading = true
+        this.hisBtnLoading = true
+        if(this.role == 'admin') {
+          projectListHis(this.projectId, this.listQuery).then(response => {
+            this.isHistory = true
+            this.list = response.data.data.content
+            this.total = response.data.total
+            this.listLoading = false
+            this.hisBtnLoading = false
+          }).catch(() => {
+            this.listLoading = false
+            this.hisBtnLoading = false
+            this.$notify({
+              title: '失败',
+              message: '操作失败！',
+              type: 'error',
+              duration: '2000'
+            })
+          })
+        } else if(this.role == 'editor') {
+          projectList_userHis(this.userId, this.listQuery).then(response => {
+            this.isHistory = true
+            this.list = response.data.data.content
+            this.listLoading = false
+            this.listLength = response.data.data.length
+            this.total = response.data.data.totalElements
+            this.hisBtnLoading = false
+          }).catch(() => {
+            this.listLoading = false
+            this.hisBtnLoading = false
+            this.$notify({
+              title: '失败',
+              message: '操作失败！',
+              type: 'error',
+              duration: '2000'
+            })
+          })
+        }
+      },
+      showNow: function(){
+        this.listLoading = true
+        this.hisBtnLoading = true
+        if(this.role == 'admin') {
+          /*projectList(this.listQuery).then(response => {
+            this.list = response.data.data.content
+            this.listLoading = false
+            this.listLength = response.data.data.length
+            this.total = response.data.data.totalElements
+          })*/
+          projectList(this.projectId,this.listQuery).then(response => {
+            this.list = response.data.data.content
+            this.total = response.data.total
+            this.listLoading = false
+            this.hisBtnLoading = false
+            this.isHistory = false
+          }).catch(() => {
+            this.listLoading = false
+            this.hisBtnLoading = false
+            this.$notify({
+              title: '失败',
+              message: '操作失败！',
+              type: 'error',
+              duration: '2000'
+            })
+          })
+        } else if(this.role == 'editor') {
+          // alert(this.userId)
+          projectList_user(this.userId, this.listQuery).then(response => {
+            this.list = response.data.data.content
+            this.listLoading = false
+            this.hisBtnLoading = false
+            this.listLength = response.data.data.length
+            this.total = response.data.data.totalElements
+            this.isHistory = false
+          }).catch(() => {
+            this.listLoading = false
+            this.hisBtnLoading = false
+            this.$notify({
+              title: '失败',
+              message: '操作失败！',
+              type: 'error',
+              duration: '2000'
+            })
+          })
+        }
+      },
+      handleDelHisPro(row) {
+        this.$confirm('确认彻底删除此工程吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.listLoading = true
+          cleanPro(row.id).then(() => {
+            this.listLoading = false
+            this.showHistory()
+            this.$notify({
+              title: '成功',
+              message: '清除成功！',
+              type: 'success',
+              duration: 2000
+            })
+          }).catch(() => {
+            this.listLoading = false
+            this.$notify({
+              title: '失败',
+              message: '清除失败！',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消清除'
+          })
+        })
+      },
+      handleResHisPro(row) {
+        this.$confirm('确认恢复此工程吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.listLoading = true
+          restorePro(row.id).then(() => {
+            this.listLoading = false
+            this.showHistory()
+            this.$notify({
+              title: '成功',
+              message: '恢复成功！',
+              type: 'success',
+              duration: 2000
+            })
+          }).catch(() => {
+            this.listLoading = false
+            this.$notify({
+              title: '失败',
+              message: '恢复失败！',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消恢复'
+          })
+        })
       },
     },
     computed: {
