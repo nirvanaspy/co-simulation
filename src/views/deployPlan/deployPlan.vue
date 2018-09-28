@@ -10,7 +10,7 @@
       <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
         回收站
       </el-button>
-      <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
+      <el-button type="primary" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
         返回
       </el-button>
     </div>

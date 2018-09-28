@@ -43,7 +43,7 @@
           <el-button size="mini" type="primary" @click="showHistory" style="float: right;margin-top:2px;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
             回收站
           </el-button>
-          <el-button size="mini" type="success" @click="showNow" style="float: right;margin-top:2px;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
+          <el-button size="mini" type="primary" @click="showNow" style="float: right;margin-top:2px;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
             返回
           </el-button>
         </div>
