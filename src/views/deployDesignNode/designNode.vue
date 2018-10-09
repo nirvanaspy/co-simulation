@@ -39,8 +39,8 @@
             </el-table-column>-->
             <el-table-column align="center" label="设备ip" min-width="160">
               <template slot-scope="scope">
-                <span v-if="scope.row.deviceEntity" class="link-type">{{scope.row.deviceEntity.hostAddress}}</span>
-                <span v-else class="link-type">未绑定设备</span>
+                <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
+                <span v-else>未绑定设备</span>
               </template>
             </el-table-column>
             <el-table-column align="center" label="绑定设备" width="120" class-name="small-padding fixed-width">
@@ -139,7 +139,7 @@
             <el-table-column align="center" label="选择组件" width="120" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <el-popover
-                  ref="popover4"
+                  :ref="scope.row.id"
                   placement="right"
                   width="600"
                   height="500"
@@ -159,11 +159,15 @@
                               :row-key="getRowKeysComp"
                               :expand-row-keys="compExpands"
                               @expand-change="expandRow"
-                              @selection-change="handleCheckedCompsChange" id="compTable">
+                              @selection-change="handleCheckedCompsChange"
+                              id="compTable"
+                              :ref="'compTable' + scope.row.id"
+                    >
+                      <!--ref="compMultiTable"-->
                       <el-table-column
                         type="selection"
-                        :selectable='checkboxIsBind'
                         :reserve-selection="true"
+                        :selectable='checkboxIsBind'
                         width="40"
                         align="center">
                       </el-table-column>
@@ -584,7 +588,8 @@
         nodeDetail: [],
         currentNodeInfo: {},
         compExpands: [],
-        currentName: ''
+        currentName: '',
+        saveChecked: false
       }
     },
     created() {
@@ -692,18 +697,12 @@
         })
       },
       handleCheckedDeviceChange(val) {
-        console.log(val)
-        /*if(val.length < 1) {
-          val = val
-        } else {
-
-        }*/
         this.bindDeviceId = val
       },
       handleCheckedCompsChange(val) {          //所选的组件，checkbox
 
         this.checkedComps = val;
-        console.log(this.checkedComps)
+        // console.log(this.checkedComps)
 
         this.componentIds.splice(0, this.componentIds.length);
         // this.componentHisIds.splice(0,this.componentHisIds.length);
@@ -714,7 +713,7 @@
           }
         }
 
-        console.log(this.componentIds);
+        // console.log(this.componentIds);
       },
       checkboxIsBind(row) {
         if (row.isBind === true || row.selectedHisId) {
@@ -864,7 +863,7 @@
             for (var j = 0; j < this.listComp.length; j++) {
               if (this.listBind[i].componentEntity.id == this.listComp[j].id) {//判断id是否相等
                 this.listComp[j].isBind = true;
-                console.log(this.listComp[j].name)
+                // console.log(this.listComp[j].name)
                 this.bindCompsId.push(this.listComp[j].id);
                 break;
               }
@@ -875,16 +874,24 @@
       getRowKeysComp(row) {
         return row.id
       },
-      beforeSubmit: function (rowId, row) {//绑定前的准备工作 绑定前获取设备的id，获取所选部署设计的id
+      beforeSubmit: function (rowId, row) { //绑定前的准备工作 绑定前获取设备的id，获取所选部署设计的id
+        // console.log(this.$refs[rowId])
+        this.componentHisIds = []
+        this.componentIds = []
+        this.bindCompsId = []
         this.currentNodeId = rowId;
-        console.log(row)
+        // this.$refs.compMultiTable.clearSelection() 这种方法并不能获取到当前显示到表格，清空的永远是第一个在页面中渲染的弹出框内出表格选项，必须动态赋予表格ref值
+        this.$nextTick(() => {
+          // 根据每次显示到不同的节点的id 动态获取到当前显示到popover弹出框内的表格，否则清空的永远是第一个在页面中渲染的弹出框内出表格选项
+          this.$refs['compTable' + rowId].clearSelection()
+        })
         if(row) {
           this.currentNodeInfo = row
         }
         this.complistLoading = true
 
-        console.log("所选设备的id--------");
-        console.log(this.currentNodeId);
+        /*console.log("所选设备的id--------");
+        console.log(this.currentNodeId);*/
 
         this.listComp = [];
 
@@ -900,7 +907,7 @@
             this.listComp = response.data.data.content
             this.total2 = response.data.data.totalElements
             this.listLoading = false
-            for (var j = 0; j < this.listComp.length; j++) {
+            for (let j = 0; j < this.listComp.length; j++) {
               this.listComp[j].isBind = false;
               this.listComp[j].identify = this.listComp[j].id
             }
@@ -910,14 +917,14 @@
             this.bindCompsId.splice(0, this.bindCompsId.length);
 
             //为是否绑定赋值
-            for (var i = 0; i < this.listBind.length; i++) {
-              for (var j = 0; j < this.listComp.length; j++) {
+            for (let i = 0; i < this.listBind.length; i++) {
+              for (let j = 0; j < this.listComp.length; j++) {
                 if (this.listBind[i].componentEntity) {
                   if (this.listBind[i].componentEntity.id == this.listComp[j].id) {//判断id是否相等
                     this.listComp[j].isBind = true;
                     this.listComp[j].bindHisComp = this.listBind[i].componentHistoryEntity
                     this.listComp[j].designDetailId = this.listBind[i].id
-                    console.log(this.listComp[j].name);
+                    // console.log(this.listComp[j].name);
 
                     this.bindCompsId.push(this.listComp[j].id);
                     break;
@@ -935,15 +942,15 @@
             })
           })
         })
+
       },
       submit: function () {
         //alert("hh");
         this.bindLoading = true
         this.repeatCompsId.splice(0, this.repeatCompsId.length);
-
         if (this.componentHisIds.length !== 0) {
-          console.log(this.componentHisIds)
-          console.log(this.componentIds)
+          // console.log(this.componentHisIds)
+          // console.log(this.componentIds)
           let hisDataIds = (this.componentHisIds + '').replace(/\[|]/g, '')
           let hisData = {
             'componentHistoryIds': hisDataIds
@@ -979,24 +986,23 @@
 
           for (let i = 0; i < this.componentIds.length; i++) {
             for (let j = 0; j < this.bindCompsId.length; j++) {
-              if (this.bindCompsId[j] === this.componentIds[i]) {  //判断索选择的组件是否有已绑定的
+              if (this.bindCompsId[j] === this.componentIds[i]) {  //判断选择的组件是否有已绑定的
                 this.repeatCompsId.push(this.bindCompsId[j]);
-
               }
             }
           }
 
-          if (this.repeatCompsId.length !== 0) {
+          /*if (this.repeatCompsId.length !== 0) {
             this.$message({
               type: 'warning',
               message: '有' + this.repeatCompsId.length + '个组件已绑定过！'
             })
             this.bindLoading = false
             return;
-          }
+          }*/
 
           let dataBindId = (this.componentIds + '').replace(/\[|]/g, '')
-          console.log(dataBindId)
+          // console.log(dataBindId)
           let data = {
             // 'deviceId': this.deviceCHId,
             'componentIds': dataBindId
@@ -1057,8 +1063,13 @@
                 res.data.data[j].isBind === true
               }
             }*/
-            for (var i = 0; i < this.listComp.length; i++) {
-              if (this.listComp[i].id === res.data.data[0].componentEntity.id) {
+            for (let i = 0; i < this.listComp.length; i++) {
+              if(res.data.data.length === 0) {
+                this.listComp[i].loading = false
+                Vue.set(this.listComp, i, this.listComp[i])
+                return
+              }
+              if (res.data.data.length > 0 && this.listComp[i].id === res.data.data[0].componentEntity.id) {
                 this.listComp[i].loading = false
                 this.listComp[i].hisVersion = res.data.data
                 /*for(var j = 0; j < this.listComp[i].hisVersion.length; j++) {
@@ -1073,16 +1084,16 @@
                 Vue.set(this.listComp, i, this.listComp[i])
               }
             }
-            console.log(this.listComp)
+            // console.log(this.listComp)
           })
         }
       },
       getSelectHisId(row, fatherRow) {
         this.watchArr.push(row.id)
         fatherRow.selectedHisId = row.id
-        console.log(this.listComp)
+        // console.log(this.listComp)
         // this.componentIds.splice(this.componentIds.findIndex(item => item === fatherRow.identify), 1)
-        for (var i = 0; i < this.componentIds.length; i++) {
+        for (let i = 0; i < this.componentIds.length; i++) {
           if (this.componentIds[i] === fatherRow.identify) {
             this.componentIds.splice(i, 1)
           }
@@ -1100,7 +1111,7 @@
       },*/
       checkHisIsBind(row) {
         row.isBind = false
-        for (var i = 0; i < this.listComp.length; i++) {
+        for (let i = 0; i < this.listComp.length; i++) {
           if (this.listComp[i].bindHisComp) {
             if (row.id === this.listComp[i].bindHisComp.id) {
               row.isBind = true
@@ -1116,7 +1127,7 @@
       },
       disableAllHis(row) {
         row.isBind = false
-        for (var i = 0; i < this.listComp.length; i++) {
+        for (let i = 0; i < this.listComp.length; i++) {
           if (this.listComp[i].bindHisComp) {
             if (row.id === this.listComp[i].bindHisComp.id) {
               row.isBind = true
@@ -1127,8 +1138,6 @@
         return 0
       },
       deleteBindRelation(row) {
-        console.log('test-----')
-        console.log(row)
         // alert(1111)
         deleteBindDetail(row.designDetailId).then(() => {
           this.$notify({
@@ -1138,11 +1147,12 @@
             duration: 2000
           })
           this.compExpands = []
+          document.getElementById('clicktag').click()
           this.beforeSubmit(this.currentNodeId)
           getNodeDetail(this.currentNodeId).then((res) => {
             this.nodeDetail = res.data.data
-            console.log('-=-=-=-=-=-')
-            console.log(this.currentNodeInfo)
+            // console.log('-=-=-=-=-=-')
+            // console.log(this.currentNodeInfo)
             /*if(res.data.data.length > 0) {
               this.nodeDetail[0].currentNodeInfo = res.data.data[0].deploymentDesignNodeEntity
             } else {
@@ -1547,6 +1557,20 @@
             return true
           }
         }
+      },
+      listenPopover() {
+        if(document.getElementsByClassName('el-popover').length > 0) {
+          if (document.getElementsByClassName('el-popover')[0].style.display === 'block') {
+            return true
+          } else {
+            return false
+          }
+        } else {
+          return false
+        }
+      },
+      listenCurrentNodeId() {
+        return this.currentNodeId
       }
     },
     watch: {
@@ -1562,7 +1586,6 @@
           // this.componentIds.splice(this.componentIds.findIndex(item => item === this.listComp[i].identify), 1)
           // this.componentIds.splice(this.componentIds.findIndex(item => this.listComp[i].selectedHisId && ((item === this.listComp[i].identify))), 1)
         }
-        console.log(this.componentIds)
       }
     }
   }
