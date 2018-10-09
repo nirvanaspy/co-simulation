@@ -16,14 +16,23 @@
     </div>
 
     <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
+              :default-sort = "{prop: 'createTime', order: 'descending'}"
               style="width: 100%">
 
-      <el-table-column align="center" :label="$t('table.deployPlanName')" min-width="200">
+      <el-table-column align="left" :label="$t('table.deployPlanName')" min-width="200">
         <template slot-scope="scope">
           <span class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
         </template>
       </el-table-column>
-      <el-table-column align="center" label="当前状态" width="100">
+      <el-table-column align="center" label="创建时间" min-width="100" sortable prop="createTime">
+        <template slot-scope="scope">
+          <span>{{scope.row.createTime}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="当前状态" width="100"
+                       prop="baseline"
+                       :filters="[{ text: '基线', value: true }, { text: '部署设计', value: false }]"
+                       :filter-method="filterBaseline">
         <template slot-scope="scope">
           <span>
             <svg-icon v-if="scope.row.baseline" icon-class="基线" style="font-size: 20px"></svg-icon>
@@ -276,6 +285,9 @@
       this.getList()
     },
     methods: {
+      filterBaseline(value, row) {
+        return row.baseline === value
+      },
       getList() {
         this.listLoading = true;
         let projectId = this.getCookie('projectId');
