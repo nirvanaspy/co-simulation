@@ -79,8 +79,6 @@ const user = {
     LoginByUsername({ commit }, formData) {
       //const username = userInfo.username.trim()
       //const qs = require('qs');
-
-      console.log(formData);
       return new Promise((resolve, reject) => {
         /*const data = {
           'username': username,
@@ -88,7 +86,6 @@ const user = {
         }
         const proData = qs.stringify(data);*/
         loginByUsername(formData).then(response => {
-          console.log(response)
           const access_token = response.data.access_token
           const refresh_token = response.data.refresh_token
           commit('SET_TOKEN', access_token)
@@ -132,13 +129,11 @@ const user = {
           reject('error')
           console.log('hasNoToken')
         }
-        console.log(state);
         const data = state.token
         const refreshToken = state.refreshToken
         const decodeToken = jwt.decode(data)
         const decodeRefreshToken = jwt.decode(refreshToken)
         // const dateNow = (new Date())/1000
-        console.log(decodeToken, '22233')
         setUserId(decodeToken.userId)
         setExpire(decodeToken.exp)
         setExpire2(decodeRefreshToken.exp)   //refreshToken
@@ -182,7 +177,6 @@ const user = {
 
     // 前端 登出
     FedLogOut({ commit }) {
-      console.log('FedLogOutsuccess')
       return new Promise(resolve => {
         commit('SET_TOKEN', '')
         commit('SET_ROLES', [])
