@@ -277,7 +277,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <div style="position: absolute;bottom: 10px;right:20px;">
+      <div style="float:right;margin-top: 10px">
         <el-button @click="processDialogVisible = false">{{$t('table.cancel')}}</el-button>
         <el-button type="primary" @click="compMonitor()">组件进程监控</el-button>
       </div>
@@ -1132,11 +1132,11 @@
       computedSize() {
         return function (size) {
           if(size < 1) {
-            return size*1024 + 'KB'
+            return Math.round(size*1024) + 'KB'
           } else if(size < 1000) {
-            return size + 'MB'
+            return Math.round(size) + 'MB'
           } else {
-            return size/1024 + 'GB'
+            return Math.round(size/1024) + 'GB'
            }
         }
       }
