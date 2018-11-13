@@ -356,6 +356,7 @@ export const asyncRouterMap = [
   {
     path: '/novnc',
     component: Layout,
+    hidden: true,
     children: [{ path: 'flexNovnc', component: _import('novnc/flexNovnc'), name: 'flexNovnc', meta: { title: '多布局VNC', icon: 'log' }}]
   },
   {
