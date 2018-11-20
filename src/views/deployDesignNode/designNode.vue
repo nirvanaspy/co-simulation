@@ -17,7 +17,6 @@
           <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
             退出回收站
           </el-button>-->
-
         </div>
         <div style="height: 80%;padding-left: 6px;">
           <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit
@@ -172,13 +171,13 @@
                         width="40"
                         align="center">
                       </el-table-column>
-                      <!--<el-table-column align="left" width="40" type="expand">
+                      <el-table-column align="left" width="40" type="expand">
                         <template slot-scope="props">
-                          &lt;!&ndash;<el-checkbox-group
+                          <!--<el-checkbox-group
                             v-model="checkedHisComId"
                             :max="1">
                             <el-checkbox v-for="item in props.row.hisVersion" :key="item.id">{{item.name}}</el-checkbox>
-                          </el-checkbox-group>&ndash;&gt;
+                          </el-checkbox-group>-->
 
                           <el-table
                             stripe highlight-current-row
@@ -187,10 +186,10 @@
                             :default-sort="{prop: 'createTime', order: 'descending'}"
                             style="padding: 0 0"
                           >
-                            &lt;!&ndash;<el-table-column v-if="!props.row.isBind" type="selection" :selectable='checkHisIsBind'>
+                            <!--<el-table-column v-if="!props.row.isBind" type="selection" :selectable='checkHisIsBind'>
                             </el-table-column>
                             <el-table-column v-else type="selection" :selectable='disableAllHis'>
-                            </el-table-column>&ndash;&gt;
+                            </el-table-column>-->
                             <el-table-column>
                               <template slot-scope="scope">
                                 <el-radio-group v-model="props.row.id">
@@ -199,24 +198,24 @@
                                 </el-radio-group>
                               </template>
                             </el-table-column>
-                            &lt;!&ndash;<el-table-column>
+                            <!--<el-table-column>
                               <template slot-scope="scope">
                                 <el-checkbox-group v-model="checkedHisComId" :max="1">
                                   <el-checkbox :label="scope.row.id" @change.native="getSelectHisId(scope.row, props.row)" :disabled="computedDisabled(scope.row, props.row)"></el-checkbox>
                                 </el-checkbox-group>
                               </template>
-                            </el-table-column>&ndash;&gt;
+                            </el-table-column>-->
                             <el-table-column width="40">
                               <template slot-scope="scope">
                                 <span v-if="scope.row.isBind"><svg-icon icon-class="history2"></svg-icon></span>
                                 <span v-else><svg-icon icon-class="history1"></svg-icon></span>
                               </template>
                             </el-table-column>
-                            &lt;!&ndash;<el-table-column label="组件名" align="left" width="160">
+                            <!--<el-table-column label="组件名" align="left" width="160">
                               <template slot-scope="scope">
                                 <span class="link-type">{{scope.row.name}}</span>
                               </template>
-                            </el-table-column>&ndash;&gt;
+                            </el-table-column>-->
                             <el-table-column label="修改时间" align="left" width="160" sortable prop="createTime">
                               <template slot-scope="scope">
                                 <span class="link-type">{{scope.row.createTime}}</span>
@@ -232,14 +231,14 @@
                                 <svg-icon v-if="scope.row.isBind" icon-class="correct"></svg-icon>
                               </template>
                             </el-table-column>
-                            &lt;!&ndash;<el-table-column label="描述">
+                            <!--<el-table-column label="描述">
                               <template slot-scope="scope">
                                 <span>{{scope.row.componentEntity.description}}</span>
                               </template>
-                            </el-table-column>&ndash;&gt;
+                            </el-table-column>-->
                           </el-table>
                         </template>
-                      </el-table-column>-->
+                      </el-table-column>
                       <el-table-column :label="$t('table.compName')" width="160" align="center">
                         <template slot-scope="scope">
                           <span>{{scope.row.name}}</span>

@@ -95,9 +95,9 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
-              <!--<el-dropdown-item divided>
+              <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
-              </el-dropdown-item>-->
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
           <el-dropdown trigger="click" v-else>
@@ -179,6 +179,7 @@
                class="filesDialog"
                v-else
     >
+
         <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
                  style='width: 100%;height: 100%'>
           <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">

@@ -202,7 +202,7 @@
         <el-button v-else type="primary" @click="updateData" :disabled="temp.virtual" style="float: right;" :loading="upDevLoading">{{$t('table.confirm')}}</el-button>
         <el-button @click="dialogFormVisible = false" style="float: right;margin-right: 10px">{{$t('table.cancel')}}</el-button>
       </div>
-      <!--<lineMarker ref="lineMarker"
+      <lineMarker ref="lineMarker"
                   v-if="!isHistory && dialogStatus === 'update' && list[currentDeviceIndex].online == true"
                   :countTime="list[currentDeviceIndex].countTime"
                   :cpuData="list[currentDeviceIndex].cpuData"
@@ -211,7 +211,7 @@
                   :downSpeed="list[currentDeviceIndex].downLoadSpeed"
                   style="margin-bottom: 10px;"
       >
-      </lineMarker>-->
+      </lineMarker>
       <!--<lineMarker ref="lineMarker"
                   v-if="!isHistory && dialogStatus === 'update' && temp.online"
                   :countTime="temp.countTime"

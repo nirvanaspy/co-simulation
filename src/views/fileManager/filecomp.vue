@@ -99,12 +99,12 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="exportFile(scope.row)">下载</span>
               </el-dropdown-item>
-              <!--<el-dropdown-item divided>
+              <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleCopy(scope.row)">复制到</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleMove(scope.row)">移动到</span>
-              </el-dropdown-item>-->
+              </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleRenameFile(scope.row)">重命名</span>
               </el-dropdown-item>
@@ -1321,7 +1321,6 @@
       /*fileInfoListLength(newValue, oldValue) {
         alert(this.fileInfoListLength)
       },*/
-
       fileInfoListLength(newValue, oldValue) {
         // alert(this.fileCompleteLength)
         // console.log()
