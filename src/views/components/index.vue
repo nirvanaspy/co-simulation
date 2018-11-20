@@ -179,7 +179,6 @@
                class="filesDialog"
                v-else
     >
-
         <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
                  style='width: 100%;height: 100%'>
           <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">

@@ -17,6 +17,7 @@
           <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
             退出回收站
           </el-button>-->
+
         </div>
         <div style="height: 80%;padding-left: 6px;">
           <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit

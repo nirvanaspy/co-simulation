@@ -1321,6 +1321,7 @@
       /*fileInfoListLength(newValue, oldValue) {
         alert(this.fileInfoListLength)
       },*/
+
       fileInfoListLength(newValue, oldValue) {
         // alert(this.fileCompleteLength)
         // console.log()

@@ -212,6 +212,7 @@
                   style="margin-bottom: 10px;"
       >
       </lineMarker>
+
       <!--<lineMarker ref="lineMarker"
                   v-if="!isHistory && dialogStatus === 'update' && temp.online"
                   :countTime="temp.countTime"

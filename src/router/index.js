@@ -27,6 +27,7 @@ import Layout from '../views/layout/Layout'
     noCache: true                if true ,the page will no be cached(default is false)
   }
 **/
+
 export const constantRouterMap = [
   { path: '/login', component: _import('login/index'), hidden: true },
   { path: '/projectManage', component: _import('projectManage/index'), hidden: true },
