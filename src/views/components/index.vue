@@ -95,9 +95,9 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
-              </el-dropdown-item>
+              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
           <el-dropdown trigger="click" v-else>
