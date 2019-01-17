@@ -6,7 +6,8 @@ import { getToken, getRefreshToken, setToken, setRefreshToken, getIp, getPort, g
 // create an axios instance
 let ipConfig = getIp()
 let portConfig = getPort()
-let serviceConfig = 'http://' + ipConfig + ':' + portConfig + '/apis'
+// let serviceConfig = 'http://' + ipConfig + ':' + portConfig + '/apis'
+let serviceConfig = 'http://192.168.31.67:8080' + '/apis'
 
 let timeStamp = getExpire()
 let refreshTimeStamp = getExpire2()

@@ -5,21 +5,21 @@
         <h3 class="title">{{$t('login.title')}}</h3>
         <lang-select class="set-language"></lang-select>
       </div>
-      <div class="ipContainer">
+      <!--<div class="ipContainer">
         <el-form-item prop="ipConfig" class="ipform">
           <span class="svg-container svg-container_ip">
             <svg-icon icon-class="IP" />
           </span>
           <el-input name="ipConfig" type="text" v-model="loginForm.ipConfig" autoComplete="on" placeholder="IP地址" />
         </el-form-item>
-        <!--<span class="colon">:</span>-->
+        &lt;!&ndash;<span class="colon">:</span>&ndash;&gt;
         <el-form-item prop="port" class="portform">
           <span class="svg-container">
             <svg-icon icon-class="port" />
           </span>
           <el-input name="port" type="text" v-model="loginForm.port" autoComplete="on" placeholder="端口号" />
         </el-form-item>
-      </div>
+      </div>-->
       <el-form-item prop="username">
         <span class="svg-container svg-container_login">
           <svg-icon icon-class="user" />
@@ -51,7 +51,7 @@ import { isvalidUsername } from '@/utils/validate'
 import LangSelect from '@/components/LangSelect'
 import { mapMutations } from 'vuex'
 import service from '@/utils/request'
-import { getUserId } from '@/api/getUsers'
+// import { getUserId } from '@/api/getUsers'
 /* eslint-disable */
 export default {
   components: { LangSelect},
@@ -116,14 +116,6 @@ export default {
           this.setCookie('ip', ip, expireDays)
           this.setCookie('port', port, expireDays)
           service.defaults.baseURL = 'http://' + ip + ':' + port + '/apis' // 动态设置api接口
-
-          /*let formData = new FormData();
-          formData.append('username', username);
-          formData.append('password', password);
-          formData.append('grant_type', 'password');
-          formData.append('scope', 'SCOPES');
-          formData.append('client_id', 'OAUTH_CLIENT_ID');
-          formData.append('enctype', "multipart/form-data");*/
 
           let qs = require('qs');
           let formData = qs.stringify({
