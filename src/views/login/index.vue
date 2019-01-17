@@ -102,20 +102,16 @@ export default {
       this.$refs.loginForm.validate(valid => {
         let username = this.loginForm.username;
         let password = this.loginForm.password;
-        let ip = this.loginForm.ipConfig;
-        let port = this.loginForm.port;
+        /*let ip = this.loginForm.ipConfig;
+        let port = this.loginForm.port;*/
         let expireDays = 30;
         if (valid) {
           this.loading = true
-         /* this.setloginname(username)
-          this.setIP(ip)
-          console.log(store.getters)*/
-          this.setPort(port)
           this.setCookie('username', username, expireDays)
           // this.setCookie('password', password, expireDays)
-          this.setCookie('ip', ip, expireDays)
+          /*this.setCookie('ip', ip, expireDays)
           this.setCookie('port', port, expireDays)
-          service.defaults.baseURL = 'http://' + ip + ':' + port + '/apis' // 动态设置api接口
+          service.defaults.baseURL = 'http://' + ip + ':' + port + '/apis' // 动态设置api接口*/
 
           let qs = require('qs');
           let formData = qs.stringify({
@@ -158,17 +154,17 @@ export default {
     })
   },
   created() {
-    if(this.getCookie('ip')) {
+    /*if(this.getCookie('ip')) {
       this.loginForm.ipConfig = this.getCookie('ip')
     }
     if(this.getCookie('port')) {
       this.loginForm.port = this.getCookie('port')
-    }
+    }*/
     if(this.getCookie('username')) {
       this.loginForm.username = this.getCookie('username')
     }
-    this.setIP(this.loginForm.ipConfig)
-    this.setPort(this.loginForm.port)
+    /*this.setIP(this.loginForm.ipConfig)
+    this.setPort(this.loginForm.port)*/
     // window.addEventListener('hashchange', this.afterQRScan)
   },
   destroyed() {
@@ -208,7 +204,7 @@ $light_gray:#eee;
     // color: #454545;
     color: $light_gray;
   }
-  .ipContainer {
+  /*.ipContainer {
     .el-form-item.ipform{
       width:55%;
       display: inline-block;
@@ -230,7 +226,7 @@ $light_gray:#eee;
     .portform .el-input{
       width:40%
     }
-  }
+  }*/
 }
 .register-container{
   text-align: center;
