@@ -52,12 +52,6 @@
                   height="500"
                   trigger="click"
                   @show="devicePopShow(scope.row)">
-                  <!--<div class="filter-container">
-                    <el-input style="width: 200px;" class="filter-item" placeholder="组件名" v-model="searchQuery2">
-                    </el-input>
-
-                  </div>-->
-
                   <div style="height: 425px;overflow-y: auto;margin-top: 0;" id="deviceTab">
                     <div class="filter-container">
                       <el-input style="width: 240px;" class="filter-item" placeholder="请输入用户ip" v-model="searchQueryDevice">
@@ -651,10 +645,10 @@
           this.deviceList = response.data.data
           this.deviceTotal = response.data.data.length
           this.deviceLoading = false
-          for (let i = 0; i < this.list.length; i++) {
+          /*for (let i = 0; i < this.list.length; i++) {
             this.deviceList[i].online = false;
             this.deviceList[i].virtual = false;
-          }
+          }*/
           // this.listLength = response.data.data.length
           // this.getList2()
         })
@@ -702,7 +696,6 @@
       handleCheckedCompsChange(val) {          //所选的组件，checkbox
 
         this.checkedComps = val;
-        // console.log(this.checkedComps)
 
         this.componentIds.splice(0, this.componentIds.length);
         // this.componentHisIds.splice(0,this.componentHisIds.length);
@@ -712,8 +705,6 @@
             this.componentIds.push(this.checkedComps[i].identify);
           }
         }
-
-        // console.log(this.componentIds);
       },
       checkboxIsBind(row) {
         if (row.isBind === true || row.selectedHisId) {
@@ -803,17 +794,23 @@
         })
       },
       checkNodeDevice() {
-        this.searchQueryDevice = ''
         this.deviceLoading = true
-        this.currentDeviceList = this.deviceList.slice() // 注意：复制数组，防止原数组被修改！！
-        getAllBindDevices(this.deployPlanId).then((res) => {
-          this.bindedDeviceList = res.data.data
-          for (var i = 0; i < this.bindedDeviceList.length; i++) {
-            this.currentDeviceList.splice(this.currentDeviceList.findIndex(item => item.id === this.bindedDeviceList[i].id), 1)
-          }
-          this.deviceLoading = false
-        }).catch(() => {
-          this.deviceLoading = false
+        let projectId = this.getCookie('projectId');
+        getAllDevices(projectId).then(response => {
+          this.deviceList = response.data.data
+          this.deviceTotal = response.data.data.length
+          this.searchQueryDevice = ''
+          this.deviceLoading = true
+          this.currentDeviceList = this.deviceList.slice() // 注意：复制数组，防止原数组被修改！！
+          getAllBindDevices(this.deployPlanId).then((res) => {
+            this.bindedDeviceList = res.data.data
+            for (var i = 0; i < this.bindedDeviceList.length; i++) {
+              this.currentDeviceList.splice(this.currentDeviceList.findIndex(item => item.id === this.bindedDeviceList[i].id), 1)
+            }
+            this.deviceLoading = false
+          }).catch(() => {
+            this.deviceLoading = false
+          })
         })
       },
       handleSelectRowDevice(val) {
@@ -863,7 +860,6 @@
             for (var j = 0; j < this.listComp.length; j++) {
               if (this.listBind[i].componentEntity.id == this.listComp[j].id) {//判断id是否相等
                 this.listComp[j].isBind = true;
-                // console.log(this.listComp[j].name)
                 this.bindCompsId.push(this.listComp[j].id);
                 break;
               }
@@ -875,7 +871,6 @@
         return row.id
       },
       beforeSubmit: function (rowId, row) { //绑定前的准备工作 绑定前获取设备的id，获取所选部署设计的id
-        // console.log(this.$refs[rowId])
         this.componentHisIds = []
         this.componentIds = []
         this.bindCompsId = []
@@ -889,18 +884,12 @@
           this.currentNodeInfo = row
         }
         this.complistLoading = true
-
-        /*console.log("所选设备的id--------");
-        console.log(this.currentNodeId);*/
-
         this.listComp = [];
 
         //查询已绑定信息
         getNodeDetail(this.currentNodeId).then(response => {
           this.listBind = response.data.data
           // this.total = response.data.total
-          /* console.log(this.listBind.length);
-           console.log(this.listBind);*/
 
           compList(this.proId, this.listQuery2).then(response => {
             this.complistLoading = false
@@ -924,8 +913,6 @@
                     this.listComp[j].isBind = true;
                     this.listComp[j].bindHisComp = this.listBind[i].componentHistoryEntity
                     this.listComp[j].designDetailId = this.listBind[i].id
-                    // console.log(this.listComp[j].name);
-
                     this.bindCompsId.push(this.listComp[j].id);
                     break;
                   }
@@ -949,8 +936,6 @@
         this.bindLoading = true
         this.repeatCompsId.splice(0, this.repeatCompsId.length);
         if (this.componentHisIds.length !== 0) {
-          // console.log(this.componentHisIds)
-          // console.log(this.componentIds)
           let hisDataIds = (this.componentHisIds + '').replace(/\[|]/g, '')
           let hisData = {
             'componentHistoryIds': hisDataIds
@@ -1002,7 +987,6 @@
           }*/
 
           let dataBindId = (this.componentIds + '').replace(/\[|]/g, '')
-          // console.log(dataBindId)
           let data = {
             // 'deviceId': this.deviceCHId,
             'componentIds': dataBindId
@@ -1051,8 +1035,6 @@
       expandRow(row) {
         if (!row.hisVersion) {
           row.loading = true
-          // console.log('row---------')
-          // console.log(row)
           compHisVersions(row.id).then((res) => {
 
             /*row.hisVersion = res.data.data.content
@@ -1084,14 +1066,12 @@
                 Vue.set(this.listComp, i, this.listComp[i])
               }
             }
-            // console.log(this.listComp)
           })
         }
       },
       getSelectHisId(row, fatherRow) {
         this.watchArr.push(row.id)
         fatherRow.selectedHisId = row.id
-        // console.log(this.listComp)
         // this.componentIds.splice(this.componentIds.findIndex(item => item === fatherRow.identify), 1)
         for (let i = 0; i < this.componentIds.length; i++) {
           if (this.componentIds[i] === fatherRow.identify) {
@@ -1107,7 +1087,6 @@
         } else if(fatherRow.selectedHisId === row.id) {
           fatherRow.selectedHisId = ''
         }
-        console.log(this.listComp)
       },*/
       checkHisIsBind(row) {
         row.isBind = false
@@ -1151,8 +1130,6 @@
           this.beforeSubmit(this.currentNodeId)
           getNodeDetail(this.currentNodeId).then((res) => {
             this.nodeDetail = res.data.data
-            // console.log('-=-=-=-=-=-')
-            // console.log(this.currentNodeInfo)
             /*if(res.data.data.length > 0) {
               this.nodeDetail[0].currentNodeInfo = res.data.data[0].deploymentDesignNodeEntity
             } else {

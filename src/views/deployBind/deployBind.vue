@@ -249,6 +249,7 @@
         let url = service.defaults.baseURL + '/OMS';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
+        stompClient.debug=null
         let that = this;
         stompClient.connect({}, function (frame) {
           stompClient.subscribe('/topic/onlineheartbeatmessages', function (response) {

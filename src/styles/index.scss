@@ -210,6 +210,7 @@ code {
 .fileList .el-table__header tr{
   height: 50px;
 }
+
 /*.uploadDialog .el-dialog{
   position: absolute;
   left: unset;
@@ -273,4 +274,17 @@ code {
 }
 .el-radio__label{
   display: none!important
+}
+
+
+//上传组件样式
+.uploader-file-status {
+  font-size: 12px;
+  // width: 34%;
+}
+
+.uploadDialog {
+  .el-dialog {
+    min-width: 700px;
+  }
 }

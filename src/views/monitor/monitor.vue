@@ -152,7 +152,7 @@
                 <el-table :data="props.row.correctFiles" stripe fit width="100%" :show-header="false">
                   <el-table-column label="文件名称" prop="name" min-width="240">
                   </el-table-column>
-                  <el-table-column label="路径" prop="deployPath" min-width="240">
+                  <el-table-column label="路径" prop="targetPath" min-width="240">
                   </el-table-column>
                   <el-table-column prop="correct" label="状态" align="center" width="80">
                     <template slot-scope="scope">
@@ -168,7 +168,7 @@
                       &lt;!&ndash;<span>{{scope.row.deployPath}}</span>&ndash;&gt;
                     </template>-->
                   </el-table-column>
-                  <el-table-column label="路径" prop="deployPath" min-width="240">
+                  <el-table-column label="路径" prop="targetPath" min-width="240">
                   </el-table-column>
                   <el-table-column prop="modifyed" label="状态" align="center" width="80">
                     <template slot-scope="scope">
@@ -184,7 +184,7 @@
                       &lt;!&ndash;<span>{{scope.row.deployPath}}</span>&ndash;&gt;
                     </template>-->
                   </el-table-column>
-                  <el-table-column label="路径" prop="deployPath" min-width="240">
+                  <el-table-column label="路径" prop="targetPath" min-width="240">
                   </el-table-column>
                   <el-table-column prop="missing" label="状态" align="center" width="80">
                     <template slot-scope="scope">
@@ -200,7 +200,7 @@
                       &lt;!&ndash;<span>{{scope.row.deployPath}}</span>&ndash;&gt;
                     </template>-->
                   </el-table-column>
-                  <el-table-column label="路径" prop="deployPath" min-width="240">
+                  <el-table-column label="路径" prop="targetPath" min-width="240">
                   </el-table-column>
                   <el-table-column prop="unknown" label="状态" align="center" width="80">
                     <template slot-scope="scope">

@@ -60,11 +60,13 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column align="center" :label="$t('table.actions')" width="200">
+      <el-table-column align="center" :label="$t('table.actions')" width="240">
         <template slot-scope="scope">
+          <el-button class="deploy-action-btn" size="mini" type="success" plain v-if="!scope.row.deleted" @click="baselineDeploy(scope.row)">新建基线</el-button>
+          <el-button class="deploy-action-btn" size="mini" type="warning" plain v-if="!scope.row.deleted" @click="handleMonitor(scope.row)">在线监控</el-button>
           <el-dropdown trigger="click" v-if="!scope.row.deleted">
             <span class="el-dropdown-link" v-if="!scope.row.virtual">
-              <el-button type="success" plain>更多操作</el-button>
+              <el-button class="deploy-action-btn" type="primary" size="mini" plain>更多操作</el-button>
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
@@ -76,15 +78,15 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="baselineDeploy(scope.row)">新建基线</span>
-              </el-dropdown-item>
+              </el-dropdown-item>-->
               <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="checkBaselines(scope.row)">基线详情</span>
               </el-dropdown-item>-->
-              <el-dropdown-item divided>
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleMonitor(scope.row)">在线监控</span>
-              </el-dropdown-item>
+              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
           <el-dropdown trigger="click" v-else>

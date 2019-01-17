@@ -243,9 +243,6 @@
         } else {
           this.title = '设备组件关系图(该节点暂无信息)'
         }
-      },
-      watchClick() {
-
       }
     },
     watch: {

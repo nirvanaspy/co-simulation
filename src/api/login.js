@@ -1,7 +1,6 @@
 import request from '@/utils/request'
 /* eslint-disable */
 export function loginByUsername(data) {
-  console.log(data)
   /*let indexEqu1 = proData.indexOf("=");
   let indexAnd = proData.indexOf("&");
   let indexEqu2 = proData.lastIndexOf("=");
@@ -64,4 +63,16 @@ export function getUserInfo(token) {
 //     params:{userInfo}
 //   })
 // }
+
+export function refreshToken(data) {
+  return request({
+    url: '/oauth/token',
+    method: 'post',
+    auth: {
+      username: 'OAUTH_CLIENT_ID',
+      password: 'OAUTH_CLIENT_SECRET'
+    },
+    data
+  })
+}
 

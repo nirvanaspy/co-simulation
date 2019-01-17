@@ -118,6 +118,9 @@
       class="uploadDialog"
       title="上传文件"
       :visible.sync="uploadDialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
       append-to-body
       width="50%">
       <uploader :options="options"
@@ -142,7 +145,7 @@
           <uploader-list ref="uploaderList"></uploader-list>
         </uploader>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="uploadDialog = false">关 闭</el-button>
+        <el-button v-if="!hiddenClose" @click="uploadDialog = false">关 闭</el-button>
         <!--<el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>-->
       </span>
     </el-dialog>
@@ -151,6 +154,9 @@
       class="uploadDialog"
       title="上传文件夹"
       :visible.sync="uploadFolderDialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
       append-to-body
       width="50%">
       <uploader :options="options"
@@ -171,7 +177,7 @@
         <uploader-list ref="uploaderFolderList"></uploader-list>
       </uploader>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="uploadFolderDialog = false">关 闭</el-button>
+        <el-button v-if="!hiddenClose" @click="uploadFolderDialog = false">关 闭</el-button>
         <!--<el-button type="primary" @click="upload_Folder" :loading="upFolderLoading">确 定</el-button>-->
       </span>
     </el-dialog>
@@ -298,7 +304,7 @@
           accept: 'image/*'
         },
         statusText: {
-          success: '成功了',
+          success: '上传结束',
           error: '出错了',
           uploading: '上传中',
           paused: '暂停中',
@@ -321,14 +327,16 @@
         folderFileInfo: [],
         fileInfoList: [],
         fileCompleteLength: 0,
-        folderfileCompleteLength: 0
+        folderfileCompleteLength: 0,
+        stopResolveMD5: false,
+        hiddenClose: false
       }
     },
     created() {
       this.initData()
       this.ip = this.getCookie('ip')
       this.port= this.getCookie('port')
-      this.target = 'http://' + this.ip + ':' + this.port + '/files/chunks'
+      this.target = 'http://' + this.ip + ':' + this.port + '/apis/files/chunks'
       this.token = 'Bearer' + this.$store.getters.token
       this.selectFileId = ''
       this.maniType = ''
@@ -421,6 +429,31 @@
           return
         }
       },
+      // 取消文件上传的操作
+      /*fileClose() {
+        this.$confirm('关闭后上传将被终止，确认关闭吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.fileReader.abort()
+          this.$refs.uploader.uploader.cancel()
+          this.uploadDialog = false
+          this.md5Loading = false
+        })
+      },
+      folderClose() {
+        this.$confirm('关闭后上传将被终止，确认关闭吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.fileReader.abort()
+          this.$refs.uploaderFolder.uploader.cancel()
+          this.uploadFolderDialog = false
+          this.md5Loading = false
+        })
+      },*/
       addFolder() {
         if(this.list.length === 0) {
           let newFolder = {
@@ -465,7 +498,9 @@
       },
       handleuploadFile() {
         this.uploadDialog = true
+        this.hiddenClose = false
         this.$nextTick(() => {
+          this.fileReader = new FileReader()
           this.$refs.uploader.uploader.cancel() //清空文件上传列表
           this.$refs.uploader.uploader.opts.target = this.target
           this.$refs.uploader.uploader.opts.headers.Authorization = this.token
@@ -476,8 +511,10 @@
         })
       },
       handleUploadFolder() {
+        this.hiddenClose = false
         this.uploadFolderDialog = true
         this.$nextTick(() => {
+          this.fileReader = new FileReader()
           this.$refs.uploaderFolder.uploader.cancel() //清空文件上传列表
           this.$refs.uploaderFolder.uploader.opts.target = this.target
           this.$refs.uploaderFolder.uploader.opts.headers.Authorization = this.token
@@ -489,6 +526,7 @@
       // 上传文件的几个方法
       checkMd5 (fileAdded, fileList) {
         // console.log(this.$refs.uploader.uploader.files)
+        this.hiddenClose = true
         this.md5Loading = true
         console.log(fileAdded)
         console.log(fileAdded.length)
@@ -626,8 +664,6 @@
               } else if (res.data.data == false) {
                 completeFlag++
                 if(completeFlag === fileAdded.length) {
-                  console.log(fileAdded)
-                  console.log('-------')
                   that.md5Loading = false
                   /*if(that.$refs.uploader.uploader.files.length === 0) {
                     let datapost = JSON.stringify(that.fileInfoList)
@@ -672,10 +708,10 @@
             let blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
             let chunks = Math.ceil(file.size / chunkSize)
             let currentChunk = 0
-
             fileReader.onload = e => {
               spark.appendBinary(e.target.result)
               currentChunk++
+              console.log(currentChunk)
               if (currentChunk < chunks) {
                 let a = 'deal with' + currentChunk + '剩余' + (chunks - currentChunk)
                 console.log(a)
@@ -802,6 +838,7 @@
         this.folderfileCompleteLength = fileAdded.length
         // alert(listLength)
         this.md5Loading = true
+        this.hiddenClose = true
         let chunkSize = this.$refs.uploaderFolder.uploader.opts.chunkSize
         let completeFlag = 0
         let that = this
@@ -1094,7 +1131,7 @@
         }
       },
       exportFile(row) {
-        let url = 'http://' + this.ip + ':' + this.port + '/componentfiles/' + row.id + '/export'
+        let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfiles/' + row.id + '/export'
         window.open(url)
       },
       handleMove(row) {
@@ -1326,14 +1363,28 @@
         // console.log()
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
           let datapost = JSON.stringify(this.fileInfoList)
+          this.statusText.success = '正在合并文件'
           uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
             this.listLoading = false
+            this.hiddenClose = false
             this.$notify({
               title: '成功',
               message: '上传成功',
               type: 'success',
               duration: 2000
             })
+            this.statusText.success = '文件合并成功'
+            this.getList()
+          }).catch(() => {
+            this.listLoading = false
+            this.hiddenClose = false
+            this.$notify({
+              title: '失败',
+              message: '文件上传时出错',
+              type: 'error',
+              duration: 2000
+            })
+            this.statusText.success = '文件合并失败'
             this.getList()
           })
         }
@@ -1344,14 +1395,28 @@
         if(this.folderfileCompleteLength === this.folderFileInfo.length && this.folderFileInfo.length !== 0) {
           // alert(this.folderfileCompleteLength)
           let datapost = JSON.stringify(this.folderFileInfo)
+          this.statusText.success = '正在合并文件'
           uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
             this.listLoading = false
+            this.hiddenClose = false
             this.$notify({
               title: '成功',
               message: '上传成功',
               type: 'success',
               duration: 2000
             })
+            this.statusText.success = '文件合并成功'
+            this.getList()
+          }).catch(() => {
+            this.listLoading = false
+            this.hiddenClose = false
+            this.$notify({
+              title: '失败',
+              message: '文件上传时出错',
+              type: 'error',
+              duration: 2000
+            })
+            this.statusText.success = '文件合并失败'
             this.getList()
           })
         }

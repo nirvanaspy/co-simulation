@@ -42,28 +42,7 @@
         <span class="register-tips">没有账号？</span>
         <span class="register-btn" @click="jumpToRegister">注册</span>
       </div>
-      <!--<div class="tips">
-        <span>{{$t('login.username')}} : admin</span>
-        <span>{{$t('login.password')}} : {{$t('login.any')}}</span>
-      </div>-->
-    <!--  <div class="tips">
-        <span style="margin-right:18px;">{{$t('login.username')}} : editor</span>
-        <span>{{$t('login.password')}} : {{$t('login.any')}}</span>
-      </div>-->
-
-      <!--<el-button class="thirdparty-button" type="primary" @click="showDialog=true">{{$t('login.thirdparty')}}</el-button>-->
     </el-form>
-
-<!--
-    <el-dialog :title="$t('login.thirdparty')" :visible.sync="showDialog" append-to-body>
-      {{$t('login.thirdpartyTips')}}
-      <br/>
-      <br/>
-      <br/>
-      <social-sign />
-    </el-dialog>
--->
-
   </div>
 </template>
 
@@ -136,7 +115,7 @@ export default {
           // this.setCookie('password', password, expireDays)
           this.setCookie('ip', ip, expireDays)
           this.setCookie('port', port, expireDays)
-          service.defaults.baseURL = 'http://' + ip + ':' + port // 动态设置api接口
+          service.defaults.baseURL = 'http://' + ip + ':' + port + '/apis' // 动态设置api接口
 
           /*let formData = new FormData();
           formData.append('username', username);
@@ -176,106 +155,6 @@ export default {
           return false
         }
       })
-    },
-    login: function () {
-      /*let username = $("input#username").val();
-      let password = $("input#password").val();*/
-      let username = this.loginForm.username;
-      let password = this.loginForm.password;
-      /*let ip = $("input#ip").val();
-      let port = $("input#port").val();*/
-      let ip = this.loginForm.ipConfig;
-      let port = this.loginForm.port;
-      //let expireDays = 1000 * 60 * 60 * 24 * 15;
-      let expireDays = 30;        //天数
-
-      if (username.length == 0 || password.length == 0) {
-        //alert("请输入正确的用户名或密码。");
-        /*layer.msg('请输入正确的用户名或密码！');*/
-        return;
-      } else {
-        this.setCookie('username', username, expireDays);
-        this.setCookie('password', password, expireDays);
-      }
-
-      //ip地址
-      var exp = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
-      var reg = ip.match(exp);
-      if (reg == null) {
-        //alert("IP地址不合法！");
-        /*layer.msg('IP地址不合法！');*/
-        return;
-      } else {
-        this.setCookie('ip', ip, expireDays);
-      }
-      if (port.length == 0) {
-        /*layer.msg('请输入端口号！');*/
-        return;
-      } else {
-        this.setCookie('port', port, expireDays);
-      }
-
-      this.setIP(ip)
-      this.setPort(port)
-      this.setloginname(username)
-      /*alert(this.getIP())*/
-      this.$axios.get(this.getIP() + "users/login",
-        {
-          auth: {
-            username: username,
-            password: password
-          }
-        }
-      )
-        .then(res => {
-          console.log('success')
-          /*commit('SET_TOKEN', role)*/
-          /*this.$store.commit('SET_TOKEN','Admin-Token')*/
-         /* this.setToken('Admin-Token')*/
-
-          console.log(res.data)
-          /*this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
-            this.$router.replace('/')
-          })*/
-          let userData = res.data
-          console.log(2)
-          //将用户名、密码的值存入cookie中
-          console.log(username)
-          this.setCookie('username', username, expireDays);
-          this.setCookie('password', password, expireDays);
-          this.setCookie('userId', res.data.data.id, expireDays);
-          this.setCookie('ip', ip, expireDays);
-          this.setCookie('port', port, expireDays);
-          this.setCookie('Admin-Token','admin', expireDays);
-          let userInfo1 = {
-            username: userData.username,
-            password: 'admin',
-            /*password: userData.data.password,
-            ip: userData.ip,
-            port: userData.port,*/
-            userId: userData.data.id
-          }
-          console.log(userInfo1)
-        /*  this.$store.dispatch('LoginByUsername', userInfo1).then(() => {
-            this.loading = false
-            this.$router.push({ path: '/' })
-          }).catch(() => {
-            console.log('loginByUserNameError')
-            this.loading = false
-          })*/
-          this.$router.replace('/')
-        })
-        .catch(function (error) {
-          //console.log(res.data.data);
-          console.log(typeof(error.response));
-          if(typeof(error.response) == "undefined"){
-            /*layer.msg('请检查IP或端口号是否正确！');*/
-          }else{
-            /*layer.msg('请输入正确的用户名或密码！');*/
-            error.response.data.length = 0;
-          }
-          //console.log(error.response.data);
-        });
     },
     ...mapMutations({
       setToken: 'SET_TOKEN',

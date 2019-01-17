@@ -96,7 +96,7 @@
         if (!isvalidUsername(value)) {
           callback(new Error('账号必须是5-15位的英文字母或数字！'))
         } else {
-          service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port
+          service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port + '/apis'
           /*UserIfExist(this.loginForm.username).then((res) => {
             if(res.data.data) {
               callback(new Error('用户已存在'))
@@ -178,7 +178,6 @@
               this.loading = false
             })
           } else {
-            console.log('error submit!!')
             return false
           }
         })
@@ -186,13 +185,11 @@
       hasUser() {
         let username = this.loginForm.username
         UserIfExist(username).then(response => {
-          console.log("A")
           this.ifExist = response.data.data
-          // console.log(ifExist);
         })
       },
       registerUser: function () {
-        service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port
+        service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port + '/apis'
         this.setCookie('ip', this.loginForm.ipConfig)
         this.setCookie('port', this.loginForm.port)
         this.$refs['loginForm'].validate((valid) => {

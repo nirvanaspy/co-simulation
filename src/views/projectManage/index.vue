@@ -309,7 +309,6 @@
         this.resetTemp()
         this.dialogStatus = 'create'
         this.dialogFormVisible = true
-        console.log(event.target)
         event.target.loading = true
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
@@ -527,7 +526,8 @@
         this.listLoading = true
         this.hisBtnLoading = true
         if(this.role == 'admin') {
-          projectListHis(this.projectId, this.listQuery).then(response => {
+          projectListHis(this.listQuery).then(response => {
+            console.log(this.listQuery)
             this.isHistory = true
             this.list = response.data.data.content
             this.total = response.data.total
@@ -573,7 +573,7 @@
             this.listLength = response.data.data.length
             this.total = response.data.data.totalElements
           })*/
-          projectList(this.projectId,this.listQuery).then(response => {
+          projectList(this.listQuery).then(response => {
             this.list = response.data.data.content
             this.total = response.data.total
             this.listLoading = false

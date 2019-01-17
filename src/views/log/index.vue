@@ -110,6 +110,7 @@
 
 <script>
   import { logList, logDetail, logSearchList } from '@/api/log'
+  import { refreshToken } from '@/api/login'
   import waves from '@/directive/waves' // 水波纹指令
   import { parseTime } from '@/utils'
 
@@ -221,10 +222,22 @@
     created() {
       this.proId = this.getCookie('projectId')
       this.getList()
+      // this.getRefresh_token()
     },
     methods: {
+      getRefresh_token() {
+        let qs = require('qs');
+        let data = qs.stringify({
+          'grant_type': 'refresh_token',
+          'client_id': 'OAUTH_CLIENT_ID',
+          'client_secret': 'OAUTH_CLIENT_SECRET',
+          'refresh_token': this.getCookie('RefreshTokenKey')
+        })
+        refreshToken(data).then((res) => {
+
+        })
+      },
       deleteuser(event) {
-        console.log(event.target.tagName)
         const target_btn = event.target
         this.$confirm('确认删除吗？', '提示', {
           confirmButtonText: '确定',
@@ -294,11 +307,7 @@
         })
       },
       searchAll: function() {
-        console.log(this.value4)
-        console.log(this.value4.length)
-        console.log('A')
         if (this.value4.length != 0){
-          console.log("空不该进")
           this.startTime = this.value4[0];
           this.endTime = this.value4[1];
 
@@ -307,12 +316,7 @@
 
           let start = parseInt(this.startTimeTemp);
           let end = parseInt(this.endTimeTemp);
-
-          console.log(typeof(this.startTimeTemp));
-          console.log(this.startTimeTemp);
         }
-
-        console.log("B");
 
         //  /deploylogs
 
@@ -326,8 +330,6 @@
 
 
         let state = this.selected;
-        console.log(this.selected);
-        console.log(state.length);
 
         if (state.length > 0) {
           if (state == "部署异常") {
@@ -373,7 +375,6 @@
           searchObj.endTime = new Date(this.endTime).getTime();
         }
 
-        console.log(searchObj);
         logSearchList(searchObj).then(response => {
           this.list = response.data.data
           this.listLoading = false

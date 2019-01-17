@@ -153,7 +153,9 @@
             <el-input v-model="temp.version"></el-input>
           </el-form-item>
           <el-form-item :label="$t('table.compPath')" prop="relativePath">
-            <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+            <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+            </el-tooltip>
           </el-form-item>
           <el-form-item :label="$t('table.compDesc')" prop="desc">
             <el-input v-model="temp.description"></el-input>
@@ -190,7 +192,9 @@
               <el-input v-model="temp.version"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compPath')" prop="relativePath">
-              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
+              <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+                <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
+              </el-tooltip>
             </el-form-item>
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
@@ -246,7 +250,7 @@
     data() {
       const validatePath = (rule, value, callback) => {
         // let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
-        let pattern = /^(\/([a-zA-Z0-9]+))+$/;
+        let pattern = /^(\/([\u4e00-\u9fa5_a-zA-Z0-9]+))+$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -348,7 +352,9 @@
         errorMessage: '操作失败',
         showConfirmBtn: true,
         showConfirmBtn1: true,
-        originalCompTemp: null
+        originalCompTemp: null,
+        unEdited: false,
+        noticeContent: '此路径为组件在设备上的相对路径，必须以斜杠开头，文件夹名称结尾，例如/test'
       }
     },
     components: {
@@ -378,7 +384,6 @@
             this.setSort()
           })*/
 
-          //console.log(this.list);
         })
       },
       handleSizeChange(val) {
@@ -422,14 +427,7 @@
             this.$refs.createComFile.breadcrumbList = []
           }
           this.$refs['dataForm'].clearValidate()
-
-          /*console.log("文件信息");
-          console.log(this.$refs.uploader.uploader.files);
-          this.$refs.uploader.uploader.files.splice(0,this.$refs.uploader.uploader.files.length);
-          console.log(this.$refs.uploader.uploader.files);*/
-          // this.getList()
         })
-        // this.getList()
       },
       createData() {
         this.$refs['dataForm'].validate((valid) => {
@@ -656,6 +654,7 @@
         })
       },
       updateData() {
+        this.unEdited = false
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
             /*const updateloading = Loading.service({
@@ -669,10 +668,11 @@
               && this.originalCompTemp.relativePath === this.temp.relativePath
               && this.originalCompTemp.description === this.temp.description)
             {
-              this.$message({
+              /*this.$message({
                 type: 'info',
                 message: '组件信息未修改'
-              })
+              })*/
+              this.dialogFormVisible = false
               return
             }
             this.upComLoading = true
@@ -790,17 +790,13 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.getIP() + 'components/' + id + '/export';
+        this.exportUrl = this.getIP() + 'apis/components/' + id + '/export';
 
-        console.log(this.exportUrl);
         window.open(this.exportUrl);
       },
 
       uploadCom: function (file) {
         let formData = new FormData();
-
-        console.log("导入组件文件----------");
-        console.log(file);
 
         formData.append('importComponents', file.file);
         const uploading = Loading.service({

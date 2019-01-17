@@ -1,5 +1,5 @@
 import { loginByUsername, logout, getUserInfo } from '@/api/login'
-import { getToken, getRefreshToken, setToken, setRefreshToken, removeToken, setUserId, removeUserId, removeProId, setExpire, setExpire2, removeExpire } from '@/utils/auth'
+import { getToken, getRefreshToken, setToken, setRefreshToken, removeToken, removeRefreshToken, setUserId, removeUserId, removeProId, setExpire, setExpire2, removeExpire, removeExpire2 } from '@/utils/auth'
 const jwt = require('jsonwebtoken')
 
 const user = {
@@ -85,6 +85,8 @@ const user = {
           'password': userInfo.password
         }
         const proData = qs.stringify(data);*/
+        removeExpire()
+        removeExpire2()
         loginByUsername(formData).then(response => {
           const access_token = response.data.access_token
           const refresh_token = response.data.refresh_token
@@ -166,8 +168,12 @@ const user = {
       return new Promise((resolve, reject) => {
         logout(state.token).then(() => {
           commit('SET_TOKEN', '')
+          commit('SET_REFRESHTOKEN', '')
           commit('SET_ROLES', [])
+          removeExpire()
+          removeExpire2()
           removeToken()
+          removeRefreshToken()
           resolve()
         }).catch(error => {
           reject(error)
@@ -179,8 +185,12 @@ const user = {
     FedLogOut({ commit }) {
       return new Promise(resolve => {
         commit('SET_TOKEN', '')
+        commit('SET_REFRESHTOKEN', '')
         commit('SET_ROLES', [])
+        removeExpire()
+        removeExpire2()
         removeToken()
+        removeRefreshToken()
         removeUserId()
         removeProId()
         resolve()

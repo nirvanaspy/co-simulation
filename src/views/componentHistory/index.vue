@@ -445,7 +445,7 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.getIP() + 'componenthistorys/' + id + '/export';
+        this.exportUrl = this.getIP() + 'apis/componenthistorys/' + id + '/export';
 
         console.log(this.exportUrl);
         window.open(this.exportUrl);

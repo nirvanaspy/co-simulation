@@ -31,7 +31,6 @@ export default {
   components: { splitPane },
   methods: {
     resize() {
-      console.log('resize')
     }
   }
 }

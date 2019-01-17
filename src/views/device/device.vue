@@ -28,7 +28,12 @@
           <span>{{scope.row.hostAddress}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="100px" :label="$t('table.devicePath')">
+      <el-table-column width="80px" align="center" label="操作系统">
+        <template slot-scope="scope">
+          <span style="font-size: 28px"><svg-icon :icon-class="computedOs(scope.row.ostype)"></svg-icon></span>
+        </template>
+      </el-table-column>
+      <el-table-column min-width="100px" align="center" :label="$t('table.devicePath')">
         <template slot-scope="scope">
           <span v-if="scope.row.deployPath">{{scope.row.deployPath}}</span>
           <span v-else>--</span>
@@ -49,9 +54,9 @@
       <el-table-column min-width="100px" align="center" label="内存利用率">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
-          <span v-else-if="scope.row.ifChangeColor < 70">{{Math.round((scope.row.ramTotalSize - scope.row.ramFreeSize)/scope.row.ramTotalSize*10000)/100}}%</span>
-          <span v-else-if="scope.row.ifChangeColor >= 70 && scope.row.ifChangeColor < 85" style="color: #FF8C00;">{{Math.round((scope.row.ramTotalSize - scope.row.ramFreeSize)/scope.row.ramTotalSize*10000)/100}}%</span>
-          <span v-else-if="scope.row.ifChangeColor >= 85" style="color: #FF0000;">{{Math.round((scope.row.ramTotalSize - scope.row.ramFreeSize)/scope.row.ramTotalSize*10000)/100}}%</span>
+          <span v-else-if="scope.row.ifChangeColor < 70">{{computedRamSize(scope.row)}}%</span>
+          <span v-else-if="scope.row.ifChangeColor >= 70 && scope.row.ifChangeColor < 85" style="color: #FF8C00;">{{computedRamSize(scope.row)}}%</span>
+          <span v-else-if="scope.row.ifChangeColor >= 85" style="color: #FF0000;">{{computedRamSize(scope.row)}}%</span>
         </template>
       </el-table-column>
       <el-table-column min-width="80px" align="center" label="上行速度">
@@ -191,7 +196,10 @@
           <el-input v-model="temp.hostAddress"></el-input>
         </el-form-item>
         <el-form-item :label="$t('table.devicePath')" prop="deployPath">
-          <el-input v-model="temp.deployPath" placeholder="例如：D:/test/"></el-input>
+          <el-tooltip placement="top">
+            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows:  C:/test<br/>Linux:  /test<br/>Vxworks:  /test</div>
+            <el-input v-model="temp.deployPath" placeholder="例如：D:/test"></el-input>
+          </el-tooltip>
         </el-form-item>
         <el-form-item :label="$t('table.deviceDesc')" prop="description">
           <el-input v-model="temp.description"></el-input>
@@ -278,8 +286,8 @@
         </el-table-column>
       </el-table>
       <div style="float:right;margin-top: 10px">
-        <el-button @click="processDialogVisible = false">{{$t('table.cancel')}}</el-button>
-        <el-button type="primary" @click="compMonitor()">组件进程监控</el-button>
+        <el-button @click="processDialogVisible = false">关闭</el-button>
+        <!--<el-button type="primary" @click="compMonitor()">组件进程监控</el-button>-->
       </div>
     </el-dialog>
     <el-dialog title="组件进程监控" :visible.sync="compProcessDialogVisible">
@@ -306,7 +314,10 @@
       <el-form :rules="pathRules" ref="reportForm" :model="pathTemp"  label-width="100px" style='width: 80%; margin:0 auto;'>
         <el-form-item label="部署路径" prop="reportPath">
           <el-input style="display: none;"></el-input>
-          <el-input v-model="pathTemp.reportPath" @keyup.enter.native.prevent="reportDevice" placeholder="例如：D:/test/"/>
+          <el-tooltip placement="top">
+            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows:  C:/test<br/>Linux:  /test<br/>Vxworks:  /test</div>
+            <el-input v-model="pathTemp.reportPath" @keyup.enter.native.prevent="reportDevice" placeholder="例如：D:/test"/>
+          </el-tooltip>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -498,14 +509,15 @@
         let url = service.defaults.baseURL + '/OMS';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
+        stompClient.debug=null
         let that = this;
         stompClient.connect({}, function (frame) {
           stompClient.subscribe('/onlineDevice', function (response) {
             let resBody = response.body;
             let resBody2 = resBody.replace(/[\\]/g, '');
             that.webResBody = JSON.parse(resBody2);
-            console.log('1===============')
-            console.log(that.webResBody)
+            /*console.log('1===============')
+            console.log(that.webResBody)*/
             $("#onlineheartbeatmessages").html(resBody);
 
             if(that.list.length > 0){
@@ -545,6 +557,7 @@
                         that.list[j].ramData = Math.round((value.ramTotalSize - value.ramFreeSize)/value.ramTotalSize*10000)/100;
                         that.list[j].upLoadSpeed = value.upLoadSpeed;
                         that.list[j].downLoadSpeed = value.downLoadSpeed;
+                        that.list[j].ostype = value.ostype
                         listIfExist = true;
                         break;
                       }
@@ -553,7 +566,6 @@
                 }
 
                 if(!listIfExist && !that.isHistory){       //添加虚拟设备
-                  console.log(value.hostAddress);
                   tempList.name = value.hostAddress;
                   tempList.hostAddress = value.hostAddress;
                   tempList.cpuClock = value.cpuClock;
@@ -568,6 +580,7 @@
                   tempList.ramData = Math.round((value.ramTotalSize - value.ramFreeSize)/value.ramTotalSize*10000)/100;
                   tempList.upLoadSpeed = value.upLoadSpeed;
                   tempList.downLoadSpeed = value.downLoadSpeed;
+                  tempList.ostype = value.ostype;
                   that.list.push(tempList);
                 }
               })
@@ -577,8 +590,6 @@
               for (let i = 0; i < that.list.length; i++) {
                 Vue.set(that.list, i, that.list[i]);
               }
-              /*console.log("设备----------");
-              console.log(that.list);*/
             }
           });
         });
@@ -630,7 +641,6 @@
             formData.append('description', this.temp.description);
             saveDevices(this.proId, formData).then((res) => {
               this.creDevLoading = false
-              console.log(res.data, 'createDeviceSuccess')
               this.dialogFormVisible = false
               this.$notify({
                 title: '成功',
@@ -914,86 +924,14 @@
       },
       handleCheckedProcess(val) {          //所选的进程，checkbox
         this.checkedProcess = val;
-        console.log("checkbox---------");
-        console.log(this.checkedProcess)
-
         this.processIds.splice(0,this.processIds.length);
-
         for(let i=0;i<this.checkedProcess.length;i++){
           this.processIds.push(this.checkedProcess[i].id);
         }
-
-        console.log(this.processIds);
       },
       compMonitor() {
-        // alert("查看组件进程----------");
         this.compProcessDialogVisible = true
-        //this.listLoading = true
-        /*getProcess(row.id).then((res) => {
-          this.taskprocess = res.data.data
-          this.listLoading = false
-        })*/
       },
-      /*compMonitor: function () {
-        alert("查看组件进程----------");
-        /!*this.processIds.splice(0,this.processIds.length);
-
-        console.log(this.componentIds.length);
-        if(this.componentIds.length !== 0){
-
-          for(let i=0;i<this.componentIds.length;i++){
-            for(let j=0;j<this.bindCompsId.length;j++){
-              if(this.bindCompsId[j] === this.componentIds[i]){  //判断索选择的组件是否有已绑定的
-                this.repeatCompsId.push(this.bindCompsId[j]);
-
-              }
-            }
-          }
-
-          if(this.repeatCompsId.length !== 0){
-            this.$message({
-              type: 'warning',
-              message: '有' + this.repeatCompsId.length + '个组件已绑定过！'
-            })
-
-            return;
-          }
-
-          let dataBindId = (this.componentIds + '').replace(/\[|]/g,'')
-          console.log(dataBindId, '99980')
-          let data = {
-            'componentIds': dataBindId
-          }
-          let qs = require('qs')
-          let dataBind = qs.stringify(data)
-          doDeployBind(this.deployPlanId, this.deviceCHId, dataBind).then(() => {
-            this.$notify({
-              title: '成功',
-              message: '绑定成功',
-              type: 'success',
-              duration: 2000
-            })
-
-            getDeployComLists(this.deployPlanId, this.deviceCHId).then((res) => {
-              this.bindedDeviceList = res.data.data
-            })
-
-          }).catch(() =>{
-            this.$notify({
-              title: '失败',
-              message: '绑定失败',
-              type: 'error',
-              duration: 2000
-            })
-          })
-        }else{
-          this.$message({
-            type: 'warning',
-            message: '无绑定信息!'
-          })
-        }*!/
-
-      },*/
       setSort() {
         const el = document.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
         this.sortable = Sortable.create(el, {
@@ -1138,6 +1076,34 @@
           } else {
             return Math.round(size/1024) + 'GB'
            }
+        }
+      },
+      computedRamSize() {
+        return function (row) {
+          if(row.ramTotalSize && row.ramFreeSize) {
+            if(row.ramTotalSize == 0) {
+              return 0
+            } else {
+              return Math.round((row.ramTotalSize - row.ramFreeSize)/row.ramTotalSize*10000)/100
+            }
+          } else {
+            return '--'
+          }
+        }
+      },
+      computedOs() {
+        return function (type) {
+          if(type == 0) {
+            return 'unknownOs'
+          } else if (type == 1) {
+            return 'windows'
+          } else if (type == 2) {
+            return 'linux'
+          } else if (type == 3) {
+            return 'vxworks'
+          } else {
+            return 'unknownOs'
+          }
         }
       }
       /*listenCpuData() {

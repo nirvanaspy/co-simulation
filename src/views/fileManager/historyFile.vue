@@ -313,7 +313,7 @@
       this.initData()
       this.ip = this.getCookie('ip')
       this.port= this.getCookie('port')
-      this.target = 'http://' + this.ip + ':' + this.port + '/files/chunks'
+      this.target = 'http://' + this.ip + ':' + this.port + '/apis/files/chunks'
       this.token = 'Bearer' + this.$store.getters.token
       this.selectFileId = ''
       this.maniType = ''
@@ -771,7 +771,7 @@
         }
       },
       exportFile(row) {
-        let url = 'http://' + this.ip + ':' + this.port + '/componentfilehistorys/' + row.id + '/export'
+        let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfilehistorys/' + row.id + '/export'
         window.open(url)
       },
       handleMove(row) {
