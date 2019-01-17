@@ -637,8 +637,7 @@
 
         let id = row.id;
         // this.exportUrl = this.getIP() + 'apis/components/' + id + '/export';
-        this.exportUrl = service.baseURL + '/components/' + id + '/export';
-
+        this.exportUrl = service.defaults.baseURL + '/components/' + id + '/export';
         window.open(this.exportUrl);
       },
 

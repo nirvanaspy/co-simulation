@@ -448,7 +448,7 @@
       },
       exportFile(row) {
         // let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfiles/' + row.id + '/export'
-        let url = service.baseURL + '/componentfiles/' + row.id + '/export'
+        let url = service.defaults.baseURL + '/componentfiles/' + row.id + '/export'
         window.open(url)
       },
       moveFile() {

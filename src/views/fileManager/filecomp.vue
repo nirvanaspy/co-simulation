@@ -338,7 +338,7 @@
       this.ip = this.getCookie('ip')
       this.port= this.getCookie('port')
       // this.target = 'http://' + this.ip + ':' + this.port + '/apis/files/chunks'
-      this.target = service.baseURL + '/files/chunks'
+      this.target = service.defaults.baseURL + '/files/chunks'
       this.token = 'Bearer' + this.$store.getters.token
       this.selectFileId = ''
       this.maniType = ''
@@ -1134,7 +1134,7 @@
       },
       exportFile(row) {
         // let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfiles/' + row.id + '/export'
-        let url = service.baseURL + '/componentfiles/' + row.id + '/export'
+        let url = service.defaults.baseURL + '/componentfiles/' + row.id + '/export'
         window.open(url)
       },
       handleMove(row) {
