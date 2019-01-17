@@ -8,21 +8,21 @@
       <div class="title-container">
         <h3 class="title">{{$t('login.register')}}</h3>
       </div>
-      <div class="ipContainer">
+      <!--<div class="ipContainer">
         <el-form-item prop="ipConfig" class="ipform">
           <span class="svg-container svg-container_ip">
             <svg-icon icon-class="IP" />
           </span>
           <el-input name="ipConfig" type="text" v-model="loginForm.ipConfig" autoComplete="on" placeholder="IP地址" />
         </el-form-item>
-        <!--<span class="colon">:</span>-->
+        &lt;!&ndash;<span class="colon">:</span>&ndash;&gt;
         <el-form-item prop="port" class="portform">
           <span class="svg-container">
             <svg-icon icon-class="port" />
           </span>
           <el-input name="port" type="text" v-model="loginForm.port" autoComplete="on" placeholder="端口号" />
         </el-form-item>
-      </div>
+      </div>-->
       <el-form-item prop="username">
         <span class="svg-container svg-container_login">
           <svg-icon icon-class="user" />
@@ -54,49 +54,24 @@
         <span class="register-tips">已有账号？</span>
         <span class="register-btn" @click="jumpToLogin">登录</span>
       </div>
-      <!--<div class="tips">
-        <span>{{$t('login.username')}} : admin</span>
-        <span>{{$t('login.password')}} : {{$t('login.any')}}</span>
-      </div>-->
-      <!--  <div class="tips">
-          <span style="margin-right:18px;">{{$t('login.username')}} : editor</span>
-          <span>{{$t('login.password')}} : {{$t('login.any')}}</span>
-        </div>-->
-
-      <!--<el-button class="thirdparty-button" type="primary" @click="showDialog=true">{{$t('login.thirdparty')}}</el-button>-->
     </el-form>
-
-    <!--
-        <el-dialog :title="$t('login.thirdparty')" :visible.sync="showDialog" append-to-body>
-          {{$t('login.thirdpartyTips')}}
-          <br/>
-          <br/>
-          <br/>
-          <social-sign />
-        </el-dialog>
-    -->
-
   </div>
 </template>
 
 <script>
   import { isvalidUsername, isvalidPwd } from '@/utils/validate'
   import { addUser, UserIfExist } from '../../api/getUsers'
-  import service from '@/utils/request'
-
-  /* import LangSelect from '@/components/LangSelect'*/
-  /* import SocialSign from './socialsignin'*/
+  // import service from '@/utils/request'
 
   /*eslint-disable*/
   export default {
-    /* components: { LangSelec },*/
     name: 'register',
     data() {
       const validateUsername = (rule, value, callback) => {
         if (!isvalidUsername(value)) {
           callback(new Error('账号必须是5-15位的英文字母或数字！'))
         } else {
-          service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port + '/apis'
+          // service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port + '/apis'
           /*UserIfExist(this.loginForm.username).then((res) => {
             if(res.data.data) {
               callback(new Error('用户已存在'))
@@ -189,9 +164,9 @@
         })
       },
       registerUser: function () {
-        service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port + '/apis'
+        /*service.defaults.baseURL = 'http://' + this.loginForm.ipConfig + ':' + this.loginForm.port + '/apis'
         this.setCookie('ip', this.loginForm.ipConfig)
-        this.setCookie('port', this.loginForm.port)
+        this.setCookie('port', this.loginForm.port)*/
         this.$refs['loginForm'].validate((valid) => {
           if(valid) {
             this.loading = true
@@ -223,9 +198,6 @@
               this.$store.dispatch('LoginByUsername', formData).then(() => {
                 this.jumpLoading = false
                 this.loading = false
-                /*getUserId().then((res) => {
-                  this.setCookie('userId', res.data.data.id)
-                })*/
                 this.$router.push({ path: '/projectManage' })
               }).catch(() => {
                 this.loading = false
@@ -253,44 +225,15 @@
           }
         })
       }
-      /*registerUser: function () {
-        this.$refs['loginForm'].validate((valid) => {
-          if (valid) {
-            var qs = require('qs')
-            let data = {
-              'username': this.loginForm.username,
-              'password': this.loginForm.password
-            }
-            let datapost = qs.stringify(data)
-            let ip = this.loginForm.ipConfig
-            let port = this.loginForm.port
-            // service.defaults.baseURL = 'http://' + ip + ':' + port
-            let ipPort = 'http://' + ip + ':' + port + '/'
-            this.$axios.post(ipPort + 'users', datapost, {
-              headers: {
-                "content-type": "application/x-www-form-urlencoded"
-              }
-            }).then(() => {
-              this.$notify({
-                title: '成功',
-                message: '注册成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.$router.replace('/login')
-            })
-          }
-        })
-      }*/
     },
     created() {
       this.jumpLoading = false
-      if(this.getCookie('ip')) {
+      /*if(this.getCookie('ip')) {
         this.loginForm.ipConfig = this.getCookie('ip')
       }
       if(this.getCookie('port')) {
         this.loginForm.port = this.getCookie('port')
-      }
+      }*/
     },
   }
 </script>
