@@ -124,6 +124,7 @@
   /*eslint-disable*/
   import { compList, compAll, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder } from '@/api/component'
   import { movefileTo, copyFileTo } from '@/api/component'
+  import service from '@/utils/request'
 
   export default {
     name: 'maniFile',
@@ -446,7 +447,8 @@
         }
       },
       exportFile(row) {
-        let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfiles/' + row.id + '/export'
+        // let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfiles/' + row.id + '/export'
+        let url = service.defaults.baseURL + '/componentfiles/' + row.id + '/export'
         window.open(url)
       },
       moveFile() {

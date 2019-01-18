@@ -241,6 +241,7 @@
   import waves from '@/directive/waves' // 水波纹指令
   import { Loading } from 'element-ui'
   import comFileManage from '@/views/fileManager/filecomp'
+  import service from '@/utils/request'
 
   export default {
     name: 'components',
@@ -378,12 +379,6 @@
           this.list = response.data.data.content
           this.total = response.data.data.totalElements
           this.listLoading = false
-          /*this.oldList = this.list.map(v => v.id);
-          this.newList = this.oldList.slice();
-          this.$nextTick(() => {
-            this.setSort()
-          })*/
-
         })
       },
       handleSizeChange(val) {
@@ -449,12 +444,6 @@
             //开始上传后去掉暂停和删除按钮
             /*$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
             $(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");*/
-            //formData.append('enctype', "multipart/form-data")
-            /*for (var i = 0; i < this.fileAll.length; i++) {
-              //判断数组里是文件夹还是文件
-              formData.append('componentEntityFiles', this.fileAll[i].file);
-            }*/
-            // debugger
             createComp(this.projectId, formData).then((res) => {
               this.showConfirmBtn = false
               this.creComLoading = false
@@ -500,122 +489,8 @@
         this.showConfirmBtn1 = true
         this.dialogFormVisible = true
         this.$nextTick(() => {
-          /*if(this.$refs.createComFile.list) {
-            this.$refs.createComFile.list = []
-            this.$refs.createComFile.breadcrumbList = []
-          }*/
           this.$refs['dataForm'].clearValidate()
         })
-        /*this.$nextTick(() => {
-          this.$refs['dataForm'].clearValidate();
-
-          //树
-          compSingle(this.selectedId).then(response => {
-            this.singleComp = response.data.data;
-            this.listLoading = false
-
-            console.log("树信息-------------------");
-            console.log(this.singleComp);
-
-            //对比时，是路径节点与根节点下的孩子节点比较
-            let componentFile = this.singleComp.componentDetailEntities;//组件
-
-            let zNodes = [];
-            let item;
-            for (let m = 0; m < componentFile.length; m++) {
-
-              this.treeInfo.push(componentFile[m]);//放所有文件信息，用于树点击id的选择
-
-              item = this.singleComp;
-
-              let path = (componentFile[m].savePath).split('/');
-
-              for (let i = 1; i < path.length; i++) {
-                item = this.$options.methods.handleInfo(item, path[i]);
-              }
-            };
-
-            zNodes.push(this.singleComp);
-
-            console.log(zNodes);
-
-            let forderTemp = [];
-
-            for (let i = 0; i < this.singleComp.componentDetailEntities.length; i++) {
-              let info = this.singleComp.componentDetailEntities[i].savePath.split('/');
-              let clearId = this.singleComp.componentDetailEntities[i].id;
-
-              if (info.length > 2) {
-
-                if (forderTemp.length > 0) {
-                  let flag = true;
-
-                  for (let j = 0; j < forderTemp.length; j++) {
-                    if (forderTemp[j].name == info[1]) {
-                      flag = false;
-                    }
-                  }
-
-                  if (flag) {
-                    let info2 = {};
-                    info2.name = info[1];
-                    forderTemp.push(info2);
-                  }
-
-                } else {
-                  let info2 = {};
-                  info2.name = info[1];
-                  forderTemp.push(info2);
-                }
-
-
-                this.folderClearData.push(clearId);
-                console.log(this.folderClearData);
-              } else {
-                this.fileInfo.push(this.singleComp.componentDetailEntities[i]);
-                this.fileClearData.push(clearId);
-              }
-            }
-
-            console.log(forderTemp);
-
-            for (let i = 0; i < forderTemp.length; i++) {
-              this.folderInfo.push(forderTemp[i]);
-            }
-
-
-            let setting = {
-              view: {
-                dblClickExpand: false,
-                addHoverDom: this.addHoverDom,
-                removeHoverDom: this.removeHoverDom,
-                selectedMulti: this.true
-              },
-              edit: {
-                enable: true,
-                showRenameBtn: false,
-                showRemoveBtn: false
-              },
-              data: {
-                simpleData: {
-                  enable: true
-                }
-              },
-              callback: {
-                beforeDrag: this.beforeDrag,
-                beforeEditName: this.beforeEditName,
-                beforeRemove: this.beforeRemove,
-                beforeRename: this.beforeRename,
-                onRemove: this.onRemove,
-                onRename: this.onRename,
-                onClick: this.zTreeOnClick
-              }
-            };
-
-            $.fn.zTree.init($("#treeDemo"), setting, zNodes);
-          });
-
-        })*/
       },
       compCopy(row) {
         let qs = require('qs');
@@ -657,21 +532,11 @@
         this.unEdited = false
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
-            /*const updateloading = Loading.service({
-              lock: true,
-              text: 'Loading',
-              spinner: 'el-icon-loading',
-              fullscreen: true
-            })*/
             if(this.originalCompTemp.name === this.temp.name
               && this.originalCompTemp.version === this.temp.version
               && this.originalCompTemp.relativePath === this.temp.relativePath
               && this.originalCompTemp.description === this.temp.description)
             {
-              /*this.$message({
-                type: 'info',
-                message: '组件信息未修改'
-              })*/
               this.dialogFormVisible = false
               return
             }
@@ -744,25 +609,6 @@
           }
         })
       },
-      /*setSort() {
-        const el = document.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
-        this.sortable = Sortable.create(el, {
-          ghostClass: 'sortable-ghost', // Class name for the drop placeholder,
-          setData: function (dataTransfer) {
-            dataTransfer.setData('Text', '')
-            // to avoid Firefox bug
-            // Detail see : https://github.com/RubaXa/Sortable/issues/1012
-          },
-          onEnd: evt => {
-            const targetRow = this.list.splice(evt.oldIndex, 1)[0]
-            this.list.splice(evt.newIndex, 0, targetRow)
-
-            // for show the changes, you can delete in you code
-            const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
-            this.newList.splice(evt.newIndex, 0, tempIndex)
-          }
-        })
-      },*/
       handleDelete(row) {
         let id = row.id;
         this.$confirm('确认删除吗？', '提示', {
@@ -790,8 +636,8 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.getIP() + 'apis/components/' + id + '/export';
-
+        // this.exportUrl = this.getIP() + 'apis/components/' + id + '/export';
+        this.exportUrl = service.defaults.baseURL + '/components/' + id + '/export';
         window.open(this.exportUrl);
       },
 

@@ -221,6 +221,7 @@
   /*eslint-disable*/
   import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
+  import service from '@/utils/request'
   import maniFile from '@/views/fileManager/maniFile'
   import SparkMD5 from 'spark-md5'
   import { hasMd5, mergeFile, uploadFiles } from '@/api/componentFiles'
@@ -336,7 +337,8 @@
       this.initData()
       this.ip = this.getCookie('ip')
       this.port= this.getCookie('port')
-      this.target = 'http://' + this.ip + ':' + this.port + '/apis/files/chunks'
+      // this.target = 'http://' + this.ip + ':' + this.port + '/apis/files/chunks'
+      this.target = service.defaults.baseURL + '/files/chunks'
       this.token = 'Bearer' + this.$store.getters.token
       this.selectFileId = ''
       this.maniType = ''
@@ -1131,7 +1133,8 @@
         }
       },
       exportFile(row) {
-        let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfiles/' + row.id + '/export'
+        // let url = 'http://' + this.ip + ':' + this.port + '/apis/componentfiles/' + row.id + '/export'
+        let url = service.defaults.baseURL + '/componentfiles/' + row.id + '/export'
         window.open(url)
       },
       handleMove(row) {
