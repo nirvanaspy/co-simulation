@@ -173,7 +173,8 @@
                   <div class="filter-container">
                     <el-input style="width: 200px;" class="filter-item" placeholder="组件名" v-model="searchQuery2">
                     </el-input>
-
+                    <el-button size="mini" type="primary" style="float:right;margin-top: 4px;" @click="handleCompCreate">添加组件
+                    </el-button>
                   </div>
 
                   <div style="height: 425px;overflow-y: auto;margin-top: 0;" id="compTab">
@@ -293,6 +294,39 @@
                       </el-table-column>
 
                     </el-table>
+
+                    <!--添加组件对话框-->
+                    <el-dialog title="添加组件" class="filesDialog" :visible.sync="compDialogFormVisible" top="7vh" width="86%" append-to-body="">
+                      <el-form :rules="componentRules" ref="dataCompForm" :model="compTemp" label-width="100px"
+                               style='width: 100%;height: 100%'>
+                        <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
+                          <el-form-item :label="$t('table.compName')" prop="name">
+                            <el-input v-model="compTemp.name"></el-input>
+                          </el-form-item>
+                          <el-form-item :label="$t('table.compVersion')" prop="version">
+                            <el-input v-model="compTemp.version"></el-input>
+                          </el-form-item>
+                          <el-form-item :label="$t('table.compPath')" prop="relativePath">
+                            <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+                              <el-input v-model="compTemp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+                            </el-tooltip>
+                          </el-form-item>
+                          <el-form-item :label="$t('table.compDesc')" prop="desc">
+                            <el-input v-model="compTemp.description"></el-input>
+                          </el-form-item>
+                          <div class="button-container" style="float: right;">
+                            <el-button @click="compDialogFormVisible = false">关闭</el-button>
+                            <el-button v-if="showConfirmBtn" type="primary" @click="createComp" :loading="creComLoading">{{$t('table.confirm')}}</el-button>
+                          </div>
+                        </div>
+                        <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px"
+                             v-loading="managerLoading"
+                             element-loading-text="请先填写组件的基本信息并创建"
+                        >
+                          <comFileManage ref="createComFile" :selectCompId="selectedCompId" :selectCompName="selectedCompName"></comFileManage>
+                        </div>
+                      </el-form>
+                    </el-dialog>
                   </div>
                   <el-pagination
                     @size-change="handleSizeChange2"
@@ -496,10 +530,12 @@
     bindCompHisToNode,
     deleteBindDetail
   } from '@/api/deployDesignNode'
+  import { Loading } from 'element-ui'
   import {compList} from '@/api/component'
   import { saveDevices, getDevices, getAllDevices } from '@/api/device'
   import {doDeployBind, getDeployComLists, deleteBind} from '@/api/deployBind'
-  import {compHisVersion, compHisVersions} from '@/api/component'
+  import { createComp, compHisVersion, compHisVersions } from '@/api/component'
+  import comFileManage from '@/views/fileManager/filecomp'
   import waves from '@/directive/waves' // 水波纹指令
   import splitPane from 'vue-splitpane'
   import deployBindER from '../deployBind/deployBindER'
@@ -508,7 +544,7 @@
 
   export default {
     name: 'designNode',
-    components: {splitPane, deployBindER},
+    components: {splitPane, deployBindER, comFileManage},
     directives: {
       waves
     },
@@ -573,6 +609,14 @@
           deployPath: '',
           description: ''
         },
+        compTemp: {
+          id: '',
+          name: '',
+          version: '',
+          relativePath: '',
+          description: '',
+          fileAll: ''
+        },
         dialogFormVisible: false,
         baselineVisible: false,
         baselineDetailVisible: false,
@@ -603,6 +647,11 @@
           name: [{ required: true, message: '请输入设备名', trigger: 'blur' }],
           hostAddress: [{ required: true, trigger: 'blur', validator: validateIP }],
           deployPath: [{ required: true, trigger: 'blur', validator: validatePath }]
+        },
+        componentRules: {
+          name: [{ required: true, message: '请输入组件名', trigger: 'blur' }],
+          version: [{ required: true, message: '请输入版本', trigger: 'blur' }],
+          relativePath: [{ required: true, trigger: 'blur', validator: validatePath }]
         },
         deployRules: {
           name: [{required: true, message: '请输入部署设计名称', trigger: 'blur'}]
@@ -652,7 +701,14 @@
         currentName: '',
         saveChecked: false,
         creDevLoading: false,
-        deviceDialogFormVisible: false
+        deviceDialogFormVisible: false,
+        creComLoading: false,
+        managerLoading: false,
+        compDialogFormVisible: false,
+        selectedCompId: '',
+        selectedCompName: '',
+        showConfirmBtn: true,
+        noticeContent: '此路径为组件在设备上的相对路径，必须以斜杠开头，文件夹名称结尾，例如/test'
       }
     },
     created() {
@@ -760,6 +816,7 @@
         })
       },
 
+      //添加设备
       resetDeviceTemp() {
         this.deviceTemp = {
           name: '',
@@ -808,6 +865,79 @@
               })
             })
 
+          }
+        })
+      },
+
+      //添加组件
+      resetCompTemp() {
+        this.compTemp = {
+          id: '',
+          name: '',
+          version: '',
+          relativePath: '',
+          description: '',
+          fileAll: ''
+        }
+      },
+      handleCompCreate() {
+        this.showConfirmBtn = true
+        this.managerLoading = true
+        this.resetCompTemp();
+        this.selectedCompId = ''
+        this.selectedCompName = ''
+        this.compDialogFormVisible = true
+        this.$nextTick(() => {
+          if(this.$refs.createComFile.list) {
+            this.$refs.createComFile.list = []
+            this.$refs.createComFile.breadcrumbList = []
+          }
+          this.$refs['dataCompForm'].clearValidate()
+        })
+      },
+      createComp() {
+        this.$refs['dataCompForm'].validate((valid) => {
+          if (valid) {
+            const createloading = Loading.service({
+              lock: true,
+              text: 'Loading',
+              spinner: 'el-icon-loading'
+            })
+            this.creComLoading = true
+            let formData = new FormData();
+            formData.append('name', this.compTemp.name);
+            formData.append('version', this.compTemp.version);
+            formData.append('relativePath', this.compTemp.relativePath);
+            formData.append('description', this.compTemp.description);
+            createComp(this.proId, formData).then((res) => {
+              this.showConfirmBtn = false
+              this.creComLoading = false
+              createloading.close()
+              this.selectedCompId = res.data.data.id
+              this.selectedCompName = res.data.data.name
+              this.managerLoading = false
+              this.$notify({
+                title: '成功',
+                message: '创建成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+            }).catch((error) => {
+              this.showConfirmBtn = true
+              this.creComLoading = false
+              createloading.close()
+              this.errorMessage = '操作失败！'
+              if(error.response.data.message){
+                this.errorMessage = error.response.data.message
+              }
+              this.$notify({
+                title: '失败',
+                message: this.errorMessage,
+                type: 'error',
+                duration: 2000
+              })
+            })
           }
         })
       },
