@@ -1,6 +1,6 @@
 <template>
   <el-row class="panel-group" :gutter="40">
-    <el-col :xs="16" :sm="16" :lg="8" class="card-panel-col">
+    <el-col :xs="24" :sm="8" :lg="8" class="card-panel-col">
       <router-link to="/components/index">
         <div class="card-panel">
           <div class="card-panel-icon-wrapper icon-components1">
@@ -13,7 +13,7 @@
         </div>
       </router-link>
     </el-col>
-    <el-col :xs="16" :sm="16" :lg="8" class="card-panel-col">
+    <el-col :xs="24" :sm="8" :lg="8" class="card-panel-col">
       <router-link to="/device/device">
         <div class='card-panel'>
           <div class="card-panel-icon-wrapper icon-computer">
@@ -26,7 +26,7 @@
         </div>
       </router-link>
     </el-col>
-    <el-col :xs="16" :sm="16" :lg="8" class="card-panel-col">
+    <el-col :xs="24" :sm="8" :lg="8" class="card-panel-col">
       <router-link to="/deployPlan/deployPlan">
         <div class="card-panel">
           <div class="card-panel-icon-wrapper icon-money">

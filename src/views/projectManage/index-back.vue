@@ -1,6 +1,6 @@
 <template>
   <div class="project-container">
-    <el-header style="background: #2d3a4b;">
+    <el-header>
       <div class="right-menu">
         <span calss="userName" style="position: relative;top: -12px;color: #fff;">{{userName}}</span>
         <el-dropdown class="avatar-container right-menu-item" trigger="click">
@@ -24,135 +24,7 @@
         </el-dropdown>
       </div>
     </el-header>
-    <div class="title-container">
-      <h3 class="title" style="margin-bottom:30px">
-        <span v-if="!isHistory">项目管理</span>
-        <span v-else>项目管理回收站</span>
-      </h3>
-    </div>
-    <el-tabs tab-position="left" style="height: calc(100% - 200px);" @tab-click="handleTabClick">
-      <el-tab-pane label="所有项目">
-        <div class="project-list">
-          <div v-for="item in list" v-if="!item.deleted" class="project-item">
-            <div class="project-star project-detail">
-          <span class="star-container">
-            <svg-icon icon-class="star-dark"></svg-icon>
-          </span>
-            </div>
-            <div class="project-info project-detail">
-              <div class="info-detail info-name" @click="handleSelect(item)">{{item.name}}</div>
-              <div class="info-detail info-description">{{item.description}}</div>
-            </div>
-            <div class="project-operation project-detail">
-          <span class="icons icons-edit" @click="handleUpdate(item)">
-            <svg-icon icon-class="edit"></svg-icon>
-          </span>
-              <span class="icons icons-delete" @click="handleDelete(item)">
-            <svg-icon icon-class="delete"></svg-icon>
-          </span>
-            </div>
-          </div>
-          <div class="new-project-container">
-            <div class="project-star project-detail new-info">
-          <span class="star-container">
-            <svg-icon icon-class="add-1"></svg-icon>
-          </span>
-            </div>
-            <div class="project-info project-detail">
-              <div class="info-detail new-info" @click="handleCreate($event)">创建新项目</div>
-            </div>
-            <div class="project-operation project-detail"></div>
-          </div>
-        </div>
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="currentPage"
-          :page-sizes="[10,20,30,50]"
-          :page-size="listQuery.limit"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="this.total"
-          background
-          style="text-align: center;margin-top:20px;width: 100%;"
-        >
-        </el-pagination>
-      </el-tab-pane>
-      <el-tab-pane label="回收站">
-        <div class="project-list hisList">
-          <div v-for="item in list" v-if="item.deleted" class="project-item">
-            <div class="project-star project-detail">
-              <span class="star-container">
-                <svg-icon icon-class="star-dark"></svg-icon>
-              </span>
-            </div>
-            <div class="project-info project-detail">
-              <div class="info-detail info-name" @click="handleSelect(item)">{{item.name}}</div>
-              <div class="info-detail info-description">{{item.description}}</div>
-            </div>
-            <div class="project-operation project-detail">
-              <span class="icons icons-edit" @click="handleResHisPro(item)">
-                <svg-icon icon-class="edit"></svg-icon>
-              </span>
-              <span class="icons icons-delete" @click="handleDelHisPro(item)">
-              <svg-icon icon-class="delete"></svg-icon>
-            </span>
-          </div>
-        </div>
-      </div>
-        <el-pagination
-          @size-change="handleSizeChange1"
-          @current-change="handleCurrentChange1"
-          :current-page="currentPage1"
-          :page-sizes="[10,20,30,50]"
-          :page-size="listQuery1.limit"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="this.total1"
-          background
-          style="text-align: center;margin-top:20px;width: 100%;"
-        >
-        </el-pagination>
-      </el-tab-pane>
-    </el-tabs>
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%">
-      <el-form :rules="rules" ref="dataForm" :model="temp" style='width: 80%; margin:0 auto;'>
-        <el-form-item :label="$t('table.projectName')" prop="name" :label-width="formLabelWidth">
-          <el-input v-model="temp.name"></el-input>
-        </el-form-item>
-        <el-form-item :label="$t('table.projectDesc')" prop="description" :label-width="formLabelWidth">
-          <el-input v-model="temp.description"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">{{$t('table.cancel')}}</el-button>
-        <el-button v-if="dialogStatus=='create'" type="primary" @click="createData" :loading="creProLoading">{{$t('table.confirm')}}</el-button>
-        <el-button v-else type="primary" @click="updateData" :loading="creProLoading">{{$t('table.confirm')}}</el-button>
-      </div>
-    </el-dialog>
-    <!--普通用户修改密码-->
-    <el-dialog title="修改密码" :visible.sync="modifyPasswordVisible" append-to-body width="40%">
-      <el-form :model="form" ref="modifyPassForm" :rules="modifyRules" style="width: 80%; margin:0 auto;">
-        <!--<el-form-item label="原密码" :label-width="formLabelWidth">
-          <el-input type="password" v-model="form.passwordOld" auto-complete="off"></el-input>
-        </el-form-item>-->
-        <el-form-item label="新密码" :label-width="formLabelWidth" prop="passwordNew">
-          <el-input :type="passwordType" v-model="form.passwordNew" auto-complete="off"></el-input>
-          <span class="show-pwd" @click="showPwd">
-            <svg-icon icon-class="eye" />
-          </span>
-        </el-form-item>
-        <el-form-item label="再次输入" :label-width="formLabelWidth" prop="passwordAgain">
-          <el-input :type="passwordTypeAgain" v-model="form.passwordAgain" auto-complete="off"></el-input>
-          <span class="show-pwd" @click="showPwdAgain">
-            <svg-icon icon-class="eye" />
-          </span>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="modifyPasswordVisible = false">取 消</el-button>
-        <el-button :disabled="this.btnConfirm" type="primary" @click="modifyPassword" :loading="modPasLoading">确 定</el-button>
-      </div>
-    </el-dialog>
-    <!--<div class="login-form" id="project-table">
+    <div class="login-form" id="project-table">
       <div class="title-container">
         <h3 class="title" style="margin-bottom:30px">
           <span v-if="!isHistory">项目管理</span>
@@ -216,7 +88,48 @@
         style="text-align: center;margin-top:20px"
       >
       </el-pagination>
-    </div>-->
+    </div>
+    <!--分页-->
+    <!--修改/新建项目-->
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%">
+      <el-form :rules="rules" ref="dataForm" :model="temp" style='width: 80%; margin:0 auto;'>
+        <el-form-item :label="$t('table.projectName')" prop="name" :label-width="formLabelWidth">
+          <el-input v-model="temp.name"></el-input>
+        </el-form-item>
+        <el-form-item :label="$t('table.projectDesc')" prop="description" :label-width="formLabelWidth">
+          <el-input v-model="temp.description"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">{{$t('table.cancel')}}</el-button>
+        <el-button v-if="dialogStatus=='create'" type="primary" @click="createData" :loading="creProLoading">{{$t('table.confirm')}}</el-button>
+        <el-button v-else type="primary" @click="updateData" :loading="creProLoading">{{$t('table.confirm')}}</el-button>
+      </div>
+    </el-dialog>
+    <!--普通用户修改密码-->
+    <el-dialog title="修改密码" :visible.sync="modifyPasswordVisible" append-to-body width="40%">
+      <el-form :model="form" ref="modifyPassForm" :rules="modifyRules" style="width: 80%; margin:0 auto;">
+        <!--<el-form-item label="原密码" :label-width="formLabelWidth">
+          <el-input type="password" v-model="form.passwordOld" auto-complete="off"></el-input>
+        </el-form-item>-->
+        <el-form-item label="新密码" :label-width="formLabelWidth" prop="passwordNew">
+          <el-input :type="passwordType" v-model="form.passwordNew" auto-complete="off"></el-input>
+          <span class="show-pwd" @click="showPwd">
+            <svg-icon icon-class="eye" />
+          </span>
+        </el-form-item>
+        <el-form-item label="再次输入" :label-width="formLabelWidth" prop="passwordAgain">
+          <el-input :type="passwordTypeAgain" v-model="form.passwordAgain" auto-complete="off"></el-input>
+          <span class="show-pwd" @click="showPwdAgain">
+            <svg-icon icon-class="eye" />
+          </span>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="modifyPasswordVisible = false">取 消</el-button>
+        <el-button :disabled="this.btnConfirm" type="primary" @click="modifyPassword" :loading="modPasLoading">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -232,7 +145,7 @@
 
   /*eslint-disable*/
   export default {
-    components: { PanThumb},
+    components: { PanThumb },
     name: 'login',
     data() {
       const validatePassword = (rule, value, callback) => {
@@ -281,15 +194,6 @@
         total: null,
         pagesize:10,//每页的数据条数
         currentPage:1,//默认开始页面
-        listQuery1: {
-          page: 0,
-          size:10,
-          limit: 5,
-          tagname: ''
-        },
-        total1: null,
-        pagesize1:10,//每页的数据条数
-        currentPage1:1,//默认开始页面
         searchQuery: '',
         dialogFormVisible: false,
         modifyPasswordVisible: false,
@@ -348,17 +252,7 @@
       this.getList()
       // this.getUserInfo()
     },
-    mounted() {
-    },
     methods: {
-      handleTabClick(tab, event) {
-        console.log(tab.label);
-        if(tab.label === '回收站') {
-          this.showHistory()
-        } else if(tab.label === '所有项目') {
-          this.showNow()
-        }
-      },
       showPwd() {
         if (this.passwordType === 'password') {
           this.passwordType = ''
@@ -628,16 +522,6 @@
         this.currentPage = val
         this.getList()
       },
-      handleSizeChange1(val) {
-        this.listQuery1.size = val
-        this.pagesize1 = val
-        this.showHistory()
-      },
-      handleCurrentChange1(val) {
-        this.listQuery1.page = val - 1
-        this.currentPage1 = val
-        this.showHistory()
-      },
       showHistory: function(){
         this.listLoading = true
         this.hisBtnLoading = true
@@ -808,9 +692,75 @@
   }
 </script>
 
+<!--<style rel="stylesheet/scss" lang="scss">
+  $bg:#2d3a4b;
+  $light_gray:#eee;
+
+  /* reset element-ui css */
+  .login-container {
+    .el-input {
+      display: inline-block;
+      height: 47px;
+      width: 85%;
+      input {
+        background: transparent;
+        border: 0px;
+        -webkit-appearance: none;
+        border-radius: 0px;
+        padding: 12px 5px 12px 15px;
+        color: $light_gray;
+        height: 47px;
+        &:-webkit-autofill {
+          -webkit-box-shadow: 0 0 0px 1000px $bg inset !important;
+          -webkit-text-fill-color: #fff !important;
+        }
+      }
+    }
+    .el-form-item {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      color: #454545;
+    }
+    .ipContainer {
+      .el-form-item.ipform{
+        width:55%;
+        display: inline-block;
+      }
+      .ipform .el-input{
+        width:60%;
+      }
+      .colon {
+        display: inline-block;
+        text-align: center;
+        width: 3%;
+        color:#fff;
+      }
+      .el-form-item.portform{
+        width:40%;
+        display: inline-block;
+      }
+      .portform .el-input{
+        width:40%
+      }
+    }
+  }
+  .register-container{
+    text-align: center;
+    font-size: 14px;
+    color:$light_gray;
+    .register-tips{
+      margin-right: 4px;
+    }
+    .register-btn{
+      color:#36a3f7;
+      cursor: pointer;
+    }
+  }
+</style>-->
+
 <style rel="stylesheet/scss" lang="scss" scoped>
-  // $bg:rgb(239,240,242);
-  $bg: #f1f3f5;
+  $bg:#2d3a4b;
   $dark_gray:#889aa4;
   $light_gray:#eee;
   .show-pwd {
@@ -825,100 +775,16 @@
     position: fixed;
     height: 100%;
     width: 100%;
-    // background-color: $bg;
-    // background-image: url("./pic01.jpg");
-    background-size: cover;
-    .project-list {
-      width: 70%;
-      min-width: 400px;
-      max-width: 800px;
-      margin: 20px auto;
-      .project-item,.new-project-container {
-        width: 100%;
-        height:60px;
-        background: #fff;
-        padding: 5px 10px;
-        margin-bottom: 10px;
-        border-left: 4px solid rgb(25,170,246);
-        cursor: pointer;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
-        font-size: 14px;
-        .project-detail {
-          float: left;
-          height: 100%;
-        }
-        .project-star {
-          width: 40px;
-          text-align: center;
-          .star-container {
-            display: inline-block;
-            position: relative;
-            top: 50%;
-            transform: translate(0, -50%);
-            font-size: 24px;
-          }
-        }
-        .project-star.new-info {
-          color: #ccc;
-        }
-        .project-info {
-          width: calc(100% - 100px);
-          padding: 0 20px;
-          .info-detail {
-            height: 25px;
-            line-height: 25px;
-            color:rgb(77,77,77);
-          }
-          .info-description {
-            color: rgb(179,179,179);
-          }
-          .new-info {
-            height: 50px;
-            line-height: 50px;
-            color:rgb(179,179,179);
-          }
-        }
-        .project-operation {
-          width: 60px;
-          .icons {
-            margin-left: 6px;
-            color: #ccc;
-          }
-        }
-      }
+    background-color: $bg;
+    .login-form {
+      height: 100%;
+      position: absolute;
+      left: 0;
+      right: 0;
+      width: 60%;
+      padding: 0px 35px 15px 35px;
+      margin: 10px auto;
     }
-
-    .project-item:hover, .project-item:focus, .new-project-container:hover, .new-project-container:focus{
-      // margin-bottom: 16px;
-      border-radius: 4px;
-      border-left-width: 8px;
-      box-shadow: 4px 4px 30px rgba(0, 0, 0, .2);
-      .info-name, .new-info {
-        color: #3da8f5 !important;
-      }
-      .icons-delete {
-        color: #f56c6c !important;
-      }
-      .icons-edit {
-        color: #3da8f5 !important;
-      }
-    }
-    .project-list.hisList {
-      .project-item {
-        border-left: 4px solid #f56c6c;
-      }
-      .project-item:hover {
-        border-radius: 4px;
-        border-left-width: 8px;
-        box-shadow: 4px 4px 30px rgba(0, 0, 0, .2);
-      }
-    }
-    /*.icons-delete:hover {
-      color: #f56c6c !important;
-    }
-    .icons-edit:hover {
-      color: #3da8f5 !important;
-    }*/
     .svg-container {
       padding: 6px 5px 6px 15px;
       color: $dark_gray;
@@ -934,12 +800,13 @@
       .title {
         font-size: 26px;
         font-weight: 400;
-        color: #555;
-        margin: 40px auto;
+        color: $light_gray;
+        margin: 0px auto 40px auto;
         text-align: center;
         font-weight: bold;
       }
       .set-language {
+        color: #fff;
         position: absolute;
         top: 5px;
         right: 0px;
