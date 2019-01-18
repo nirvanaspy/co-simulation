@@ -56,6 +56,8 @@
                     <div class="filter-container">
                       <el-input style="width: 240px;" class="filter-item" placeholder="请输入用户ip" v-model="searchQueryDevice">
                       </el-input>
+                      <el-button size="mini" type="primary" style="float:right;margin-top: 4px;" @click="handleDeviceCreate">添加设备
+                      </el-button>
                     </div>
                     <el-table :key='tableKey' :data="listAbleDevice" v-loading="deviceLoading"
                               element-loading-text="给我一点时间" border fit
@@ -98,6 +100,35 @@
                       </el-table-column>-->
 
                     </el-table>
+                    <!--添加设备对话框-->
+                    <el-dialog title="添加设备" :visible.sync="deviceDialogFormVisible" width="40%" append-to-body="">
+                      <el-form :rules="deviceRules"
+                               ref="dataDeviceForm"
+                               :model="deviceTemp"
+                               label-width="100px"
+                               :disabled="deviceTemp.virtual"
+                               style='width: 80%; margin:0 auto;'>
+                        <el-form-item :label="$t('table.deviceName')" prop="name">
+                          <el-input v-model="deviceTemp.name"></el-input>
+                        </el-form-item>
+                        <el-form-item :label="$t('table.deviceIP')" prop="hostAddress">
+                          <el-input v-model="deviceTemp.hostAddress"></el-input>
+                        </el-form-item>
+                        <el-form-item :label="$t('table.devicePath')" prop="deployPath">
+                          <el-tooltip placement="top">
+                            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows:  C:/test<br/>Linux:  /test<br/>Vxworks:  /test</div>
+                            <el-input v-model="deviceTemp.deployPath" placeholder="例如：D:/test"></el-input>
+                          </el-tooltip>
+                        </el-form-item>
+                        <el-form-item :label="$t('table.deviceDesc')" prop="description">
+                          <el-input v-model="deviceTemp.description"></el-input>
+                        </el-form-item>
+                      </el-form>
+                      <div slot="footer" class="dialog-footer">
+                        <el-button @click="deviceDialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>
+                        <el-button type="primary" @click="createDevice" :loading="creDevLoading">{{$t('table.confirm')}}</el-button>
+                      </div>
+                    </el-dialog>
                   </div>
                   <!--<el-pagination
                     @size-change="handleSizeChange2"
@@ -119,7 +150,7 @@
                   <el-button type="primary" plain v-if="scope.row.deviceEntity" size="mini" slot="reference"
                              @click="checkNodeDevice(scope.row)">切换设备
                   </el-button>
-                  <el-button type="success" plain v-else size="mini" slot="reference" @click="checkNodeDevice(scope.row)">选择设备
+                  <el-button type="success" id="selectDevice" plain v-else size="mini" slot="reference" @click="checkNodeDevice(scope.row)">选择设备
                   </el-button>
                 </el-popover>
 
@@ -466,7 +497,7 @@
     deleteBindDetail
   } from '@/api/deployDesignNode'
   import {compList} from '@/api/component'
-  import {getDevices, getAllDevices} from '@/api/device'
+  import { saveDevices, getDevices, getAllDevices } from '@/api/device'
   import {doDeployBind, getDeployComLists, deleteBind} from '@/api/deployBind'
   import {compHisVersion, compHisVersions} from '@/api/component'
   import waves from '@/directive/waves' // 水波纹指令
@@ -482,6 +513,31 @@
       waves
     },
     data() {
+      const validateIP = (rule, value, callback) => {
+        //ip地址
+        let exp = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+        let reg = value.match(exp);
+
+        if(value.length==0){
+          callback(new Error("请输入IP！"));
+        }else if (reg == null) {
+          callback(new Error('IP地址不合法！'));
+        }else {
+          callback()
+        }
+      }
+      const validatePath = (rule, value, callback) => {
+        let pattern = /^([a-zA-Z]:(\\))([a-zA-Z]*)|(\/([a-zA-Z]+))*$/;
+
+        if(value.length==0){
+          callback(new Error("请输入路径！"));
+        }else if (!(value.match(pattern))) {
+          callback(new Error('路径格式不正确!'));
+        }else {
+          callback()
+        }
+      }
+
       return {
         proId: '',
         searchQuery2: '',
@@ -511,6 +567,12 @@
           name: '',
           description: ''
         },
+        deviceTemp: {
+          name: '',
+          hostAddress: '',
+          deployPath: '',
+          description: ''
+        },
         dialogFormVisible: false,
         baselineVisible: false,
         baselineDetailVisible: false,
@@ -536,6 +598,11 @@
           type: [{required: true, message: 'type is required', trigger: 'change'}],
           timestamp: [{type: 'date', required: true, message: 'timestamp is required', trigger: 'change'}],
           title: [{required: true, message: 'title is required', trigger: 'blur'}]
+        },
+        deviceRules: {
+          name: [{ required: true, message: '请输入设备名', trigger: 'blur' }],
+          hostAddress: [{ required: true, trigger: 'blur', validator: validateIP }],
+          deployPath: [{ required: true, trigger: 'blur', validator: validatePath }]
         },
         deployRules: {
           name: [{required: true, message: '请输入部署设计名称', trigger: 'blur'}]
@@ -583,7 +650,9 @@
         currentNodeInfo: {},
         compExpands: [],
         currentName: '',
-        saveChecked: false
+        saveChecked: false,
+        creDevLoading: false,
+        deviceDialogFormVisible: false
       }
     },
     created() {
@@ -690,6 +759,59 @@
           }
         })
       },
+
+      resetDeviceTemp() {
+        this.deviceTemp = {
+          name: '',
+          hostAddress: '',
+          deployPath: '',
+          description: ''
+        }
+      },
+      handleDeviceCreate() {
+        this.resetDeviceTemp()
+        this.deviceDialogFormVisible = true
+        this.$nextTick(() => {
+          this.$refs['dataDeviceForm'].clearValidate()
+        })
+      },
+      createDevice() {
+        this.$refs['dataDeviceForm'].validate((valid) => {
+          if (valid) {
+            this.creDevLoading = true
+            let formData = new FormData();
+            formData.append('name', this.deviceTemp.name);
+            formData.append('hostAddress', this.deviceTemp.hostAddress);
+            formData.append('deployPath', this.deviceTemp.deployPath);
+            formData.append('description', this.deviceTemp.description);
+            saveDevices(this.proId, formData).then((res) => {
+              this.creDevLoading = false
+              this.deviceDialogFormVisible = false
+              this.$notify({
+                title: '成功',
+                message: '创建成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+            }).catch((error) =>{
+              this.creDevLoading = false
+              this.errorMessage = '操作失败！'
+              if(error.response.data.message){
+                this.errorMessage = error.response.data.message
+              }
+              this.$notify({
+                title: '创建设备失败',
+                message: this.errorMessage,
+                type: 'error',
+                duration: 2000
+              })
+            })
+
+          }
+        })
+      },
+
       handleCheckedDeviceChange(val) {
         this.bindDeviceId = val
       },
