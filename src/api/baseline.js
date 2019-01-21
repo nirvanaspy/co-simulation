@@ -41,9 +41,10 @@ export function modifySnapshots(id, data) {
 }
 
 // 新建基线
-export function baselineDeployDesign(id) {
+export function baselineDeployDesign(id, data) {
   return request({
     url: '/deploymentdesigns/' + id + '/baseline',
-    method: 'post'
+    method: 'post',
+    data
   })
 }

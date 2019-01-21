@@ -199,6 +199,12 @@
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
             </el-form-item>
+            <el-form-item label="修改描述" prop="desc">
+              <el-input v-model="temp.modifyDescription"
+                        type="textarea"
+                        :rows="2"
+                        placeholder="请输入修改描述"></el-input>
+            </el-form-item>
             <div class="button-container">
               <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
               <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
@@ -294,7 +300,8 @@
           version: '',
           relativePath: '',
           description: '',
-          fileAll: ''
+          fileAll: '',
+          modifyDescription: ''
         },
         dialogFormVisible: false,
         dialogStatus: '',
@@ -405,7 +412,8 @@
           version: '',
           relativePath: '',
           description: '',
-          fileAll: ''
+          fileAll: '',
+          modifyDescription: ''
         }
       },
       handleCreate() {
@@ -543,21 +551,12 @@
             this.upComLoading = true
             let id = this.selectedId;
 
-            let formData = new FormData();
-
             // this.fileAll = this.$refs.uploader.uploader.files;
-
-            formData.append('name', this.temp.name);
-            formData.append('version', this.temp.version);
-            formData.append('relativePath', this.temp.relativePath);
-            //formData.append('size', this.size);
-            formData.append('description', this.temp.description);
 
             //开始上传后去掉暂停和删除按钮
             //$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
             //$(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");
 
-            formData.append('enctype', "multipart/form-data");
 
             /*for (var i = 0; i < this.fileAll.length; i++) {
               //判断数组里是文件夹还是文件
@@ -569,7 +568,8 @@
               name: this.temp.name,
               version: this.temp.version,
               relativePath: this.temp.relativePath,
-              description: this.temp.description
+              description: this.temp.description,
+              modifyDescription: this.temp.modifyDescription
             }
             let qs = require('qs')
             let newdata = qs.stringify(data)

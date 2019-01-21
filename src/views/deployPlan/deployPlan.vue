@@ -62,7 +62,7 @@
       </el-table-column>
       <el-table-column align="center" :label="$t('table.actions')" width="240">
         <template slot-scope="scope">
-          <el-button class="deploy-action-btn" size="mini" type="success" plain v-if="!scope.row.deleted" @click="baselineDeploy(scope.row)">新建基线</el-button>
+          <el-button class="deploy-action-btn" size="mini" type="success" plain v-if="!scope.row.deleted" @click="handleNewBaseline(scope.row)">新建基线</el-button>
           <el-button class="deploy-action-btn" size="mini" type="warning" plain v-if="!scope.row.deleted" @click="handleMonitor(scope.row)">在线监控</el-button>
           <el-dropdown trigger="click" v-if="!scope.row.deleted">
             <span class="el-dropdown-link" v-if="!scope.row.virtual">
@@ -118,7 +118,7 @@
     >
     </el-pagination>
     <!--部署设计对话框-->
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="40%">
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="40%" class="limit-width-dialog">
       <el-form :rules="deployRules" ref="dataForm" :model="temp" label-width="100px" style='width: 80%; margin:0 auto;'>
         <el-form-item :label="$t('table.deployPlanName')" prop="name">
           <el-input v-model="temp.name"></el-input>
@@ -134,7 +134,7 @@
       </div>
     </el-dialog>
     <!--基线新建对话框-->
-    <el-dialog title="请填写基线信息" :visible.sync="baselineVisible" width="40%">
+    <el-dialog title="请填写基线信息" :visible.sync="baselineVisible" width="40%" class="limit-width-dialog">
       <el-form :rules="baselineRules" ref="baselineForm" :model="baselineTemp" label-position="right" label-width="100px" style='width: 80%; margin:0 auto;'>
         <el-form-item label="名称" prop="name">
           <el-input v-model="baselineTemp.name"></el-input>
@@ -193,6 +193,18 @@
     <el-dialog title="基线详情" :visible.sync="snapshootFormVisible" width="80%">
       <designSnapshoot :deployPlanId="deployPlanId" :deployPlanName="deployPlanName"></designSnapshoot>
     </el-dialog>
+    <!--新建基线描述-->
+    <el-dialog title="请填写基线描述" :visible.sync="baselineInfoVisible" width="40%" class="limit-width-dialog">
+      <el-form ref="baselineForm" :model="baselineInfo" label-position="right" label-width="70px" style='width: 80%; margin:0 auto;'>
+        <el-form-item label="描述" prop="desc">
+          <el-input v-model="baselineInfo.description"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="baselineInfoVisible = false">{{$t('table.cancel')}}</el-button>
+        <el-button type="primary" @click="baselineDeploy" :loading="upBasLoading">{{$t('table.confirm')}}</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -250,6 +262,10 @@
           name: '',
           description: ''
         },
+        baselineInfo: {
+          description: ''
+        },
+        baselineInfoVisible: false,
         modifyBaselineTemp: {
           id: '',
           name: '',
@@ -533,8 +549,17 @@
           })
         })
       },
+      handleNewBaseline(row) {
+        this.selectedId = row.id
+        this.baselineInfoVisible = true
+      },
       baselineDeploy(row) {
-        baselineDeployDesign(row.id).then(() => {
+        let data = {
+          baselineDescription: this.baselineInfo.description
+        }
+        let qs = require('qs')
+        let newdata = qs.stringify(data)
+        baselineDeployDesign(this.selectedId, newdata).then(() => {
           this.$notify({
             title: '成功',
             message: '已设置为基线',
@@ -542,9 +567,11 @@
             duration: 2000
           })
           this.getList()
+          this.baselineInfoVisible = false
         })
       },
       handleCreateBaseline(row) {
+        this.
         this.resetBaseLineTemp()
         this.baselineVisible = true
         this.selectedId = row.id

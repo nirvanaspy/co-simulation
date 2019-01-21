@@ -86,3 +86,13 @@ export function cleanPro(id) {
     method: 'delete'
   })
 }
+
+export function starPro(id, hasStar) {
+  return request({
+    url: '/projects/' + id + '/star',
+    method: 'patch',
+    params: {
+      hasStar: hasStar
+    }
+  })
+}
