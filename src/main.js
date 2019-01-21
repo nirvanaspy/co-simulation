@@ -2,7 +2,7 @@ import Vue from 'vue'
 import uploader from 'vue-simple-uploader'
 import axios from 'axios'
 import SparkMD5 from 'spark-md5'
-Vue.prototype.$axios = axios;
+Vue.prototype.$axios = axios
 /* eslint-disable */
 Vue.use(uploader)
 
@@ -25,15 +25,17 @@ import './errorLog'// error log
 import './permission' // permission control
 /*import './mock' */// simulation data
 
-import '@/ztree/js/jquery-1.4.4.min.js'
+/*import '@/ztree/js/jquery-1.4.4.min.js'
 import '@/ztree/js/jquery.ztree.core.js'
 import '@/ztree/js/jquery.ztree.exedit.js'
-import '@/ztree/js/jquery.ztree.exhide.js'
+import '@/ztree/js/jquery.ztree.exhide.js'*/
 
 import * as filters from './filters' // global filters
 import '@/ztree/js/jquery-1.4.4.min.js'
-import '@/ztree/js/jquery.ztree.core'
-import '@/ztree/js/jquery.ztree.excheck'
+/*import '@/ztree/js/jquery.ztree.core'
+import '@/ztree/js/jquery.ztree.excheck'*/
+
+
 
 // add
 Vue.prototype.GLOBAL = global

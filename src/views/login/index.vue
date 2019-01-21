@@ -258,7 +258,9 @@ $light_gray:#eee;
     right: 0;
     width: 520px;
     padding: 35px 35px 15px 35px;
-    margin: 120px auto;
+    margin: 0 auto;
+    top: 40%;
+    margin-top: -200px;
   }
   .tips {
     font-size: 14px;
