@@ -24,3 +24,10 @@ export function deployNode(id) {
     method: 'put'
   })
 }
+
+export function deployAll(id) {
+  return request({
+    url: 'deploymentdesigns/' + id + '/deploy',
+    method: 'put'
+  })
+}
