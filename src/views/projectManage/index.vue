@@ -1,6 +1,10 @@
 <template>
   <div class="project-container">
-    <el-header style="background: #2d3a4b;">
+    <el-header style="background: #2d3a4b;line-height: 60px;">
+      <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
+        <el-input style="width: 200px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+        </el-input>
+      </div>
       <div class="right-menu">
         <span calss="userName" style="position: relative;top: -12px;color: #fff;">{{userName}}</span>
         <el-dropdown class="avatar-container right-menu-item" trigger="click">
@@ -35,7 +39,7 @@
         <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document"
                                                                             style="padding-left: 10px;"></i></span>
         <div class="project-list">
-          <div v-if="list.length === 0" class="no-project-container">
+          <div v-if="listA.length === 0" class="no-project-container">
             <span class="no-project-icon">
               <svg-icon icon-class="工程"></svg-icon>
             </span>
@@ -43,7 +47,7 @@
               暂无项目
             </div>
           </div>
-          <div v-for="item in list" v-if="!item.deleted" class="project-item">
+          <div v-for="item in listA" v-if="!item.deleted" class="project-item">
             <div class="project-star project-detail">
             <span class="star-container" @click="toggleStar(item)">
               <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
@@ -80,7 +84,7 @@
           </div>
         </div>
         <el-pagination
-          v-if="list.length"
+          v-if="listA.length"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="currentPage"
@@ -97,7 +101,7 @@
         <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete"
                                                                            style="padding-left: 10px;"></i></span>
         <div class="project-list hisList">
-          <div v-if="list.length === 0" class="no-project-container">
+          <div v-if="listA.length === 0" class="no-project-container">
             <span class="no-project-icon">
               <svg-icon icon-class="工程"></svg-icon>
             </span>
@@ -105,7 +109,7 @@
               暂无项目
             </div>
           </div>
-          <div v-for="item in list" v-if="item.deleted" class="project-item">
+          <div v-for="item in listA" v-if="item.deleted" class="project-item">
             <div class="project-star project-detail">
               <span class="star-container">
                 <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
@@ -131,7 +135,7 @@
           </div>
         </div>
         <el-pagination
-          v-if="list.length"
+          v-if="listA.length"
           @size-change="handleSizeChange1"
           @current-change="handleCurrentChange1"
           :current-page="currentPage1"
@@ -259,7 +263,7 @@
 
 <script>
   import PanThumb from '@/components/PanThumb'
-  import {isvalidPwd} from '@/utils/validate'
+  import { isvalidPwd } from '@/utils/validate'
   import {
     projectList,
     projectList_user,
@@ -272,7 +276,7 @@
     cleanPro,
     starPro
   } from '@/api/project'
-  import {getUserId, updateUser} from '@/api/getUsers'
+  import { getUserId, updateUser } from '@/api/getUsers'
   import store from '../../store'
 
   /* import LangSelect from '@/components/LangSelect'*/

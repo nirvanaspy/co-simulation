@@ -21,7 +21,10 @@
 
       <el-table-column align="left" :label="$t('table.deployPlanName')" min-width="200">
         <template slot-scope="scope">
-          <span class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
+          <el-tooltip :content="computedDes(scope.row)" placement="right">
+            <span class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
+          </el-tooltip>
+          <!--<div>{{scope.row.description}}</div>-->
         </template>
       </el-table-column>
       <el-table-column align="center" label="创建时间" min-width="100" sortable prop="createTime">
@@ -40,11 +43,11 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column min-width="200" align="center" :label="$t('table.deployPlanDesc')">
+      <!--<el-table-column min-width="200" align="center" :label="$t('table.deployPlanDesc')">
         <template slot-scope="scope">
           <span>{{scope.row.description}}</span>
         </template>
-      </el-table-column>
+      </el-table-column>-->
       <el-table-column align="center" width="200" label="部署操作" v-if="!isHistory">
         <template slot-scope="scope">
           <router-link :to='{name:"designNode",params:{id:scope.row.id, name: scope.row.name},query:{name: scope.row.name}}' v-if="!scope.row.deleted && !scope.row.baseline">
@@ -759,6 +762,15 @@
       },
       listenProId () {
         return this.$store.state.app.projectId
+      },
+      computedDes() {
+        return function(row) {
+          if(row.description) {
+            return '描述： ' + row.description
+          } else {
+            return '描述：' + ' 无'
+          }
+        }
       }
     },
     watch: {

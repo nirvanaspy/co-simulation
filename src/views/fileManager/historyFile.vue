@@ -60,7 +60,7 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column width="200px" :label="$t('table.compSize')">
+      <el-table-column width="120" :label="$t('table.compSize')">
         <template slot-scope="scope">
           <span v-if="scope.row.folder !== true">{{computedSize(scope.row.fileEntity.size)}}</span>
           <span v-if="scope.row.folder === true&&scope.row.name">--</span>
