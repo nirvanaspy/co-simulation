@@ -335,7 +335,7 @@
       },
 
       deployAll: function () {
-        /*this.deployIds.splice(0, this.deployIds.length);
+        this.deployIds.splice(0, this.deployIds.length);
         for(let i=0;i<this.list.length;i++){          // 所有在线设备
           if(this.list[i].online === true){
             this.deployIds.push(this.list[i].id);
@@ -345,7 +345,7 @@
         // 一键部署的id
         console.log('一键部署的id');
         console.log(this.deployPlanId);
-        console.log(this.deployIds);*/
+        console.log(this.deployIds);
 
         if(this.deployIds.length > 0){    //有设备在线
           this.$confirm('确认部署所有在线设备吗吗？', '提示', {
