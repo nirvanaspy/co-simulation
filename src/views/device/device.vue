@@ -39,7 +39,7 @@
           <span v-else>--</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80px" align="center" label="CPU">
+      <el-table-column min-width="90px" align="center" label="CPU">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <span v-else>{{Math.round(scope.row.cpuClock/1000*100)/100}}GHz</span>
@@ -59,14 +59,14 @@
           <span v-else-if="scope.row.ifChangeColor >= 85" style="color: #FF0000;">{{computedRamSize(scope.row)}}%</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80px" align="center" label="上行速度">
+      <el-table-column min-width="90px" align="center" label="上行速度">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <!--<span v-else>{{scope.row.upstreamSpeed}}</span>-->
           <span v-else>{{computedUpStream(scope.row.upLoadSpeed)}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80px" align="center" label="下行速度">
+      <el-table-column min-width="90px" align="center" label="下行速度">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <!--<span v-else>{{scope.row.downstreamSpeed}}</span>-->

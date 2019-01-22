@@ -3,6 +3,7 @@
     <div class="filter-container">
       <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
       </el-input>
+      <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="deployAll" type="primary" icon="el-icon-news">一键部署</el-button>
     </div>
     <el-table :key="tableKey"
               :data="listA"
@@ -91,7 +92,7 @@
 
 <script>
   // import { doDeploy, getDeployDevice, deployNode } from '@/api/deploy'
-  import { deployNode } from '@/api/deploy'
+  import { deployNode, deployAll } from '@/api/deploy'
   import { deployNodeList } from '@/api/deployDesignNode'
   import waves from '@/directive/waves' // 水波纹指令
   import service from '@/utils/request'
@@ -132,7 +133,8 @@
         deployDetailInfo2: [],   //部署详情
         deviceDeployDetail: [],  //某设备的部署详情
         webResBody: [],
-        webProgressBody: []
+        webProgressBody: [],
+        deployIds: []        // 一键部署的所有设备的id
       }
     },
     created() {
@@ -277,7 +279,6 @@
             online = this.list[i].online;
             thisState = this.list[i].state;
             break;
-
           }
         }
 
@@ -331,6 +332,53 @@
           }
 
         }
+      },
+
+      deployAll: function () {
+        /*this.deployIds.splice(0, this.deployIds.length);
+        for(let i=0;i<this.list.length;i++){          // 所有在线设备
+          if(this.list[i].online === true){
+            this.deployIds.push(this.list[i].id);
+          }
+        }
+
+        // 一键部署的id
+        console.log('一键部署的id');
+        console.log(this.deployPlanId);
+        console.log(this.deployIds);*/
+
+        if(this.deployIds.length > 0){    //有设备在线
+          this.$confirm('确认部署所有在线设备吗吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            deployAll(this.deployPlanId).then(() => {
+              // this.deployLoading = false
+              this.$notify({
+                title: '成功',
+                message: '部署结束',
+                type: 'success',
+                duration: 2000
+              })
+            }).catch(err => {
+              if(err.response.data.data.length != 0){
+                this.$notify({
+                  title: '失败',
+                  message: err.response.data.data,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
+            })
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消部署'
+            })
+          })
+        }
+
       }
     },
     computed: {
