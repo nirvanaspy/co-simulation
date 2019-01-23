@@ -25,7 +25,8 @@ export function getDeployDesignCounts(id) {
     url: '/projects/' + id + '/deploymentdesigncounts',
     method: 'get',
     params: {
-      deleted: false
+      deleted: false,
+      baseline: false
     }
   })
 }

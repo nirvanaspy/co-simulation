@@ -122,3 +122,9 @@
      max-width: 540px;
    }
  }
+
+
+ .scanResDialog .el-tabs__content {
+   height: 500px;
+   overflow-y: scroll;
+ }
