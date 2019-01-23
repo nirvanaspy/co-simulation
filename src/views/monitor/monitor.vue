@@ -4,7 +4,7 @@
        element-loading-text="正在扫描中"
        element-loading-spinner="el-icon-loading"
        element-loading-background="rgba(0, 0, 0, 0.8)"
-       style="position: absolute;top:85px;bottom:0;width:100%;height: 100%;background-color: #f0f2f5;"
+       style="position: absolute;top:85px;bottom:0;width:100%;background-color: #f0f2f5;"
   >
     <div class="selectedName" style="width:100%;height: 40px;line-height: 40px;color:#909399;">
       <span v-if="this.selectedDeviceName" style="margin-right: 10px">当前选中设备:{{selectedDeviceName}}</span>
@@ -48,7 +48,7 @@
         </el-dropdown>
       </div>
     </div>
-    <div style="width:33%;float:left;margin-top: 10px;border:1px solid #ebeef5;height: 90%;">
+    <div style="width:33%;float:left;margin-top: 10px;border:1px solid #ebeef5;height: calc(100% - 110px);">
       <el-table :data="deviceList" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
                 style="width: 100%;height:100%;overflow-y: scroll"
                 :row-key="getRowKeysComp"
@@ -120,7 +120,7 @@
       >
       </el-pagination>
     </div>
-    <div style="width:65%;height:90%;float: right;margin-top: 10px;margin-bottom: 10px;border:1px solid #ebeef5">
+    <div style="width:65%;height: calc(100% - 110px);float: right;margin-top: 10px;margin-bottom: 10px;border:1px solid #ebeef5">
       <el-table :data="deviceDetail" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
                 style="width: 100%;height:100%;overflow-y: scroll"
                 class="scanResTable"
@@ -216,21 +216,24 @@
         </el-table-column>
         <el-table-column align="center" label="扫描结果" min-width="130">
           <template slot-scope="scope">
-            <span v-if="scope.row.correctFiles !== undefined" class="res-cont" @click="chenScanRes(scope.row, 'correct')">
+            <span v-if="scope.row.correctFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'correct')">
               <svg-icon icon-class="correct"></svg-icon>
               {{scope.row.correctFiles.length}}
             </span>
-            <span v-if="scope.row.modifyedFiles !== undefined" class="res-cont" @click="chenScanRes(scope.row, 'modifyed')">
+            <span v-if="scope.row.modifyedFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'modifyed')">
               <svg-icon icon-class="modifyed"></svg-icon>
               {{scope.row.modifyedFiles.length}}
             </span>
-            <span v-if="scope.row.missingFiles !== undefined" class="res-cont" @click="chenScanRes(scope.row, 'missing')">
+            <span v-if="scope.row.missingFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'missing')">
               <svg-icon icon-class="error"></svg-icon>
               {{scope.row.missingFiles.length}}
             </span>
-            <span v-if="scope.row.unknownFiles !== undefined" class="res-cont" @click="chenScanRes(scope.row, 'unknown')">
+            <span v-if="scope.row.unknownFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'unknown')">
               <svg-icon icon-class="unknown"></svg-icon>
               {{scope.row.unknownFiles.length}}
+            </span>
+            <span v-if="scope.row.correctFiles === undefined" class="res-cont">
+              --
             </span>
           </template>
         </el-table-column>
@@ -261,17 +264,36 @@
     <!--扫描结果弹框-->
     <el-dialog title="扫描结果" :visible.sync="resDialogVisible" append-to-body width="40%" class="scanResDialog">
       <div slot="title">
-        扫描结果
-        <div style="display: inline-block;margin-bottom:16px;">
-          <el-input style="width: 200px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+        {{scanResTitle}}
+        <div style="display: inline-block; margin-left: 10px;">
+          <el-input style="width: 200px;" class="filter-item" placeholder="请输入文件名进行搜索" v-model="searchQuery">
           </el-input>
         </div>
       </div>
-      <el-tabs v-model="activeResPane">
+      <el-table class="searchResTable" :data="computedResList()" stripe fit width="100%" v-if="searchQuery.length > 0">
+        <el-table-column label="文件名称" prop="name" min-width="240">
+        </el-table-column>
+        <el-table-column label="路径" prop="targetPath" min-width="240">
+        </el-table-column>
+        <el-table-column prop="correct" label="状态" align="center" width="80">
+          <template slot-scope="scope">
+            <svg-icon v-if="scope.row.type === 0" icon-class="correct"></svg-icon>
+            <svg-icon v-if="scope.row.type === 1" icon-class="modifyed"></svg-icon>
+            <svg-icon v-if="scope.row.type === 2" icon-class="unknown"></svg-icon>
+            <svg-icon v-if="scope.row.type === 3" icon-class="error"></svg-icon>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-tabs v-model="activeResPane" v-else>
         <el-tab-pane label="正确" name="correct">
           <el-table :data="resDataList.correctFiles" stripe fit width="100%" :show-header="false">
             <el-table-column label="文件名称" prop="name" min-width="240">
             </el-table-column>
+            <!--<el-table-column label="文件名称" min-width="240">
+              <template slot-scope="scope">
+                <span>{{scope.row.name}}</span>
+              </template>
+            </el-table-column>-->
             <el-table-column label="路径" prop="targetPath" min-width="240">
             </el-table-column>
             <el-table-column prop="correct" label="状态" align="center" width="80">
@@ -392,7 +414,8 @@
         },
         resDataList: {},
         activeResPane: 'correct',
-        searchQuery: ''
+        searchQuery: '',
+        scanResTitle: '扫描结果'
       }
     },
     created() {
@@ -635,8 +658,6 @@
         this.selectedCompId = row.id
         this.selectedDeviceId = row.deploymentDesignNodeEntity.id
         this.selectedDeviceName = row.deploymentDesignNodeEntity.deviceEntity.name
-        console.log('row===========')
-        console.log(row)
         this.selectedCompName = row.componentHistoryEntity.name
         this.deviceDetail = [row]
         let uniqueId = this.deployPlanId + this.selectedDeviceId + row.id
@@ -819,9 +840,9 @@
                     }
                   })
                 }
-                console.log(this.expands)
+                /*console.log(this.expands)
                 console.log('组件扫描')
-                console.log(this.deviceDetail)
+                console.log(this.deviceDetail)*/
                 this.$notify({
                   title: '成功',
                   message: '组件完整扫描成功',
@@ -1022,9 +1043,11 @@
           }
         }
       },
-      chenScanRes(row, type) {
+      checkScanRes(row, type) {
         this.resDataList = row
+        this.scanResTitle = row.componentHistoryEntity.name + '扫描结果'
         this.activeResPane = type
+        this.searchQuery = ''
         this.resDialogVisible = true
       }
     },
@@ -1057,6 +1080,18 @@
           }
         }
       },
+      computedResList() {
+        return function() {
+          let self = this;
+          if(self.resDataList.result !== undefined) {
+            return self.resDataList.result.filter(function (item) {
+              return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+            })
+          } else {
+            return []
+          }
+        }
+      }
       /*deviceListB: function () {
         let self = this;
         return self.deviceList.filter(function (item) {
