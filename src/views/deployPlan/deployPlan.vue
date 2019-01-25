@@ -1,10 +1,10 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
-      <div v-show="isHistory" style="position: absolute;top: 120px;">
+      <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
         部署设计回收站
       </div>
-      <el-input v-if="!isHistory" @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="名称" v-model="searchQuery">
+      <el-input style="width: 200px;" class="filter-item" placeholder="名称" v-model="searchQuery">
       </el-input>
       <el-button class="filter-item" style="margin-left: 10px;float:right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
       <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
@@ -14,13 +14,12 @@
         返回
       </el-button>
     </div>
-    <!--正常状态-->
-    <div v-if="!isHistory" style="width: 100%;">
+    <div style="width: 100%;">
       <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
                 @expand-change="onExpand"
                 :default-sort = "{prop: 'createTime', order: 'descending'}"
                 style="width: 100%">
-        <el-table-column type="expand">
+        <!--<el-table-column type="expand">
           <template slot-scope="props">
             <el-table
               border
@@ -90,13 +89,23 @@
               </el-table-column>
             </el-table>
           </template>
-        </el-table-column>
-        <el-table-column align="left" :label="$t('table.deployPlanName')" min-width="200">
+        </el-table-column>-->
+        <el-table-column align="left" :label="$t('table.deployPlanName')" min-width="140">
           <template slot-scope="scope">
+            <svg-icon v-if="scope.row.baseline" icon-class="基线" style="font-size: 16px"></svg-icon>
+            <svg-icon v-if="!scope.row.baseline" icon-class="部署设计" style="font-size: 16px"></svg-icon>
             <el-tooltip :content="computedDes(scope.row)" placement="right">
-              <span class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
+              <span v-if="!scope.row.deleted" class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
+              <span v-else>{{scope.row.name}}</span>
             </el-tooltip>
             <!--<div>{{scope.row.description}}</div>-->
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="来源" min-width="100" :filters="sourceList" prop="source"
+                         :filter-method="filterSource">
+          <template slot-scope="scope">
+            <span v-if="scope.row.source">{{scope.row.source.name}}</span>
+            <span v-else>--</span>
           </template>
         </el-table-column>
         <el-table-column align="center" label="创建时间" min-width="100" sortable prop="createTime">
@@ -104,14 +113,16 @@
             <span>{{scope.row.createTime}}</span>
           </template>
         </el-table-column>
-        <el-table-column align="center" label="当前状态" width="100"
+        <el-table-column align="center" label="类型" width="100"
                          prop="baseline"
                          :filters="[{ text: '基线', value: true }, { text: '部署设计', value: false }]"
                          :filter-method="filterBaseline">
           <template slot-scope="scope">
-          <span>
-            <svg-icon v-if="scope.row.baseline" icon-class="基线" style="font-size: 20px"></svg-icon>
-            <svg-icon v-else icon-class="部署设计" style="font-size: 16px"></svg-icon>
+          <span v-if="scope.row.baseline">
+            基线
+          </span>
+          <span v-else>
+            部署设计
           </span>
           </template>
         </el-table-column>
@@ -194,7 +205,7 @@
       </el-pagination>
     </div>
     <!--回收站模式-->
-    <div v-if="isHistory" style="width: 100%;margin-top: 40px;">
+    <!--<div v-if="isHistory" style="width: 100%;margin-top: 40px;">
       <el-tabs type="border-card" @tab-click="handleTabClick">
         <el-tab-pane label="部署设计">
           <span slot="label"><svg-icon icon-class="部署设计" style="margin-right: 10px;"></svg-icon>部署设计</span>
@@ -295,7 +306,7 @@
           </el-table>
         </el-tab-pane>
       </el-tabs>
-    </div>
+    </div>-->
     <!--部署设计对话框-->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="40%" class="limit-width-dialog">
       <el-form :rules="deployRules" ref="dataForm" :model="temp" label-width="100px" style='width: 80%; margin:0 auto;'>
@@ -416,6 +427,7 @@
         hisDepList: [],
         hisBaseList: [],
         baslineList: [],
+        sourceList: [{value: '--', text: '无来源'}],
         listLoading: true,
         listQuery: {
           page: 0,
@@ -511,6 +523,14 @@
       filterBaseline(value, row) {
         return row.baseline === value
       },
+      filterSource(value, row) {
+        if(value === '--') {
+          return row.source === null
+        } else if(value.length > 0) {
+          if(row.source !== null)
+          return row.source.id === value
+        }
+      },
       getList() {
         this.listLoading = true;
         let projectId = this.getCookie('projectId');
@@ -518,11 +538,25 @@
         deployplanList(projectId, this.listQuery).then(response => {
           this.isHistory = false
           this.list = response.data.data.content
+          let listSource = [{value: '--', text: '无来源'}]
+          this.list.forEach((item) => {
+            if(item.source !== null) {
+              listSource.push({
+                value: item.source.id,
+                text: item.source.name
+              })
+            }
+          })
+          this.sourceList= this.getSourceList(listSource)
           this.total = response.data.total
           this.listLoading = false
           this.listLength = response.data.data.length
           this.total = response.data.data.totalElements
         })
+      },
+      getSourceList(arr) {
+        const res = new Map();
+        return arr.filter((a) => !res.has(a.value) && res.set(a.value, 1))
       },
       getHisBase() {
         this.listLoading = true;
@@ -542,7 +576,17 @@
 
         hisDeployplan(projectId, this.listQuery).then(response => {
           this.isHistory = true
-          this.hisDepList = response.data.data.content
+          this.list = response.data.data.content
+          let listSource = [{value: '--', text: '无来源'}]
+          this.list.forEach((item) => {
+            if(item.source !== null) {
+              listSource.push({
+                value: item.source.id,
+                text: item.source.name
+              })
+            }
+          })
+          this.sourceList= this.getSourceList(listSource)
           this.total = response.data.total
           this.listLoading = false
           this.listLength = response.data.data.length
@@ -560,19 +604,23 @@
         this.deployName = row.name + '基线详情'
         this.getBaslines(row.id)
       },
-      handleFilter() {
-        this.listQuery.page = 1
-        this.getList()
-      },
       handleSizeChange(val) {
         this.listQuery.size = val
         this.pagesize = val
-        this.getList()
+        if(this.isHistory) {
+          this.getHis()
+        } else {
+          this.getList()
+        }
       },
       handleCurrentChange(val) {
         this.listQuery.page = val - 1
         this.currentPage = val
-        this.getList()
+        if(this.isHistory) {
+          this.getHis()
+        } else {
+          this.getList()
+        }
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -772,7 +820,7 @@
       },
       baselineDeploy(row) {
         let data = {
-          baselineDescription: this.baselineInfo.description
+          createMessage: this.baselineInfo.description
         }
         let qs = require('qs')
         let newdata = qs.stringify(data)
@@ -788,7 +836,6 @@
         })
       },
       handleCreateBaseline(row) {
-        this.
         this.resetBaseLineTemp()
         this.baselineVisible = true
         this.selectedId = row.id
@@ -1043,11 +1090,20 @@
       },
       computedDes() {
         return function(row) {
-          if(row.description) {
-            return '描述： ' + row.description
-          } else {
-            return '描述：' + ' 无'
+          if(!row.baseline) {
+            if(row.description) {
+              return '描述： ' + row.description
+            } else {
+              return '描述：' + ' 无'
+            }
+          } else if(row.baseline) {
+            if(row.createMessage) {
+              return '基线信息： ' + row.createMessage
+            } else {
+              return '基线信息：' + ' 无'
+            }
           }
+
         }
       }
     },

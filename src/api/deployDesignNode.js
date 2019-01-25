@@ -39,7 +39,7 @@ export function deleteDeployplanNode(id) {
 export function bindDeviceToNode(nodeId, deviceId) {
   return request({
     url: 'deploymentdesignnodes/' + nodeId + '/device/' + deviceId + '/bind',
-    method: 'patch'
+    method: 'post'
   })
 }
 
@@ -47,7 +47,7 @@ export function bindDeviceToNode(nodeId, deviceId) {
 export function unbindDeviceByNode(nodeId) {
   return request({
     url: 'deploymentdesignnodes/' + nodeId + '/unbind',
-    method: 'patch'
+    method: 'delete'
   })
 }
 
@@ -126,3 +126,26 @@ export function getDeployDetailByDevice(deploymentDesignId, deviceid) {
   })
 }
 
+// 获取可绑定组件
+export function getAvailableComps(nodeId) {
+  return request({
+    url: '/deploymentdesignnodes/' + nodeId + '/components',
+    method: 'get'
+  })
+}
+
+// 绑定组件历史到节点
+export function bindSingleCompHisToNode(nodeId, compHisId) {
+  return request({
+    url: 'deploymentdesignnodes/' + nodeId + '/componenthistory/' + compHisId + '/bind',
+    method: 'post'
+  })
+}
+
+// 更新已绑定组件历史版本
+export function updateCompHisToNode(detailId, compHisId) {
+  return request({
+    url: 'deploymentdesigndetails/' + detailId + '/componenthistory/' + compHisId + '/bind',
+    method: 'patch'
+  })
+}

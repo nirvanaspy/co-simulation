@@ -4,7 +4,7 @@
       <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
         设备回收站
       </div>
-      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
+      <el-input style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
       </el-input>
       <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
       <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
@@ -600,12 +600,20 @@
       handleSizeChange(val) {
         this.listQuery.size = val
         this.pagesize = val
-        this.getList()
+        if(this.isHistory) {
+          this.getHis()
+        } else {
+          this.getList()
+        }
       },
       handleCurrentChange(val) {
         this.listQuery.page = val - 1
         this.currentPage = val
-        this.getList()
+        if(this.isHistory) {
+          this.getHis()
+        } else {
+          this.getList()
+        }
       },
       handleModifyStatus(row, status) {
         this.$message({

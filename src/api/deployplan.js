@@ -7,8 +7,7 @@ export function deployplanList(projectId, listQuery) {
     params: {
       size: listQuery.size,
       page: listQuery.page,
-      deleted: false,
-      baseline: false
+      deleted: false
     }
   })
 }
@@ -75,8 +74,7 @@ export function hisDeployplan(projectId, listQuery) {
     params: {
       size: listQuery.size,
       page: listQuery.page,
-      deleted: true,
-      baseline: false
+      deleted: true
     }
   })
 }
@@ -88,8 +86,7 @@ export function hisBaseline(projectId, listQuery) {
     params: {
       size: listQuery.size,
       page: listQuery.page,
-      deleted: true,
-      baseline: true
+      deleted: true
     }
   })
 }

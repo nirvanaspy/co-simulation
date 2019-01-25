@@ -4,7 +4,7 @@
       <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
         组件回收站
       </div>
-      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
+      <el-input style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
       </el-input>
       <el-button id="addComBtn"
                  v-show="!isHistory"
@@ -416,12 +416,20 @@
       handleSizeChange(val) {
         this.listQuery.limit = val
         this.pagesize = val
-        this.getList()
+        if(this.isHistory) {
+          this.showHistory()
+        } else {
+          this.getList()
+        }
       },
       handleCurrentChange(val) {
         this.listQuery.page = val - 1
         this.currentPage = val
-        this.getList()
+        if(this.isHistory) {
+          this.showHistory()
+        } else {
+          this.getList()
+        }
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -748,7 +756,7 @@
         compListHistory(this.projectId, this.listQuery).then(response => {
           this.isHistory = true
           this.list = response.data.data.content
-          this.total = response.data.total
+          this.total = response.data.data.totalElements
           this.listLoading = false
           this.hisBtnLoading = false
         }).catch(() => {
@@ -768,7 +776,7 @@
         this.hisBtnLoading = true
         compList(this.projectId,this.listQuery).then(response => {
           this.list = response.data.data.content
-          this.total = response.data.total
+          this.total = response.data.data.totalElements
           this.listLoading = false
           this.hisBtnLoading = false
           this.isHistory = false

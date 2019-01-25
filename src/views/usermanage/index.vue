@@ -1,9 +1,9 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
-      <el-input @keyup.enter.native="handleFilter" style="width:200px;" class="filter-item" :placeholder="$t('table.username')" v-model="searchQuery">
+      <el-input style="width:200px;" class="filter-item" :placeholder="$t('table.username')" v-model="searchQuery">
       </el-input>
-      <el-button class="filter-item" type="primary" v-waves icon="el-icon-search" @click="handleFilter">{{$t('table.search')}}</el-button>
+      <el-button class="filter-item" type="primary" v-waves icon="el-icon-search">{{$t('table.search')}}</el-button>
       <el-button class="filter-item" style="float:right;" @click="handleCreate" type="primary" icon="el-icon-edit">{{$t('table.add')}}</el-button>
     </div>
 
@@ -225,10 +225,6 @@
           this.total = response.data.total
           this.listLoading = false
         })
-      },
-      handleFilter() {
-        this.listQuery.page = 1
-        this.getList()
       },
       handleSizeChange(val) {
         this.listQuery.limit = val
