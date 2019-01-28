@@ -71,11 +71,11 @@
             </span>
             </div>
           </div>
-          <div class="new-project-container">
+          <div class="new-project-container" v-if="this.role == 'editor' && !isHistory">
             <div class="project-star project-detail new-info">
-          <span class="star-container">
-            <svg-icon icon-class="add-1"></svg-icon>
-          </span>
+              <span class="star-container">
+                <svg-icon icon-class="add-1"></svg-icon>
+              </span>
             </div>
             <div class="project-info project-detail">
               <div class="info-detail new-info" @click="handleCreate($event)">创建新项目</div>
@@ -633,7 +633,7 @@
             console.log(this.listQuery)
             this.isHistory = true
             this.list = response.data.data.content
-            this.total1 = response.data.total
+            this.total1 = response.data.data.totalElements
             this.listLoading = false
             this.hisBtnLoading = false
           }).catch(() => {
@@ -678,7 +678,7 @@
           })*/
           projectList(this.listQuery).then(response => {
             this.list = response.data.data.content
-            this.total = response.data.total
+            this.total = response.data.data.totalElements
             this.listLoading = false
             this.hisBtnLoading = false
             this.isHistory = false
