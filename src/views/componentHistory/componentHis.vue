@@ -1,51 +1,19 @@
 <template>
   <div class="app-container calendar-list-container" id="components">
-    <div class="filter-container">
-      <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
-        组件回收站
-      </div>
-      <el-input style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
+    <!--<div class="filter-container">
+      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" placeholder="标题" v-model="searchQuery">
       </el-input>
-      <el-button id="addComBtn"
-                 v-show="!isHistory"
-                 class="filter-item pull-right"
-                 style="float: right;margin-left: 10px;"
-                 @click="handleCreate"
-                 type="success"
-                 icon="el-icon-edit">{{$t('table.add')}}
-      </el-button>
-
-      <!--<router-link to="/componentTypes/index">
-        <el-button class="filter-item pull-right" style="float: right;margin-left: 10px;" type="primary"
-                   icon="el-icon-edit">组件分类
-        </el-button>
-      </router-link>-->
-
-      <!--<el-upload style="float: right;"
-                 class="upload-demo"
-                 action=""
-                 :file-list="fileList"
-                 :httpRequest="uploadCom"
-                 :show-file-list="false"
-                 multiple>
-
-        &lt;!&ndash;<el-button class="filter-item" type="primary" style="margin-left: 10px;" v-waves icon="el-icon-download">导入</el-button>&ndash;&gt;
-
-      </el-upload>-->
-      <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
-        回收站
-      </el-button>
-      <el-button type="primary" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
-        返回
-      </el-button>
-    </div>
+    </div>-->
 
     <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit
               highlight-current-row
+              stripe
+              :default-sort = "{prop: 'tag', order: 'descending'}"
               style="width: 100%">
 
       <el-table-column :label="$t('table.compName')" min-width="100">
         <template slot-scope="scope">
+          <svg-icon icon-class="history1" style="font-size: 18px;"></svg-icon>
           <span v-if="!scope.row.deleted" class="link-type" @click="handleUpdate(scope.row)">{{scope.row.name}}</span>
           <span v-else>{{scope.row.name}}</span>
         </template>
@@ -55,42 +23,19 @@
           <span>{{scope.row.version}}</span>
         </template>
       </el-table-column>
-      <!--<el-table-column min-width="100px" :label="$t('table.compSize')">
-        <template slot-scope="scope">
-          <span>{{Math.round(scope.row.size/1024/1024*100)/100}}M</span>
-        </template>
-      </el-table-column>-->
-      <el-table-column min-width="100px" :label="$t('table.compPath')">
+      <el-table-column width="100px" :label="$t('table.compPath')">
         <template slot-scope="scope">
           <span>{{scope.row.relativePath}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="100px" :label="$t('table.compDesc')">
+      <el-table-column width="100px" :label="$t('table.compDesc')">
         <template slot-scope="scope">
           <span>{{scope.row.description}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="80px" label="历史版本" align="center">
+      <el-table-column min-width="100px" label="修改时间" sortable prop="tag">
         <template slot-scope="scope">
-          <el-popover
-            placement="left"
-            width="900"
-            trigger="manual"
-            v-model="scope.row.popoverVisible">
-            <div class="popover-close">
-              <span class="close-icon" @click="closePopover(scope.row)">
-                <el-tooltip class="item" effect="dark" content="关闭" placement="top">
-                  <svg-icon icon-class="cancel"></svg-icon>
-                </el-tooltip>
-              </span>
-            </div>
-            <componentHis :componentId="scope.row.id" :componentName="scope.row.name" v-if="scope.row.popoverVisible"></componentHis>
-            <span slot="reference" @click="showPopover(scope.row)" class="icon-show-popover">
-              <el-tooltip class="item" effect="dark" :content="scope.row.popoverVisible ? '关闭窗口' : '查看组件历史 '" placement="top">
-                  <svg-icon icon-class="open"></svg-icon>
-                </el-tooltip>
-            </span>
-          </el-popover>
+          <span>{{computedTimeTag(scope.row.tag)}}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.actions')" width="140" class-name="small-padding fixed-width" align="center">
@@ -106,47 +51,36 @@
               <el-button type="success" plain>更多操作</el-button>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
+              <!--<el-dropdown-item>
                 <span style="display:inline-block;padding:0 10px;" @click="handleUpdate(scope.row)">编辑</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="compCopy(scope.row)">复制</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided>
+              </el-dropdown-item>-->
+              <el-dropdown-item>
                 <span style="display:inline-block;padding:0 10px;" @click="exportLink(scope.row)">导出</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
-              <!--<el-dropdown-item divided>
+              <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
               </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
-          <el-dropdown trigger="click" v-else>
-            <!--<el-tooltip class="item" effect="dark" content="更多操作" placement="top">
-              <span class="el-dropdown-link">
-              <svg-icon icon-class="ellipsis"></svg-icon>
-            </span>
-            </el-tooltip>-->
+          <!--<el-dropdown trigger="click" v-else>
             <span class="el-dropdown-link">
               <el-button type="success" plain>更多操作</el-button>
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <span style="display:inline-block;padding:0 10px;" @click="handleDelHisCom(scope.row)">清除</span>
+                <span style="display:inline-block;padding:0 10px;" @click="handleDelHisCom(scope.row)">删除</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleResHisCom(scope.row)">恢复</span>
               </el-dropdown-item>
             </el-dropdown-menu>
-          </el-dropdown>
-          <!--<el-button size="mini" type="success" @click="compCopy(scope.row)">复制</el-button>
-          <a @click="exportLink(scope.row)">
-            <el-button size="mini" type="info">导出</el-button>
-          </a>
-          <el-button size="mini" type="danger" @click="handleDelete(scope.row)">{{$t('table.delete')}}
-          </el-button>-->
+          </el-dropdown>-->
         </template>
       </el-table-column>
 
@@ -158,107 +92,63 @@
                      layout="total, sizes, prev, pager, next, jumper" :total="total">
       </el-pagination>
     </div>
-
-    <!--创建-->
-    <el-dialog :title="textMap[dialogStatus]"
+    <!-- 修改 -->
+    <el-dialog title="历史组件详情"
                :visible.sync="dialogFormVisible"
-               top="10vh" width="86%"
+               top="7vh" width="86%"
                class="filesDialog"
-               v-if="dialogStatus == 'create'"
+               append-to-body
     >
+      <div slot="title">
+        <svg-icon icon-class="history1"></svg-icon>
+        组件历史版本详情
+      </div>
       <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
                style='width: 100%;height: 100%'>
         <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
           <el-form-item :label="$t('table.compName')" prop="name">
-            <el-input v-model="temp.name"></el-input>
+            <el-input v-model="temp.name" disabled="disabled"></el-input>
           </el-form-item>
           <el-form-item :label="$t('table.compVersion')" prop="version">
-            <el-input v-model="temp.version"></el-input>
+            <el-input v-model="temp.version" disabled="disabled"></el-input>
           </el-form-item>
           <el-form-item :label="$t('table.compPath')" prop="relativePath">
-            <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
-              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
-            </el-tooltip>
+            <el-input v-model="temp.relativePath" placeholder="/test/，必须以斜杠开头，斜杠结尾" disabled="disabled"></el-input>
           </el-form-item>
           <el-form-item :label="$t('table.compDesc')" prop="desc">
-            <el-input v-model="temp.description"></el-input>
+            <el-input v-model="temp.description" disabled="disabled"></el-input>
           </el-form-item>
           <div class="button-container">
-            <el-button @click="dialogFormVisible = false">关闭</el-button>
-            <el-button v-if="showConfirmBtn" type="primary" @click="createData" :loading="creComLoading">{{$t('table.confirm')}}</el-button>
+            <el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>
+            <!--<el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>-->
           </div>
+          <!--去除修改组件时的文件上传模块-->
+          <!--<el-form-item :label="$t('table.compUpload')" prop="fileAll">
+          <uploader :options="options"
+                    :autoStart="autoStart"
+                    :file-status-text="statusText"
+                    :started="started"
+                    ref="uploader"
+                    class="uploader-example">
+            <uploader-unsupport></uploader-unsupport>
+            <uploader-drop>
+              <p>拖拽文件到此处或</p>
+              <uploader-btn>选择文件</uploader-btn>
+              <uploader-btn :directory="true">选择文件夹</uploader-btn>
+            </uploader-drop>
+            <uploader-list id="fileUp"></uploader-list>
+          </uploader>
+        </el-form-item>-->
         </div>
-        <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px"
-             v-loading="managerLoading"
-             element-loading-text="请先填写组件的基本信息并创建"
-        >
-          <comFileManage ref="createComFile" :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
+        <!--文件管理模块-->
+        <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px">
+          <!--<label style="width: 100%;font-size: 14px;">组件详细信息</label>-->
+          <comFileManage :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
         </div>
       </el-form>
-    </el-dialog>
-
-    <!-- 修改 -->
-    <el-dialog :title="textMap[dialogStatus]"
-               :visible.sync="dialogFormVisible"
-               top="7vh" width="86%"
-               class="filesDialog"
-               v-else
-    >
-
-        <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
-                 style='width: 100%;height: 100%'>
-          <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
-            <el-form-item :label="$t('table.compName')" prop="name">
-              <el-input v-model="temp.name"></el-input>
-            </el-form-item>
-            <el-form-item :label="$t('table.compVersion')" prop="version">
-              <el-input v-model="temp.version"></el-input>
-            </el-form-item>
-            <el-form-item :label="$t('table.compPath')" prop="relativePath">
-              <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
-                <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
-              </el-tooltip>
-            </el-form-item>
-            <el-form-item :label="$t('table.compDesc')" prop="desc">
-              <el-input v-model="temp.description"></el-input>
-            </el-form-item>
-            <el-form-item label="修改描述" prop="desc">
-              <el-input v-model="temp.modifyDescription"
-                        type="textarea"
-                        :rows="2"
-                        placeholder="请输入修改描述"></el-input>
-            </el-form-item>
-            <div class="button-container">
-              <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
-              <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
-            </div>
-            <!--去除修改组件时的文件上传模块-->
-            <!--<el-form-item :label="$t('table.compUpload')" prop="fileAll">
-            <uploader :options="options"
-                      :autoStart="autoStart"
-                      :file-status-text="statusText"
-                      :started="started"
-                      ref="uploader"
-                      class="uploader-example">
-              <uploader-unsupport></uploader-unsupport>
-              <uploader-drop>
-                <p>拖拽文件到此处或</p>
-                <uploader-btn>选择文件</uploader-btn>
-                <uploader-btn :directory="true">选择文件夹</uploader-btn>
-              </uploader-drop>
-              <uploader-list id="fileUp"></uploader-list>
-            </uploader>
-          </el-form-item>-->
-          </div>
-          <!--文件管理模块-->
-          <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px">
-            <!--<label style="width: 100%;font-size: 14px;">组件详细信息</label>-->
-            <comFileManage :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
-          </div>
-        </el-form>
       <!--<div slot="footer" class="dialog-footer">-->
-        <!--<el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>-->
-        <!--<el-button type="primary" @click="updateData">{{$t('table.confirm')}}</el-button>-->
+      <!--<el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>-->
+      <!--<el-button type="primary" @click="updateData">{{$t('table.confirm')}}</el-button>-->
       <!--</div>-->
     </el-dialog>
   </div>
@@ -266,22 +156,20 @@
 
 <script>
   /* eslint-disable */
-  import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compListHistory, compSingle, restoreCom, cleanCom } from '@/api/component'
+  import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compListHistory, compSingle, restoreCom, cleanCom, compHisVersion} from '@/api/component'
   import waves from '@/directive/waves' // 水波纹指令
   import { Loading } from 'element-ui'
-  import comFileManage from '@/views/fileManager/filecomp'
-  import service from '@/utils/request'
-  import componentHis from '@/views/componentHistory/componentHis'
+  import comFileManage from '@/views/fileManager/historyFile'
 
   export default {
-    name: 'components',
+    name: 'componentHistory',
     directives: {
       waves
     },
     data() {
       const validatePath = (rule, value, callback) => {
+        let pattern = /^(\/([a-zA-Z0-9]+))$/;
         // let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
-        let pattern = /^(\/([\u4e00-\u9fa5_a-zA-Z0-9]+))+$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -295,6 +183,8 @@
       return {
         isHistory: false,
         projectId: '',
+        /*componentId: '',
+        componentName: '',*/
         selectedId: '',
         selectdName: '',
         treeInfo: [],
@@ -324,8 +214,7 @@
           version: '',
           relativePath: '',
           description: '',
-          fileAll: '',
-          modifyDescription: ''
+          fileAll: ''
         },
         dialogFormVisible: false,
         dialogStatus: '',
@@ -381,19 +270,28 @@
           username: '',
           password: ''
         },
-        errorMessage: '操作失败',
-        showConfirmBtn: true,
-        showConfirmBtn1: true,
-        originalCompTemp: null,
-        unEdited: false,
-        noticeContent: '此路径为组件在设备上的相对路径，必须以斜杠开头，文件夹名称结尾，例如/test'
+        errorMessage: '操作失败'
+      }
+    },
+    props: {
+      componentId: {
+        default: '',
+        type: String
+      },
+      componentName: {
+        default: '',
+        type: String
       }
     },
     components: {
-      comFileManage,
-      componentHis
+      comFileManage
     },
     created() {
+      /*this.componentId = this.$route.params.id
+      this.componentName = this.$route.params.name*/
+      if(this.componentId === '') {
+        return
+      }
       this.isHistory = false
       this.projectId = this.$store.getters.projectId
       this.userData.username = this.getCookie('username')
@@ -406,7 +304,7 @@
     methods: {
       getList() {
         this.listLoading = true
-        compList(this.projectId,this.listQuery).then(response => {
+        compHisVersion(this.componentId,this.listQuery).then(response => {
           this.isHistory = false
           this.list = response.data.data.content
           this.total = response.data.data.totalElements
@@ -416,20 +314,12 @@
       handleSizeChange(val) {
         this.listQuery.limit = val
         this.pagesize = val
-        if(this.isHistory) {
-          this.showHistory()
-        } else {
-          this.getList()
-        }
+        this.getList()
       },
       handleCurrentChange(val) {
         this.listQuery.page = val - 1
         this.currentPage = val
-        if(this.isHistory) {
-          this.showHistory()
-        } else {
-          this.getList()
-        }
+        this.getList()
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -445,89 +335,15 @@
           version: '',
           relativePath: '',
           description: '',
-          fileAll: '',
-          modifyDescription: ''
+          fileAll: ''
         }
       },
-      handleCreate() {
-        this.showConfirmBtn = true
-        this.managerLoading = true
-        this.resetTemp();
-        this.selectedId = ''
-        this.selectdName = ''
-        this.dialogStatus = 'create'
-        this.dialogFormVisible = true
-        this.$nextTick(() => {
-          if(this.$refs.createComFile.list) {
-            this.$refs.createComFile.list = []
-            this.$refs.createComFile.breadcrumbList = []
-          }
-          this.$refs['dataForm'].clearValidate()
-        })
-      },
-      createData() {
-        this.$refs['dataForm'].validate((valid) => {
-          if (valid) {
-            const createloading = Loading.service({
-              lock: true,
-              text: 'Loading',
-              spinner: 'el-icon-loading'
-            })
-            this.creComLoading = true
-            let formData = new FormData();
-            /*this.fileAll = this.$refs.uploader.uploader.files;
-            console.log(this.fileAll,'所有文件')*/
-            formData.append('name', this.temp.name);
-            formData.append('version', this.temp.version);
-            formData.append('relativePath', this.temp.relativePath);
-            //formData.append('size', this.size);
-            formData.append('description', this.temp.description);
-            //开始上传后去掉暂停和删除按钮
-            /*$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
-            $(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");*/
-            createComp(this.projectId, formData).then((res) => {
-              this.showConfirmBtn = false
-              this.creComLoading = false
-              createloading.close()
-              // this.list.unshift(this.temp)
-              // this.dialogFormVisible = false
-              this.selectedId = res.data.data.id
-              this.selectdName = res.data.data.name
-              this.managerLoading = false
-              this.$notify({
-                title: '成功',
-                message: '创建成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
-            }).catch((error) => {
-              this.showConfirmBtn = true
-              this.creComLoading = false
-              createloading.close()
-              this.errorMessage = '操作失败！'
-              if(error.response.data.message){
-                this.errorMessage = error.response.data.message
-              }
-              this.$notify({
-                title: '失败',
-                message: this.errorMessage,
-                type: 'error',
-                duration: 2000
-              })
-            })
-          }
-        })
-      },
       handleUpdate(row) {
-        this.originalCompTemp = {}
         this.selectedId = row.id;
         this.selectdName = row.name
         this.temp = Object.assign({}, row) // copy obj
-        this.originalCompTemp = Object.assign({}, row)
         this.temp.timestamp = new Date(this.temp.timestamp)
         this.dialogStatus = 'update'
-        this.showConfirmBtn1 = true
         this.dialogFormVisible = true
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
@@ -570,52 +386,30 @@
         })
       },
       updateData() {
-        this.unEdited = false
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
-            if(this.originalCompTemp.name === this.temp.name
-              && this.originalCompTemp.version === this.temp.version
-              && this.originalCompTemp.relativePath === this.temp.relativePath
-              && this.originalCompTemp.description === this.temp.description)
-            {
-              this.dialogFormVisible = false
-              return
-            }
             this.upComLoading = true
             let id = this.selectedId;
 
+            let formData = new FormData();
+
             // this.fileAll = this.$refs.uploader.uploader.files;
 
-            //开始上传后去掉暂停和删除按钮
-            //$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
-            //$(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");
-
-
-            /*for (var i = 0; i < this.fileAll.length; i++) {
-              //判断数组里是文件夹还是文件
-              formData.append('componentEntityFiles', this.fileAll[i].file);
-
-            }*/
-            // patch暂时不支持修改文件
+            formData.append('name', this.temp.name);
+            formData.append('version', this.temp.version);
+            formData.append('relativePath', this.temp.relativePath);
+            //formData.append('size', this.size);
+            formData.append('description', this.temp.description);
+            formData.append('enctype', "multipart/form-data");
             let data = {
               name: this.temp.name,
               version: this.temp.version,
               relativePath: this.temp.relativePath,
-              description: this.temp.description,
-              modifyDescription: this.temp.modifyDescription
+              description: this.temp.description
             }
             let qs = require('qs')
             let newdata = qs.stringify(data)
             updateComp(newdata,id).then(() => {
-              /*for (const v of this.list) {
-                if (v.id === this.temp.id) {
-                  const index = this.list.indexOf(v)
-                  this.list.splice(index, 1, this.temp)
-                  break
-                }
-              }*/
-              // updateloading.close()
-              this.showConfirmBtn1 = false
               this.upComLoading = false
               this.dialogFormVisible = false
               this.$notify({
@@ -626,7 +420,6 @@
               })
               this.getList()
             }).catch((error) => {
-              this.showConfirmBtn = true
               this.errorMessage = '操作失败！'
               this.upComLoading = false
               if(error.response.data.message){
@@ -669,13 +462,17 @@
       exportLink(row) {
 
         let id = row.id;
-        // this.exportUrl = this.getIP() + 'apis/components/' + id + '/export';
-        this.exportUrl = service.defaults.baseURL + '/components/' + id + '/export';
+        this.exportUrl = this.getIP() + 'apis/componenthistorys/' + id + '/export';
+
+        console.log(this.exportUrl);
         window.open(this.exportUrl);
       },
 
       uploadCom: function (file) {
         let formData = new FormData();
+
+        console.log("导入组件文件----------");
+        console.log(file);
 
         formData.append('importComponents', file.file);
         const uploading = Loading.service({
@@ -756,7 +553,7 @@
         compListHistory(this.projectId, this.listQuery).then(response => {
           this.isHistory = true
           this.list = response.data.data.content
-          this.total = response.data.data.totalElements
+          this.total = response.data.total
           this.listLoading = false
           this.hisBtnLoading = false
         }).catch(() => {
@@ -776,7 +573,7 @@
         this.hisBtnLoading = true
         compList(this.projectId,this.listQuery).then(response => {
           this.list = response.data.data.content
-          this.total = response.data.data.totalElements
+          this.total = response.data.total
           this.listLoading = false
           this.hisBtnLoading = false
           this.isHistory = false
@@ -856,34 +653,27 @@
         })
       },
       historyVersion(row) {
-        this.$router.push({
-          name: 'componentHistory',
-          params: {
-            name: row.name,
-            id: row.id
-          }
-        })
-      },
-      showPopover(row) {
-        if(row.popoverVisible == true) {
-          row.popoverVisible = false
-          return
-        }
-        this.list.forEach((item) => {
-          item.popoverVisible = false
-        })
-        row.popoverVisible = true
-      },
-      closePopover(row) {
-        row.popoverVisible = false
+
       }
-     },
+    },
     computed: {
       listA: function () {
         let self = this;
         return self.list.filter(function (item) {
           return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
         })
+      },
+      computedTimeTag() {
+        return function (tag) {
+          let date = new Date(tag);
+          let Y = date.getFullYear() + '-';
+          let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+          let D = date.getDate() < 10 ? '0'+ date.getDate() + ' ' : date.getDate() + ' '
+          let h = date.getHours() < 10 ? '0'+ date.getHours() + ':' : date.getHours() + ':'
+          let m = date.getMinutes() < 10 ? '0' + date.getMinutes() + ':' : date.getMinutes() + ':'
+          let s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
+          return Y+M+D+h+m+s
+        }
       }
     }
   }
@@ -910,16 +700,5 @@
     bottom: 0;
     right: 15px;
   }
-  .popover-close {
-    display: block;
-    text-align: right;
-    font-size: 20px;
-  }
-  .close-icon {
-    cursor: pointer;
-  }
-  .icon-show-popover {
-    cursor: pointer;
-    color: #337ab7;
-  }
+
 </style>

@@ -78,6 +78,18 @@ export function hisDeployplan(projectId, listQuery) {
     }
   })
 }
+// 获取历史快照
+export function hisBaseline(projectId, listQuery) {
+  return request({
+    url: 'projects/' + projectId + '/deploymentdesigns',
+    method: 'get',
+    params: {
+      size: listQuery.size,
+      page: listQuery.page,
+      deleted: true
+    }
+  })
+}
 // 清除已删除部署设计
 export function cleanDeployplan(id) {
   return request({
@@ -90,5 +102,17 @@ export function restoreDeployplan(id) {
   return request({
     url: '/deploymentdesigns/' + id + '/restore',
     method: 'patch'
+  })
+}
+
+// 获取部署设计下的快照
+export function getBaselinesByDeployplanId(id, params) {
+  return request({
+    url: '/deploymentdesigns/' + id + '/baselines',
+    method: 'get',
+    params: {
+      deleted: params.deleted,
+      baseline: true
+    }
   })
 }

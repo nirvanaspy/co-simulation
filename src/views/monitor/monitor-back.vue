@@ -4,12 +4,16 @@
        element-loading-text="正在扫描中"
        element-loading-spinner="el-icon-loading"
        element-loading-background="rgba(0, 0, 0, 0.8)"
-       style="position: absolute;top:85px;bottom:0;width:100%;background-color: #f0f2f5;"
+       style="position: absolute;top:85px;bottom:0;width:100%;height: 100%;background-color: #f0f2f5;"
   >
     <div class="selectedName" style="width:100%;height: 40px;line-height: 40px;color:#909399;">
       <span v-if="this.selectedDeviceName" style="margin-right: 10px">当前选中设备:{{selectedDeviceName}}</span>
       <span v-if="this.selectedCompName">组件:{{selectedCompName}}</span>
       <div class="btn-group" style="float:right;">
+        <!--<el-button class="pan-btn light-blue-btn" style="width:150px" @click="scanAll">
+          <svg-icon icon-class="circle"></svg-icon>
+          完整扫描
+        </el-button>-->
         <el-dropdown style="margin-right: 10px;">
           <el-button type="primary">
             完整扫描
@@ -46,9 +50,13 @@
             </el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
+        <!--<el-button class="pan-btn light-blue-btn" style="width:150px" @click="scanQuick">
+          <svg-icon icon-class="lightning"></svg-icon>
+          快速扫描
+        </el-button>-->
       </div>
     </div>
-    <div style="width:33%;float:left;margin-top: 10px;border:1px solid #ebeef5;height: calc(100% - 110px);">
+    <div style="width:33%;float:left;margin-top: 10px;border:1px solid #ebeef5;height: 90%;">
       <el-table :data="deviceList" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
                 style="width: 100%;height:100%;overflow-y: scroll"
                 :row-key="getRowKeysComp"
@@ -79,6 +87,16 @@
                   <span>{{scope.row.componentHistoryEntity.relativePath}}</span>
                 </template>
               </el-table-column>
+              <!--<el-table-column label="描述">
+                <template slot-scope="scope">
+                  <span>{{scope.row.componentEntity.description}}</span>
+                </template>
+              </el-table-column>-->
+              <!--<el-table-column prop="correct" label="状态" align="center" width="80px">
+                <template slot-scope="scope">
+                  <svg-icon icon-class="correct"></svg-icon>
+                </template>
+              </el-table-column>-->
             </el-table>
           </template>
         </el-table-column>
@@ -120,12 +138,14 @@
       >
       </el-pagination>
     </div>
-    <div style="width:65%;height: calc(100% - 110px);float: right;margin-top: 10px;margin-bottom: 10px;border:1px solid #ebeef5">
+    <div style="width:65%;height:90%;float: right;margin-top: 10px;margin-bottom: 10px;border:1px solid #ebeef5">
       <el-table :data="deviceDetail" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
                 style="width: 100%;height:100%;overflow-y: scroll"
+                :row-key="getRowKeys"
+                :expand-row-keys="expands"
                 class="scanResTable"
       >
-        <!--<el-table-column align="center" type="expand">
+        <el-table-column align="center" type="expand">
           <template slot-scope="props">
             <el-tabs>
               <el-tab-pane label="正确">
@@ -144,9 +164,9 @@
               <el-tab-pane label="已修改">
                 <el-table :data="props.row.modifyedFiles" fit width="100%" :show-header="false">
                   <el-table-column label="文件名称" prop="name" min-width="240">
-                    &lt;!&ndash;<template props="fileName">
+                    <!--<template props="fileName">
                       &lt;!&ndash;<span>{{scope.row.deployPath}}</span>&ndash;&gt;
-                    </template>&ndash;&gt;
+                    </template>-->
                   </el-table-column>
                   <el-table-column label="路径" prop="targetPath" min-width="240">
                   </el-table-column>
@@ -160,9 +180,9 @@
               <el-tab-pane label="已删除">
                 <el-table :data="props.row.missingFiles" fit width="100%" :show-header="false">
                   <el-table-column label="文件名称" prop="name" min-width="240">
-                    &lt;!&ndash;<template props="fileName">
+                    <!--<template props="fileName">
                       &lt;!&ndash;<span>{{scope.row.deployPath}}</span>&ndash;&gt;
-                    </template>&ndash;&gt;
+                    </template>-->
                   </el-table-column>
                   <el-table-column label="路径" prop="targetPath" min-width="240">
                   </el-table-column>
@@ -176,9 +196,9 @@
               <el-tab-pane label="未知">
                 <el-table :data="props.row.unknownFiles" fit width="100%" :show-header="false">
                   <el-table-column label="文件名称" prop="name" min-width="240">
-                    &lt;!&ndash;<template props="fileName">
+                    <!--<template props="fileName">
                       &lt;!&ndash;<span>{{scope.row.deployPath}}</span>&ndash;&gt;
-                    </template>&ndash;&gt;
+                    </template>-->
                   </el-table-column>
                   <el-table-column label="路径" prop="targetPath" min-width="240">
                   </el-table-column>
@@ -191,20 +211,19 @@
               </el-tab-pane>
             </el-tabs>
           </template>
-        </el-table-column>-->
+        </el-table-column>
         <el-table-column align="center" width="40">
           <template slot-scope="scope">
             <span><svg-icon icon-class="组件"></svg-icon></span>
           </template>
         </el-table-column>
-        <el-table-column align="left" label="组件名" min-width="100">
+        <el-table-column align="center" label="组件名" min-width="130">
           <template slot-scope="scope">
-            <!--<span><svg-icon icon-class="组件"></svg-icon></span>-->
             <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.name}}</span>
             <!--<span class="link-type" v-else>{{scope.row.componentEntity.name}}</span>-->
           </template>
         </el-table-column>
-        <el-table-column align="center" label="版本" width="80">
+        <el-table-column align="center" label="版本" width="130">
           <template slot-scope="scope">
             <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.version}}</span>
           </template>
@@ -214,29 +233,18 @@
             <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.relativePath}}</span>
           </template>
         </el-table-column>
-        <el-table-column align="center" label="扫描结果" min-width="130">
+        <!--<el-table-column align="center" label="文件" min-width="130">
           <template slot-scope="scope">
-            <span v-if="scope.row.correctFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'correct')">
-              <svg-icon icon-class="correct"></svg-icon>
-              {{scope.row.correctFiles.length}}
-            </span>
-            <span v-if="scope.row.modifyedFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'modifyed')">
-              <svg-icon icon-class="modifyed"></svg-icon>
-              {{scope.row.modifyedFiles.length}}
-            </span>
-            <span v-if="scope.row.missingFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'missing')">
-              <svg-icon icon-class="error"></svg-icon>
-              {{scope.row.missingFiles.length}}
-            </span>
-            <span v-if="scope.row.unknownFiles !== undefined" class="res-cont" @click="checkScanRes(scope.row, 'unknown')">
-              <svg-icon icon-class="unknown"></svg-icon>
-              {{scope.row.unknownFiles.length}}
-            </span>
-            <span v-if="scope.row.correctFiles === undefined" class="res-cont">
-              --
-            </span>
+            <span class="link-type">{{scope.row.fileName}}</span>
           </template>
         </el-table-column>
+        <el-table-column align="center" label="状态" width="80">
+          <template slot-scope="scope">
+            <span class="link-type">
+              <svg-icon :icon-class="computedIcon(scope.row)"></svg-icon>
+            </span>
+          </template>
+        </el-table-column>-->
       </el-table>
     </div>
     <div style="height:20px;width:100%;"></div>
@@ -260,95 +268,6 @@
         <el-button v-else type="primary" @click="scanQuickByComp">{{$t('table.confirm')}}</el-button>
       </div>
     </el-dialog>
-
-    <!--扫描结果弹框-->
-    <el-dialog title="扫描结果" :visible.sync="resDialogVisible" append-to-body width="40%" class="scanResDialog">
-      <div slot="title">
-        {{scanResTitle}}
-        <div style="display: inline-block; margin-left: 10px;">
-          <el-input style="width: 200px;" class="filter-item" placeholder="请输入文件名进行搜索" v-model="searchQuery">
-          </el-input>
-        </div>
-      </div>
-      <el-table class="searchResTable" :data="computedResList()" stripe fit width="100%" v-if="searchQuery.length > 0">
-        <el-table-column label="文件名称" prop="name" min-width="240">
-        </el-table-column>
-        <el-table-column label="路径" prop="targetPath" min-width="240">
-        </el-table-column>
-        <el-table-column prop="correct" label="状态" align="center" width="80">
-          <template slot-scope="scope">
-            <svg-icon v-if="scope.row.type === 0" icon-class="correct"></svg-icon>
-            <svg-icon v-if="scope.row.type === 1" icon-class="modifyed"></svg-icon>
-            <svg-icon v-if="scope.row.type === 2" icon-class="unknown"></svg-icon>
-            <svg-icon v-if="scope.row.type === 3" icon-class="error"></svg-icon>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-tabs v-model="activeResPane" v-else>
-        <el-tab-pane label="正确" name="correct">
-          <el-table :data="resDataList.correctFiles" stripe fit width="100%" :show-header="false">
-            <el-table-column label="文件名称" prop="name" min-width="240">
-            </el-table-column>
-            <!--<el-table-column label="文件名称" min-width="240">
-              <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
-              </template>
-            </el-table-column>-->
-            <el-table-column label="路径" prop="targetPath" min-width="240">
-            </el-table-column>
-            <el-table-column prop="correct" label="状态" align="center" width="80">
-              <template slot-scope="scope">
-                <svg-icon icon-class="correct"></svg-icon>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-        <el-tab-pane label="已修改" name="modifyed">
-          <el-table :data="resDataList.modifyedFiles" fit width="100%" :show-header="false">
-            <el-table-column label="文件名称" prop="name" min-width="240">
-            </el-table-column>
-            <el-table-column label="路径" prop="targetPath" min-width="240">
-            </el-table-column>
-            <el-table-column prop="modifyed" label="状态" align="center" width="80">
-              <template slot-scope="scope">
-                <svg-icon icon-class="modifyed"></svg-icon>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-        <el-tab-pane label="已删除" name="missing">
-          <el-table :data="resDataList.missingFiles" fit width="100%" :show-header="false">
-            <el-table-column label="文件名称" prop="name" min-width="240">
-            </el-table-column>
-            <el-table-column label="路径" prop="targetPath" min-width="240">
-            </el-table-column>
-            <el-table-column prop="missing" label="状态" align="center" width="80">
-              <template slot-scope="scope">
-                <svg-icon icon-class="error"></svg-icon>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-        <el-tab-pane label="未知" name="unknown">
-          <el-table :data="resDataList.unknownFiles" fit width="100%" :show-header="false">
-            <el-table-column label="文件名称" prop="name" min-width="240">
-            </el-table-column>
-            <el-table-column label="路径" prop="targetPath" min-width="240">
-            </el-table-column>
-            <el-table-column prop="unknown" label="状态" align="center" width="80">
-              <template slot-scope="scope">
-                <svg-icon icon-class="unknown"></svg-icon>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-      </el-tabs>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="resDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="resDialogVisible = false">确 定
-        </el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -369,7 +288,6 @@
         listLoading: false,
         scanLoading: false,
         dialogFormVisible: false,
-        resDialogVisible: false,
         isExpand: false,
         deployPlanId: '',
         deployplanName: '',
@@ -411,11 +329,7 @@
         textMap: {
           scanByDevice: '快速扫描设备',
           scanByComp: '快速扫描组件'
-        },
-        resDataList: {},
-        activeResPane: 'correct',
-        searchQuery: '',
-        scanResTitle: '扫描结果'
+        }
       }
     },
     created() {
@@ -584,7 +498,6 @@
         let url = service.defaults.baseURL + '/OMS'
         let socket = new SockJS(url)
         let stompClient = Stomp.over(socket)
-        stompClient.debug=null
         let that = this
         stompClient.connect({}, function(frame) {
           stompClient.subscribe('/onlineDevice', function(response) {
@@ -632,6 +545,8 @@
               for (let i = 0; i < that.deviceList.length; i++) {
                 Vue.set(that.deviceList, i, that.deviceList[i])
               }
+              console.log('设备----------')
+              console.log(that.deviceList)
             }
           })
         })
@@ -658,6 +573,8 @@
         this.selectedCompId = row.id
         this.selectedDeviceId = row.deploymentDesignNodeEntity.id
         this.selectedDeviceName = row.deploymentDesignNodeEntity.deviceEntity.name
+        console.log('row===========')
+        console.log(row)
         this.selectedCompName = row.componentHistoryEntity.name
         this.deviceDetail = [row]
         let uniqueId = this.deployPlanId + this.selectedDeviceId + row.id
@@ -840,9 +757,9 @@
                     }
                   })
                 }
-                /*console.log(this.expands)
+                console.log(this.expands)
                 console.log('组件扫描')
-                console.log(this.deviceDetail)*/
+                console.log(this.deviceDetail)
                 this.$notify({
                   title: '成功',
                   message: '组件完整扫描成功',
@@ -1042,13 +959,6 @@
             }
           }
         }
-      },
-      checkScanRes(row, type) {
-        this.resDataList = row
-        this.scanResTitle = row.componentHistoryEntity.name + '扫描结果'
-        this.activeResPane = type
-        this.searchQuery = ''
-        this.resDialogVisible = true
       }
     },
     computed: {
@@ -1080,18 +990,6 @@
           }
         }
       },
-      computedResList() {
-        return function() {
-          let self = this;
-          if(self.resDataList.result !== undefined) {
-            return self.resDataList.result.filter(function (item) {
-              return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
-            })
-          } else {
-            return []
-          }
-        }
-      }
       /*deviceListB: function () {
         let self = this;
         return self.deviceList.filter(function (item) {
@@ -1107,10 +1005,6 @@
 <style scoped>
   .abNormal {
     color: orangered;
-  }
-  .res-cont {
-    cursor: pointer;
-    padding: 0 6px;
   }
 </style>
 

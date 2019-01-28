@@ -122,3 +122,21 @@
      max-width: 540px;
    }
  }
+
+
+ .scanResDialog .el-tabs__content {
+   height: 500px;
+   overflow-y: scroll;
+ }
+ .scanResDialog {
+   .el-dialog {
+     .el-dialog__body {
+       padding-top: 0;
+     }
+     min-width: 620px;
+   }
+   .searchResTable {
+     height: 500px;
+     overflow-y: scroll;
+   }
+ }

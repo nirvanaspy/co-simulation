@@ -1,6 +1,10 @@
 <template>
   <div class="project-container">
-    <el-header style="background: #2d3a4b;">
+    <el-header style="background: #2d3a4b;line-height: 60px;">
+      <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
+        <el-input style="width: 200px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+        </el-input>
+      </div>
       <div class="right-menu">
         <span calss="userName" style="position: relative;top: -12px;color: #fff;">{{userName}}</span>
         <el-dropdown class="avatar-container right-menu-item" trigger="click">
@@ -35,7 +39,7 @@
         <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document"
                                                                             style="padding-left: 10px;"></i></span>
         <div class="project-list">
-          <div v-if="list.length === 0" class="no-project-container">
+          <div v-if="listA.length === 0" class="no-project-container">
             <span class="no-project-icon">
               <svg-icon icon-class="工程"></svg-icon>
             </span>
@@ -43,7 +47,7 @@
               暂无项目
             </div>
           </div>
-          <div v-for="item in list" v-if="!item.deleted" class="project-item">
+          <div v-for="item in listA" v-if="!item.deleted" class="project-item">
             <div class="project-star project-detail">
             <span class="star-container" @click="toggleStar(item)">
               <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
@@ -80,7 +84,7 @@
           </div>
         </div>
         <el-pagination
-          v-if="list.length"
+          v-if="listA.length"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="currentPage"
@@ -97,7 +101,7 @@
         <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete"
                                                                            style="padding-left: 10px;"></i></span>
         <div class="project-list hisList">
-          <div v-if="list.length === 0" class="no-project-container">
+          <div v-if="listA.length === 0" class="no-project-container">
             <span class="no-project-icon">
               <svg-icon icon-class="工程"></svg-icon>
             </span>
@@ -105,7 +109,7 @@
               暂无项目
             </div>
           </div>
-          <div v-for="item in list" v-if="item.deleted" class="project-item">
+          <div v-for="item in listA" v-if="item.deleted" class="project-item">
             <div class="project-star project-detail">
               <span class="star-container">
                 <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
@@ -131,7 +135,7 @@
           </div>
         </div>
         <el-pagination
-          v-if="list.length"
+          v-if="listA.length"
           @size-change="handleSizeChange1"
           @current-change="handleCurrentChange1"
           :current-page="currentPage1"
@@ -189,77 +193,12 @@
         </el-button>
       </div>
     </el-dialog>
-    <!--<div class="login-form" id="project-table">
-      <div class="title-container">
-        <h3 class="title" style="margin-bottom:30px">
-          <span v-if="!isHistory">项目管理</span>
-          <span v-else>项目管理回收站</span>
-        </h3>
-        <div>
-          <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
-            <el-input style="width: 200px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
-            </el-input>
-          </div>
-          <el-button size="mini" type="success"
-                     v-if="this.role == 'editor' && !isHistory"
-                     @click="handleCreate($event)"
-                     style="float:right;margin-top:2px;margin-left: 8px">添加
-          </el-button>
-          <el-button size="mini" type="primary" @click="showHistory" style="float: right;margin-top:2px;" icon="el-icon-delete" v-show="!isHistory" :loading="hisBtnLoading">
-            回收站
-          </el-button>
-          <el-button size="mini" type="primary" @click="showNow" style="float: right;margin-top:2px;" icon="el-icon-back" v-show="isHistory" :loading="hisBtnLoading">
-            返回
-          </el-button>
-        </div>
-      </div>
-      <el-table :key='tableKey'
-                :data="listA"
-                v-loading="listLoading"
-                element-loading-text="给我一点时间"
-                fit
-                highlight-current-row
-                height="65%"
-                style="width: 100%;border-radius:8px;">
-        <el-table-column min-width="150px" :label="$t('table.projectName')">
-          <template slot-scope="scope">
-            <span v-if="!isHistory" class="link-type" @click="handleSelect(scope.row)">{{scope.row.name}}</span>
-            <span v-if="isHistory">{{scope.row.name}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column min-width="150px" :label="$t('table.projectDesc')">
-          <template slot-scope="scope">
-            <span>{{ scope.row.description }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" :label="$t('table.actions')" width="230" class-name="small-padding fixed-width">
-          <template slot-scope="scope">
-            <el-button v-if="!isHistory" type="primary" size="mini" @click="handleUpdate(scope.row)">{{$t('table.edit')}}</el-button>
-            <el-button v-if="!isHistory" size="mini" type="danger" @click="handleDelete(scope.row)" :loading="scope.row.delLoading">{{$t('table.delete')}}</el-button>
-            <el-button v-if="isHistory" type="primary" size="mini" @click="handleResHisPro(scope.row)">恢复</el-button>
-            <el-button v-if="isHistory" size="mini" type="danger" @click="handleDelHisPro(scope.row)" :loading="scope.row.delLoading">清除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="currentPage"
-        :page-sizes="[10,20,30,50]"
-        :page-size="listQuery.limit"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="this.total"
-        background
-        style="text-align: center;margin-top:20px"
-      >
-      </el-pagination>
-    </div>-->
   </div>
 </template>
 
 <script>
   import PanThumb from '@/components/PanThumb'
-  import {isvalidPwd} from '@/utils/validate'
+  import { isvalidPwd } from '@/utils/validate'
   import {
     projectList,
     projectList_user,
@@ -272,7 +211,7 @@
     cleanPro,
     starPro
   } from '@/api/project'
-  import {getUserId, updateUser} from '@/api/getUsers'
+  import { getUserId, updateUser } from '@/api/getUsers'
   import store from '../../store'
 
   /* import LangSelect from '@/components/LangSelect'*/

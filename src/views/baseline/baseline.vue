@@ -1,10 +1,10 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
-      <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" :placeholder="$t('table.baselineName')" v-model="searchQuery">
+      <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.baselineName')" v-model="searchQuery">
       </el-input>
 
-      <el-button class="filter-item" type="primary" v-waves icon="el-icon-search" @click="handleFilter">{{$t('table.search')}}</el-button>
+      <el-button class="filter-item" type="primary" v-waves icon="el-icon-search">{{$t('table.search')}}</el-button>
     </div>
 
     <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
@@ -101,10 +101,6 @@
           this.list = res.data.data.content
           this.listLoading = false
         })
-      },
-      handleFilter() {
-        this.listQuery.page = 1
-        this.getList()
       },
       handleSizeChange(val) {
         this.listQuery.limit = val

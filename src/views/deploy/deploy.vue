@@ -250,13 +250,15 @@
               for(let i=0;i<that.webProgressBody.length;i++){
                 if(that.list.length > 0){
                   for(let j=0;j<that.list.length;j++){
-                    if(that.webProgressBody[i].hostAddress == that.list[j].deviceEntity.hostAddress){      //查找此设备
-                      // that.list[j].progress = parseFloat(that.webProgressBody[i].progress.toFixed(2));
-                      that.list[j].progress = parseInt(that.webProgressBody[i].progress);
-                      that.list[j].speed = parseFloat(that.webProgressBody[i].speed.toFixed(2));
-                      that.list[j].state = that.webProgressBody[i].state;
-                      that.list[j].fileState = that.webProgressBody[i].state;
-                      that.list[j].descript = that.webProgressBody[i].description;
+                    if(that.list[j].deviceEntity) {
+                      if(that.webProgressBody[i].hostAddress == that.list[j].deviceEntity.hostAddress){      //查找此设备
+                        // that.list[j].progress = parseFloat(that.webProgressBody[i].progress.toFixed(2));
+                        that.list[j].progress = parseInt(that.webProgressBody[i].progress);
+                        that.list[j].speed = parseFloat(that.webProgressBody[i].speed.toFixed(2));
+                        that.list[j].state = that.webProgressBody[i].state;
+                        that.list[j].fileState = that.webProgressBody[i].state;
+                        that.list[j].descript = that.webProgressBody[i].description;
+                      }
                     }
                   }
                 }
@@ -343,7 +345,7 @@
         }
 
         // 一键部署的id
-        console.log('一键部署的id');
+        /*console.log('一键部署的id');
         console.log(this.deployPlanId);
         console.log(this.deployIds);
 
