@@ -364,11 +364,14 @@
     </split-pane>
 
     <!--部署设计节点选择组件对话框-->
-    <el-dialog title="选择组件" :visible.sync="selectCompDialogVisible" width="60%">
+    <el-dialog title="选择组件" :visible.sync="selectCompDialogVisible" width="60%" class="no-padding-dialog">
       <span id="compClickTag"></span>
+      <el-input style="width: 200px;position: absolute;top: 16px;left: 100px;" class="filter-item" placeholder="请输入组件名称"
+                v-model="searchAbleCompQuery">
+      </el-input>
       <div class="slectDetail" style="overflow: hidden;">
         <div class="ableToSelectComp" style="width:50%;float: left;padding: 10px;">
-          <el-table :data="availableCompList" border fit
+          <el-table :data="listAbleComp" border fit
                     highlight-current-row
                     stripe
                     @expand-change="getCompHis"
@@ -638,6 +641,7 @@
         upBasLoading: false,
         searchQuery: '',
         searchQueryDevice: '',
+        searchAbleCompQuery: '',
         errorMessage: '操作失败！',
         deviceList: [],
         deviceTotal: 0,
@@ -1120,6 +1124,13 @@
               })
             }
           })
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '组件绑定失败',
+            type: 'error',
+            duration: 2000
+          })
         })
       },
       getRowKeysComp(row) {
@@ -1131,6 +1142,13 @@
           getNodeDetail(this.currentNodeId).then((res) => {
             this.bindedCompList = res.data.data
             this.nodeDetail = res.data.data
+          })
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '组件解绑失败',
+            type: 'error',
+            duration: 2000
           })
         })
       },
@@ -1160,6 +1178,13 @@
             this.bindedCompList = res.data.data
             this.nodeDetail = res.data.data
           })
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '版本切换失败',
+            type: 'error',
+            duration: 2000
+          })
         })
       },
       findNewestAndBind(row) {
@@ -1171,14 +1196,14 @@
         compHisVersion(row.id, query).then((res) => {
           if(res.data.data.totalElements > 0) {
             let id = res.data.data.content[0].id
-            this.handleBindComp(id)
+            this.handleBindComp(id, row)
           } else {
             return
           }
         }).catch(() => {
           this.$notify({
             title: '失败',
-            message: '绑定失败',
+            message: '获取组件信息失败',
             type: 'error',
             duration: 2000
           })
@@ -1191,6 +1216,13 @@
             title: '成功',
             message: '',
             type: 'success',
+            duration: 2000
+          })
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '',
+            type: 'error',
             duration: 2000
           })
         })
@@ -1609,6 +1641,12 @@
         let self = this;
         return self.listComp.filter(function (item) {
           return item.name.toLowerCase().indexOf(self.searchQuery2.toLowerCase()) !== -1;
+        })
+      },
+      listAbleComp () {
+        let self = this;
+        return self.availableCompList.filter(function (item) {
+          return item.name.toLowerCase().indexOf(self.searchAbleCompQuery.toLowerCase()) !== -1;
         })
       },
       listenProId() {
