@@ -394,17 +394,25 @@
                       <span>{{scope.row.createTime}}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="操作" align="left">
+                  <el-table-column label="操作" align="center" width="80">
                     <template slot-scope="scope">
-                      <el-button size="mini" @click="handleBindComp(scope.row.id)">绑定</el-button>
+                      <el-button size="mini" type="success" @click="handleBindComp(scope.row.id)">绑定</el-button>
                     </template>
                   </el-table-column>
                 </el-table>
               </template>
             </el-table-column>
-            <el-table-column align="center" label="组件名称" min-width="120" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="可选组件" min-width="120" class-name="small-padding fixed-width">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <el-tooltip placement="top">
+                  <div slot="content">版本：{{scope.version}}<br/>相对路径：{{scope.row.relativePath}}</div>
+                  <span>{{scope.row.name}}</span>
+                </el-tooltip>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="操作" width="80" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <el-button type="success" size="mini" @click="findNewestAndBind(scope.row)">绑定</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -414,14 +422,21 @@
                     highlight-current-row
                     stripe
                     style="width: 100%;">
-            <el-table-column align="center" label="组件名称" min-width="120" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="已绑定组件" min-width="120" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <span>{{scope.row.componentHistoryEntity.name}}</span>
               </template>
             </el-table-column>
-            <el-table-column align="center" label="操作" min-width="120" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="组件版本创建时间" min-width="80" class-name="small-padding fixed-width">
               <template slot-scope="scope">
-                <el-button size="mini" @click="unbindComp(scope.row)">解绑</el-button>
+                <span>{{scope.row.componentHistoryEntity.createTime}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="操作" width="100" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" content="解除绑定" placement="top">
+                  <span style="color: #f56c6c;font-size: 17px;margin-right: 6px;cursor: pointer;" @click="unbindComp(scope.row)"><svg-icon icon-class="delete"></svg-icon></span>
+                </el-tooltip>
                 <el-popover
                   placement="left"
                   width="900"
@@ -429,7 +444,7 @@
                   trigger="click">
                   <span slot="reference" @click="handleSwithCompVersion(scope.row)" class="icon-show-popover">
                     <el-tooltip class="item" effect="dark" :content="scope.row.popoverVisible ? '关闭窗口' : '切换版本'" placement="top">
-                      <svg-icon icon-class="open"></svg-icon>
+                      <span style="color: #409eff;font-size: 17px;cursor: pointer;margin-right: 6px;"><svg-icon icon-class="open"></svg-icon></span>
                     </el-tooltip>
                   </span>
                   <el-table
@@ -449,13 +464,19 @@
                         <span>{{scope.row.createTime}}</span>
                       </template>
                     </el-table-column>
-                    <el-table-column label="操作" align="left">
+                    <el-table-column label="操作" align="center" width="80px">
                       <template slot-scope="scope">
-                        <el-button size="mini" @click="switchCompHis(scope.row)">绑定</el-button>
+                        <el-button size="mini" @click="switchCompHis(scope.row)" type="success">绑定</el-button>
                       </template>
                     </el-table-column>
                   </el-table>
                 </el-popover>
+                <el-tooltip class="item" effect="dark" content="保持版本为最新" placement="top" v-if="!scope.row.keepLatest">
+                  <span style="color: #f56c6c;font-size: 22px;cursor: pointer;line-height: 26px;position: relative;top: 2px;" @click="keepUpdated(scope.row, true)"><svg-icon icon-class="update"></svg-icon></span>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="取消保持最新" placement="top" v-else>
+                  <span style="color: #f56c6c;font-size: 22px;cursor: pointer;line-height: 26px;position: relative;top: 2px;" @click="keepUpdated(scope.row, false)"><svg-icon icon-class="update-disable"></svg-icon></span>
+                </el-tooltip>
               </template>
             </el-table-column>
           </el-table>
@@ -491,7 +512,8 @@
     deleteBindDetail,
     getAvailableComps,
     bindSingleCompHisToNode,
-    updateCompHisToNode
+    updateCompHisToNode,
+    keepLatest
   } from '@/api/deployDesignNode'
   import { Loading } from 'element-ui'
   import {compList} from '@/api/component'
@@ -1122,7 +1144,6 @@
               row.hisVersion = res.data.data
               row.hisVersion.forEach((comps, indexOf) => {
                 if (comps.id === row.componentHistoryEntity.id) {
-                  console.log(comps.id)
                   row.hisVersion.splice(indexOf, 1)
                 }
               })
@@ -1141,6 +1162,44 @@
           })
         })
       },
+      findNewestAndBind(row) {
+        let query = {
+          page: 0,
+            size: 10,
+            limit: 10
+        }
+        compHisVersion(row.id, query).then((res) => {
+          if(res.data.data.totalElements > 0) {
+            let id = res.data.data.content[0].id
+            this.handleBindComp(id)
+          } else {
+            return
+          }
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '绑定失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      keepUpdated(row, flag) {
+        keepLatest(row.id, flag).then((res) => {
+          row.keepLatest = res.data.data.keepLatest
+          this.$notify({
+            title: '成功',
+            message: '',
+            type: 'success',
+            duration: 2000
+          })
+        })
+      },
+
+
+
+
+
 
       beforeSubmit: function (rowId, row) { //绑定前的准备工作 绑定前获取设备的id，获取所选部署设计的id
         this.componentHisIds = []
