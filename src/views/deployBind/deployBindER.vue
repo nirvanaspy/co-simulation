@@ -85,7 +85,7 @@
                 res='<div><p>名称：'+x.data.info.componentEntity.name+'</p></div>'
                   + '<div><p>路径：'+x.data.info.componentEntity.relativePath+'</p></div>'
                   + '<div><p>版本：'+x.data.info.componentEntity.version+'</p></div>'
-                  + '<div><p>时间：'+x.data.info.componentEntity.createTime+'</p></div>'
+                  + '<div><p>时间：'+x.data.info.componentHistoryEntity.createTime+'</p></div>'
               }
               /*for(var i=0;i<params.length;i++){
                 res+='<p>'+params[i].seriesName+':'+params[i].data+'</p>'

@@ -427,7 +427,7 @@
                 <span>{{scope.row.componentHistoryEntity.name}}</span>
               </template>
             </el-table-column>
-            <el-table-column align="center" label="组件版本创建时间" min-width="80" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="当前组件版本创建时间" min-width="80" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <span>{{scope.row.componentHistoryEntity.createTime}}</span>
               </template>
@@ -471,10 +471,10 @@
                     </el-table-column>
                   </el-table>
                 </el-popover>
-                <el-tooltip class="item" effect="dark" content="保持版本为最新" placement="top" v-if="!scope.row.keepLatest">
+                <el-tooltip class="item" effect="dark" content="部署时使用最新版本" placement="top" v-if="!scope.row.keepLatest">
                   <span style="color: #f56c6c;font-size: 22px;cursor: pointer;line-height: 26px;position: relative;top: 2px;" @click="keepUpdated(scope.row, true)"><svg-icon icon-class="update"></svg-icon></span>
                 </el-tooltip>
-                <el-tooltip class="item" effect="dark" content="取消保持最新" placement="top" v-else>
+                <el-tooltip class="item" effect="dark" content="部署时使用当前版本" placement="top" v-else>
                   <span style="color: #f56c6c;font-size: 22px;cursor: pointer;line-height: 26px;position: relative;top: 2px;" @click="keepUpdated(scope.row, false)"><svg-icon icon-class="update-disable"></svg-icon></span>
                 </el-tooltip>
               </template>
