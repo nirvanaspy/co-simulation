@@ -7,8 +7,8 @@ import { getToken, getRefreshToken, setToken, setRefreshToken, getIp, getPort, g
 let ipConfig = getIp()
 let portConfig = getPort()
 // let serviceConfig = 'http://' + ipConfig + ':' + portConfig + '/apis'
-// let serviceConfig = 'http://192.168.31.67:8080' + '/apis'
-let serviceConfig = 'http://192.168.31.237:8080' + '/apis'
+let serviceConfig = 'http://192.168.31.13:8080' + '/apis'
+// let serviceConfig = 'http://192.168.31.237:8080' + '/apis'
 
 let timeStamp = getExpire()
 let refreshTimeStamp = getExpire2()
