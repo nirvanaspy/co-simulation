@@ -84,7 +84,7 @@
                 <span><svg-icon icon-class="组件"></svg-icon></span>
               </template>
             </el-table-column>
-            <el-table-column label="组件名" align="left" width="140">
+            <el-table-column label="组件名" align="left" width="160">
               <template slot-scope="scope">
                   <span class="link-type">{{scope.row.componentHistoryEntity.name}}</span>
               </template>
@@ -99,15 +99,15 @@
                 <span>{{scope.row.componentHistoryEntity.relativePath}}</span>
               </template>
             </el-table-column>
-            <el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
+            <!--<el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
               <template slot-scope="scope">
-                <!--<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>-->
+                &lt;!&ndash;<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>&ndash;&gt;
                 <el-progress :percentage="scope.row.progress"></el-progress>
               </template>
             </el-table-column>
             <el-table-column min-width="100" align="center" label="部署速度">
               <template slot-scope="scope">
-                <span>--</span>
+                <span>&#45;&#45;</span>
               </template>
             </el-table-column>
             <el-table-column min-width="140" align="center" label="文件详情">
@@ -116,15 +116,22 @@
                 <span v-else-if="scope.row.fileState === 1 || scope.row.fileState === 2" style="color: limegreen;">{{scope.row.descript}}</span>
                 <span v-else>{{scope.row.descript}}</span>
               </template>
-            </el-table-column>
+            </el-table-column>-->
             <el-table-column min-width="130" align="center" :label="$t('table.actions')">
               <template slot-scope="scope">
                 <span v-if="scope.row.online === false" style="color: red;">
                   设备离线
                 </span>
-                <span v-else @click="deployByComp(scope.row)">
-                  <svg-icon icon-class="transfer"></svg-icon>
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === false" @click="deployByComp(scope.row)">
+                  <svg-icon  icon-class="transfer"></svg-icon>
                 </span>
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)">
+                  <svg-icon  icon-class="restart"></svg-icon>
+                </span>
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === true">
+                  <svg-icon  icon-class="wait"></svg-icon>
+                </span>
+
                 <!--<el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
                            @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>-->
               </template>
@@ -402,6 +409,8 @@
                 this.list[i].comps = res.data.data
                 for(let j=0;j<this.list[i].comps.length;j++){
                   this.list[i].comps[j].online = this.list[i].online;
+                  this.list[i].comps[j].ifRestart = false;
+                  this.list[i].comps[j].ifWait = false;
                 }
                 console.log(this.list[i].comps)
                 break;
@@ -548,6 +557,8 @@
         let id = row.id;
         let deviceId = row.deploymentDesignNodeEntity.deviceEntity.id;
 
+        console.log(row)
+
         let ifOnline = false;
         for(var i=0;i<this.list.length;i++){
           if(deviceId == this.list[i].deviceEntity.id && this.list[i].online){
@@ -563,10 +574,29 @@
               cancelButtonText: '取消',
               type: 'warning'
             }).then(() => {
+              row.ifRestart = true;
+              console.log("测试----")
+              console.log(row.deploymentDesignNodeEntity.id);
+              for(let i = 0; i < this.list.length; i++){
+                console.log(this.list[i].id)
+                if(row.deploymentDesignNodeEntity.id === this.list[i].id){
+                  for(let j=0;j<this.list[i].comps.length;j++){
+                    if(!this.list[i].comps[j].ifRestart){
+                      this.list[i].comps[j].ifWait = true;
+                    }
+                  }
+
+                  console.log(this.list[i].comps)
+                }
+
+              }
+
+
+              //document.getElementById("compSvg").icon-class = "restart.svg";
               deployByDeploymentDesignDetailId(id).then(() => {
                 this.$notify({
                   title: '成功',
-                  message: '部署结束',
+                  message: '开始部署',
                   type: 'success',
                   duration: 2000
                 })
