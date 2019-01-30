@@ -149,3 +149,14 @@ export function updateCompHisToNode(detailId, compHisId) {
     method: 'patch'
   })
 }
+
+// 保持版本为最新
+export function keepLatest(detailId, flag) {
+  return request({
+    url: 'deploymentdesigndetails/' + detailId + '/keep-latest',
+    method: 'patch',
+    params: {
+      keepLatest: flag
+    }
+  })
+}
