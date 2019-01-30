@@ -122,14 +122,14 @@
                 <span v-if="scope.row.online === false" style="color: red;">
                   设备离线
                 </span>
-                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === false" @click="deployByComp(scope.row)">
-                  <svg-icon  icon-class="transfer"></svg-icon>
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === false" @click="deployByComp(scope.row)" style="color: dodgerblue;">
+                  <svg-icon  icon-class="deploy"></svg-icon>
                 </span>
                 <span v-else-if="scope.row.online === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)">
-                  <svg-icon  icon-class="restart"></svg-icon>
+                  <svg-icon  icon-class="restart2"></svg-icon>
                 </span>
-                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === true">
-                  <svg-icon  icon-class="wait"></svg-icon>
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === true" style="color: limegreen;">
+                  <svg-icon  icon-class="wait2"></svg-icon>
                 </span>
 
                 <!--<el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
