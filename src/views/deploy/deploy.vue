@@ -1,88 +1,88 @@
 <template>
-  <div class="app-container calendar-list-container deploy">
-    <div class="filter-container">
-      <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
-      </el-input>
-      <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="deployAll" type="primary" icon="el-icon-news">一键部署</el-button>
-    </div>
-    <!--<el-table :key="tableKey"
-              :data="listA"
-              v-loading="listLoading"
-              element-loading-text="给我一点时间"
-              border
-              fit
-              highlight-current-row
-              class="delpoyTable"
-              style="width: 100%"
-    >
-      <el-table-column min-width="140" align="center" :label="$t('table.deviceName')">
-        <template slot-scope="scope">
-          <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.name}}</span>
-          <span v-else>暂未绑定设备</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="140" align="center" :label="$t('table.deviceIP')">
-        <template slot-scope="scope">
-          <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
-          <span v-else>暂未绑定设备</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="120" align="center" :label="$t('table.devicePath')">
-        <template slot-scope="scope">
-          <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.deployPath}}</span>
-          <span v-else>暂未绑定设备</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="110" align="center" :label="$t('table.deviceState')">
-        <template slot-scope="scope">
-          <span class="el-tag el-tag&#45;&#45;danger" v-if="scope.row.online === false">离线</span>
-          <span class="el-tag el-tag&#45;&#45;primary" v-else>在线</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
-        <template slot-scope="scope">
-          &lt;!&ndash;<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>&ndash;&gt;
-          <el-progress :percentage="scope.row.progress"></el-progress>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="100" align="center" label="部署速度">
-        <template slot-scope="scope">
-          <span>{{computedDeploySpeed(scope.row.speed)}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="140" align="center" label="文件详情">
-        <template slot-scope="scope">
-          <span v-if="scope.row.fileState === 0" style="color: #FF0000;">{{scope.row.descript}}</span>
-          <span v-else-if="scope.row.fileState === 1 || scope.row.fileState === 2" style="color: limegreen;">{{scope.row.descript}}</span>
-          <span v-else>{{scope.row.descript}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="130" align="center" :label="$t('table.actions')">
-        <template slot-scope="scope">
-          <el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
-                     @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>
-        </template>
-      </el-table-column>
-    </el-table>-->
+              <div class="app-container calendar-list-container deploy">
+                <div class="filter-container">
+                  <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
+                  </el-input>
+                  <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="deployAll" type="primary" icon="el-icon-news">一键部署</el-button>
+                </div>
+                <!--<el-table :key="tableKey"
+                          :data="listA"
+                          v-loading="listLoading"
+                          element-loading-text="给我一点时间"
+                          border
+                          fit
+                          highlight-current-row
+                          class="delpoyTable"
+                          style="width: 100%"
+                >
+                  <el-table-column min-width="140" align="center" :label="$t('table.deviceName')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.name}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="140" align="center" :label="$t('table.deviceIP')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="120" align="center" :label="$t('table.devicePath')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.deployPath}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="110" align="center" :label="$t('table.deviceState')">
+                    <template slot-scope="scope">
+                      <span class="el-tag el-tag&#45;&#45;danger" v-if="scope.row.online === false">离线</span>
+                      <span class="el-tag el-tag&#45;&#45;primary" v-else>在线</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
+                    <template slot-scope="scope">
+                      &lt;!&ndash;<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>&ndash;&gt;
+                      <el-progress :percentage="scope.row.progress"></el-progress>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="100" align="center" label="部署速度">
+                    <template slot-scope="scope">
+                      <span>{{computedDeploySpeed(scope.row.speed)}}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="140" align="center" label="文件详情">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.fileState === 0" style="color: #FF0000;">{{scope.row.descript}}</span>
+                      <span v-else-if="scope.row.fileState === 1 || scope.row.fileState === 2" style="color: limegreen;">{{scope.row.descript}}</span>
+                      <span v-else>{{scope.row.descript}}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="130" align="center" :label="$t('table.actions')">
+                    <template slot-scope="scope">
+                      <el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
+                                 @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>-->
 
-    <el-table :key="tableKey" :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
-              style="width: 100%"
-              :row-key="getRowKeysComp"
-              class="delpoyTable"
-              :expand-row-keys="deviceExpands"
-              @expand-change="expandRow"
-    >
-      <el-table-column align="left" width="40" type="expand">
-        <template slot-scope="props">
-          <el-table
-            stripe highlight-current-row
-            :data="props.row.comps"
-            style="padding: 0 0"
-          >
-            <el-table-column width="40">
-              <template slot-scope="scope">
-                <span><svg-icon icon-class="组件"></svg-icon></span>
-              </template>
+                <el-table :key="tableKey" :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
+                          style="width: 100%"
+                          :row-key="getRowKeysComp"
+                          class="delpoyTable"
+                          :expand-row-keys="deviceExpands"
+                          @expand-change="expandRow"
+                >
+                  <el-table-column align="left" width="40" type="expand">
+                    <template slot-scope="props">
+                      <el-table
+                        stripe highlight-current-row
+                        :data="props.row.comps"
+                        style="padding: 0 0"
+                      >
+                        <el-table-column width="40">
+                          <template slot-scope="scope">
+                            <span><svg-icon icon-class="组件"></svg-icon></span>
+                          </template>
             </el-table-column>
             <el-table-column label="组件名" align="left" width="160">
               <template slot-scope="scope">
@@ -122,13 +122,13 @@
                 <span v-if="scope.row.online === false" style="color: red;">
                   设备离线
                 </span>
-                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === false" @click="deployByComp(scope.row)" style="color: dodgerblue;">
+                <span v-else-if="scope.row.online === true && (scope.row.ifWait === false || scope.row.ifComplete === true) &&  scope.row.ifRestart === false" @click="deployByComp(scope.row)" style="color: dodgerblue;font-size: 20px;">
                   <svg-icon  icon-class="deploy"></svg-icon>
                 </span>
-                <span v-else-if="scope.row.online === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)">
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)" style="font-size:20px;color: #ea4a64;">
                   <svg-icon  icon-class="restart2"></svg-icon>
                 </span>
-                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === true" style="color: limegreen;">
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === true" style="color: limegreen;font-size: 20px;">
                   <svg-icon  icon-class="wait2"></svg-icon>
                 </span>
 
@@ -387,6 +387,16 @@
                         that.list[j].state = that.webProgressBody[i].state;
                         that.list[j].fileState = that.webProgressBody[i].state;
                         that.list[j].descript = that.webProgressBody[i].description;
+
+                        for(let k=0;k<that.list[j].comps.length;k++){   //重置为可部署状态
+                          if(that.list[j].progress !== 100){
+                            that.list[j].comps[k].ifComplete = false;
+                            //that.list[j].comps[k].ifWait = true;
+                          }else{
+                            that.list[j].comps[k].ifComplete = true;
+                          }
+                        }
+
                       }
                     }
                   }
@@ -411,6 +421,8 @@
                   this.list[i].comps[j].online = this.list[i].online;
                   this.list[i].comps[j].ifRestart = false;
                   this.list[i].comps[j].ifWait = false;
+
+
                 }
                 console.log(this.list[i].comps)
                 break;
@@ -560,8 +572,11 @@
         console.log(row)
 
         let ifOnline = false;
-        for(var i=0;i<this.list.length;i++){
-          if(deviceId == this.list[i].deviceEntity.id && this.list[i].online){
+
+        console.log("list----------")
+        console.log(this.list)
+        for(let i=0;i<this.list.length;i++){
+          if(this.list[i].deviceEntity !== null && deviceId === this.list[i].deviceEntity.id && this.list[i].online){
             ifOnline = true;
             break;
           }
