@@ -369,9 +369,10 @@
       <el-input style="width: 200px;position: absolute;top: 16px;left: 100px;" class="filter-item" placeholder="请输入组件名称"
                 v-model="searchAbleCompQuery">
       </el-input>
-      <div class="slectDetail" style="overflow: hidden;">
+      <div class="selectDetail" style="min-height: 300px;overflow: hidden;">
         <div class="ableToSelectComp" style="width:50%;float: left;padding: 10px;">
           <el-table :data="listAbleComp" border fit
+                    max-height="600"
                     highlight-current-row
                     stripe
                     @expand-change="getCompHis"
@@ -399,7 +400,7 @@
                   </el-table-column>
                   <el-table-column label="操作" align="center" width="80">
                     <template slot-scope="scope">
-                      <el-button size="mini" type="success" @click="handleBindComp(scope.row.id)">绑定</el-button>
+                      <el-button size="mini" type="success" @click="handleBindComp(scope.row.id, props.row)" :loading="props.row.binding || scope.row.binding">绑定</el-button>
                     </template>
                   </el-table-column>
                 </el-table>
@@ -415,7 +416,7 @@
             </el-table-column>
             <el-table-column align="center" label="操作" width="80" class-name="small-padding fixed-width">
               <template slot-scope="scope">
-                <el-button type="success" size="mini" @click="findNewestAndBind(scope.row)">绑定</el-button>
+                <el-button type="success" size="mini" @click="findNewestAndBind(scope.row)" :loading="scope.row.binding">绑定</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -423,6 +424,7 @@
         <div class="selectedComp" style="width:50%;float: left;padding: 10px;">
           <el-table :data="bindedCompList" border fit
                     highlight-current-row
+                    max-height="600"
                     stripe
                     style="width: 100%;">
             <el-table-column align="center" label="已绑定组件" min-width="120" class-name="small-padding fixed-width">
@@ -475,10 +477,10 @@
                   </el-table>
                 </el-popover>
                 <el-tooltip class="item" effect="dark" content="部署时使用最新版本" placement="top" v-if="!scope.row.keepLatest">
-                  <span style="color: #f56c6c;font-size: 22px;cursor: pointer;line-height: 26px;position: relative;top: 2px;" @click="keepUpdated(scope.row, true)"><svg-icon icon-class="update"></svg-icon></span>
+                  <span class="icon-update" @click="keepUpdated(scope.row, true)"><svg-icon icon-class="update"></svg-icon></span>
                 </el-tooltip>
                 <el-tooltip class="item" effect="dark" content="部署时使用当前版本" placement="top" v-else>
-                  <span style="color: #f56c6c;font-size: 22px;cursor: pointer;line-height: 26px;position: relative;top: 2px;" @click="keepUpdated(scope.row, false)"><svg-icon icon-class="update-disable"></svg-icon></span>
+                  <span class="icon-update" @click="keepUpdated(scope.row, false)"><svg-icon icon-class="update-disable"></svg-icon></span>
                 </el-tooltip>
               </template>
             </el-table-column>
@@ -1091,7 +1093,7 @@
       },
       getCompHis(row) {
         let indexOfId = this.compExpands.indexOf(row.id)
-        if( indexOfId !== -1) {
+        if (indexOfId !== -1) {
           this.compExpands.splice(indexOfId, 1)
           return
         }
@@ -1109,7 +1111,13 @@
           })
         }
       },
-      handleBindComp(id) {
+      handleBindComp(id, fatherRow) {
+        fatherRow.binding = true
+        this.availableCompList.forEach((item, index) => {
+          if(item.id === fatherRow.id) {
+            this.$set(this.availableCompList, index, fatherRow)
+          }
+        })
         bindSingleCompHisToNode(this.currentNodeId, id).then((res) => {
           this.availableCompList.forEach((item,index) => {
             if(item.id === res.data.data.componentEntity.id) {
@@ -1125,6 +1133,12 @@
             }
           })
         }).catch(() => {
+          fatherRow.binding = false
+          this.availableCompList.forEach((item, index) => {
+            if(item.id === fatherRow.id) {
+              this.$set(this.availableCompList, index, fatherRow)
+            }
+          })
           this.$notify({
             title: '失败',
             message: '组件绑定失败',
@@ -1665,6 +1679,13 @@
           }
         }
       },
+      computedBinding: function() {
+        return function(row) {
+          if(row.binding === true) {
+            return true
+          }
+        }
+      },
       listenPopover() {
         if(document.getElementsByClassName('el-popover').length > 0) {
           if (document.getElementsByClassName('el-popover')[0].style.display === 'block') {
@@ -1724,6 +1745,14 @@
 
   .el-button + .el-button {
     margin-left: 0;
+  }
+  .icon-update {
+    color: #f56c6c;
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 26px;
+    position: relative;
+    top: 2px;
   }
 </style>
 
