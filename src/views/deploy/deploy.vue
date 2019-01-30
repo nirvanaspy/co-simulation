@@ -1,22 +1,147 @@
 <template>
-  <div class="app-container calendar-list-container deploy">
-    <div class="filter-container">
-      <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
-      </el-input>
-      <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="deployAll" type="primary" icon="el-icon-news">一键部署</el-button>
-    </div>
-    <el-table :key="tableKey"
-              :data="listA"
-              v-loading="listLoading"
-              element-loading-text="给我一点时间"
-              border
-              fit
-              highlight-current-row
-              class="delpoyTable"
-              style="width: 100%"
-    >
+              <div class="app-container calendar-list-container deploy">
+                <div class="filter-container">
+                  <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
+                  </el-input>
+                  <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="deployAll" type="primary" icon="el-icon-news">一键部署</el-button>
+                </div>
+                <!--<el-table :key="tableKey"
+                          :data="listA"
+                          v-loading="listLoading"
+                          element-loading-text="给我一点时间"
+                          border
+                          fit
+                          highlight-current-row
+                          class="delpoyTable"
+                          style="width: 100%"
+                >
+                  <el-table-column min-width="140" align="center" :label="$t('table.deviceName')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.name}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="140" align="center" :label="$t('table.deviceIP')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="120" align="center" :label="$t('table.devicePath')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.deployPath}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="110" align="center" :label="$t('table.deviceState')">
+                    <template slot-scope="scope">
+                      <span class="el-tag el-tag&#45;&#45;danger" v-if="scope.row.online === false">离线</span>
+                      <span class="el-tag el-tag&#45;&#45;primary" v-else>在线</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
+                    <template slot-scope="scope">
+                      &lt;!&ndash;<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>&ndash;&gt;
+                      <el-progress :percentage="scope.row.progress"></el-progress>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="100" align="center" label="部署速度">
+                    <template slot-scope="scope">
+                      <span>{{computedDeploySpeed(scope.row.speed)}}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="140" align="center" label="文件详情">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.fileState === 0" style="color: #FF0000;">{{scope.row.descript}}</span>
+                      <span v-else-if="scope.row.fileState === 1 || scope.row.fileState === 2" style="color: limegreen;">{{scope.row.descript}}</span>
+                      <span v-else>{{scope.row.descript}}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="130" align="center" :label="$t('table.actions')">
+                    <template slot-scope="scope">
+                      <el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
+                                 @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>-->
+
+                <el-table :key="tableKey" :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
+                          style="width: 100%"
+                          :row-key="getRowKeysComp"
+                          class="delpoyTable"
+                          :expand-row-keys="deviceExpands"
+                          @expand-change="expandRow"
+                >
+                  <el-table-column align="left" width="40" type="expand">
+                    <template slot-scope="props">
+                      <el-table
+                        stripe highlight-current-row
+                        :data="props.row.comps"
+                        style="padding: 0 0"
+                      >
+                        <el-table-column width="40">
+                          <template slot-scope="scope">
+                            <span><svg-icon icon-class="组件"></svg-icon></span>
+                          </template>
+            </el-table-column>
+            <el-table-column label="组件名" align="left" width="160">
+              <template slot-scope="scope">
+                  <span class="link-type">{{scope.row.componentHistoryEntity.name}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="版本" align="left" width="140">
+              <template slot-scope="scope">
+                  <span class="link-type">{{scope.row.componentHistoryEntity.version}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="路径" align="left" width="140">
+              <template slot-scope="scope">
+                <span>{{scope.row.componentHistoryEntity.relativePath}}</span>
+              </template>
+            </el-table-column>
+            <!--<el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
+              <template slot-scope="scope">
+                &lt;!&ndash;<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>&ndash;&gt;
+                <el-progress :percentage="scope.row.progress"></el-progress>
+              </template>
+            </el-table-column>
+            <el-table-column min-width="100" align="center" label="部署速度">
+              <template slot-scope="scope">
+                <span>&#45;&#45;</span>
+              </template>
+            </el-table-column>
+            <el-table-column min-width="140" align="center" label="文件详情">
+              <template slot-scope="scope">
+                <span v-if="scope.row.fileState === 0" style="color: #FF0000;">{{scope.row.descript}}</span>
+                <span v-else-if="scope.row.fileState === 1 || scope.row.fileState === 2" style="color: limegreen;">{{scope.row.descript}}</span>
+                <span v-else>{{scope.row.descript}}</span>
+              </template>
+            </el-table-column>-->
+            <el-table-column min-width="130" align="center" :label="$t('table.actions')">
+              <template slot-scope="scope">
+                <span v-if="scope.row.online === false" style="color: red;">
+                  设备离线
+                </span>
+                <span v-else-if="scope.row.online === true && (scope.row.ifWait === false || scope.row.ifComplete === true) &&  scope.row.ifRestart === false" @click="deployByComp(scope.row)" style="color: dodgerblue;font-size: 20px;">
+                  <svg-icon  icon-class="deploy"></svg-icon>
+                </span>
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)" style="font-size:20px;color: #ea4a64;">
+                  <svg-icon  icon-class="restart2"></svg-icon>
+                </span>
+                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === true" style="color: limegreen;font-size: 20px;">
+                  <svg-icon  icon-class="wait2"></svg-icon>
+                </span>
+
+                <!--<el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
+                           @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>-->
+              </template>
+            </el-table-column>
+          </el-table>
+        </template>
+      </el-table-column>
       <el-table-column min-width="140" align="center" :label="$t('table.deviceName')">
         <template slot-scope="scope">
+          <!--@click="getDetailByNode(scope.row, scope.$index)"-->
           <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.name}}</span>
           <span v-else>暂未绑定设备</span>
         </template>
@@ -92,8 +217,8 @@
 
 <script>
   // import { doDeploy, getDeployDevice, deployNode } from '@/api/deploy'
-  import { deployNode, deployAll } from '@/api/deploy'
-  import { deployNodeList } from '@/api/deployDesignNode'
+  import { deployNode, deployAll, deployByDeploymentDesignDetailId } from '@/api/deploy'
+  import { deployNodeList, getNodeDetail } from '@/api/deployDesignNode'
   import waves from '@/directive/waves' // 水波纹指令
   import service from '@/utils/request'
   import Stomp from 'stompjs'
@@ -134,7 +259,11 @@
         deviceDeployDetail: [],  //某设备的部署详情
         webResBody: [],
         webProgressBody: [],
-        deployIds: []        // 一键部署的所有设备的id
+        deployIds: [],        // 一键部署的所有设备的id
+        getRowKeysComp(row) {
+          return row.id
+        },
+        deviceExpands: [],
       }
     },
     created() {
@@ -258,6 +387,16 @@
                         that.list[j].state = that.webProgressBody[i].state;
                         that.list[j].fileState = that.webProgressBody[i].state;
                         that.list[j].descript = that.webProgressBody[i].description;
+
+                        for(let k=0;k<that.list[j].comps.length;k++){   //重置为可部署状态
+                          if(that.list[j].progress !== 100){
+                            that.list[j].comps[k].ifComplete = false;
+                            //that.list[j].comps[k].ifWait = true;
+                          }else{
+                            that.list[j].comps[k].ifComplete = true;
+                          }
+                        }
+
                       }
                     }
                   }
@@ -270,6 +409,47 @@
         });
 
       },
+
+      expandRow(row) {
+        if (!row.comps) {
+          row.loading = true
+          getNodeDetail(row.id).then((res) => {
+            for (let i = 0; i < this.list.length; i++) {
+              if (res.data.data.length > 0 && row.id === this.list[i].id) {
+                this.list[i].comps = res.data.data
+                for(let j=0;j<this.list[i].comps.length;j++){
+                  this.list[i].comps[j].online = this.list[i].online;
+                  this.list[i].comps[j].ifRestart = false;
+                  this.list[i].comps[j].ifWait = false;
+
+
+                }
+                console.log(this.list[i].comps)
+                break;
+              }
+            }
+            this.deviceExpands.push(row.id)
+          })
+
+        }
+      },
+
+      /*getDetailByNode(row, index) {
+        // this.isExpand = false
+        let uniqueId = this.deployPlanId + row.id
+        this.selectedDeviceId = row.id
+        this.selectedDeviceName = row.deviceEntity.name
+        this.selectedCompId = ''
+        this.selectedCompName = ''
+        // getDeployDetailByDevice(this.deployPlanId, row.id).then((res) => {
+        getNodeDetail(row.id).then((res) => {
+          this.deviceDetail = res.data.data
+          this.expands = []
+          this.list[index].comps = res.data.data
+          this.deviceExpands.push(row.id)
+          this.checkOrder(uniqueId)
+        })
+      },*/
 
       deployByNode: function (row) {
         let id = row.id;
@@ -336,6 +516,7 @@
         }
       },
 
+      // 一键部署
       deployAll: function () {
         this.deployIds.splice(0, this.deployIds.length);
         for(let i=0;i<this.list.length;i++){          // 所有在线设备
@@ -345,9 +526,9 @@
         }
 
         // 一键部署的id
-        /*console.log('一键部署的id');
+        console.log('一键部署的id');
         console.log(this.deployPlanId);
-        console.log(this.deployIds);*/
+        console.log(this.deployIds);
 
         if(this.deployIds.length > 0){    //有设备在线
           this.$confirm('确认部署所有在线设备吗吗？', '提示', {
@@ -379,6 +560,78 @@
               message: '已取消部署'
             })
           })
+        }
+
+      },
+
+      // 部署单个组件
+      deployByComp: function (row) {
+        let id = row.id;
+        let deviceId = row.deploymentDesignNodeEntity.deviceEntity.id;
+
+        console.log(row)
+
+        let ifOnline = false;
+
+        console.log("list----------")
+        console.log(this.list)
+        for(let i=0;i<this.list.length;i++){
+          if(this.list[i].deviceEntity !== null && deviceId === this.list[i].deviceEntity.id && this.list[i].online){
+            ifOnline = true;
+            break;
+          }
+        }
+        console.log(row);
+
+        if(ifOnline){   // 判断该组件所绑定的设备是否在线
+            this.$confirm('确认部署吗？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              row.ifRestart = true;
+              console.log("测试----")
+              console.log(row.deploymentDesignNodeEntity.id);
+              for(let i = 0; i < this.list.length; i++){
+                console.log(this.list[i].id)
+                if(row.deploymentDesignNodeEntity.id === this.list[i].id){
+                  for(let j=0;j<this.list[i].comps.length;j++){
+                    if(!this.list[i].comps[j].ifRestart){
+                      this.list[i].comps[j].ifWait = true;
+                    }
+                  }
+
+                  console.log(this.list[i].comps)
+                }
+
+              }
+
+
+              //document.getElementById("compSvg").icon-class = "restart.svg";
+              deployByDeploymentDesignDetailId(id).then(() => {
+                this.$notify({
+                  title: '成功',
+                  message: '开始部署',
+                  type: 'success',
+                  duration: 2000
+                })
+              }).catch(err => {
+                if(err.response.data.data.length != 0){
+                  this.$notify({
+                    title: '失败',
+                    message: err.response.data.data,
+                    type: 'error',
+                    duration: 2000
+                  })
+                }
+              })
+            }).catch(() => {
+              this.$message({
+                type: 'info',
+                message: '已取消部署'
+              })
+            })
+
         }
 
       }

@@ -31,3 +31,11 @@ export function deployAll(id) {
     method: 'put'
   })
 }
+
+export function deployByDeploymentDesignDetailId(id) {
+  return request({
+    url: 'deploymentdesigndetails/' + id + '/deploy',
+    method: 'put'
+  })
+}
+
