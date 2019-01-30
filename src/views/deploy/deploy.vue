@@ -299,7 +299,7 @@
         let url = service.defaults.baseURL + '/OMS';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
-        stompClient.debug=null
+        //stompClient.debug=null
         let that = this;
         stompClient.connect({}, function (frame) {
           stompClient.subscribe('/onlineDevice', function (response) {
@@ -311,6 +311,13 @@
             if(that.list.length > 0){
               for(let i=0;i<that.list.length;i++){
                 that.list[i].online = false;
+
+                console.log(that.list[i].comps);
+                if(that.list[i].comps !== undefined){
+                  for(let k=0;k<that.list[i].comps.length;k++){   // 组件的在线状态
+                    that.list[i].comps[k].online = false;
+                  }
+                }
 
                 if(that.list[i].online === false && that.list[i].virtual === true){
                   that.list.splice(i,1);
@@ -348,6 +355,15 @@
                       if(that.list[j].deviceEntity !== null) {
                         if(value.hostAddress === that.list[j].deviceEntity.hostAddress){      //查找在线设备
                           that.list[j].online = true;
+
+                          if(that.list[j].online && that.list[j].comps!== undefined){
+                            for(let k=0;k<that.list[j].comps.length;k++){   //重置组件的在线状态
+                              if(that.list[j].comps[k].deploymentDesignNodeEntity.id === that.list[j].id){
+                                that.list[j].comps[k].online = true;
+                              }
+                            }
+                          }
+
                           /*that.list[j].cpuClock = value.cpuClock;
                           that.list[j].cpuUtilization = value.cpuUtilization;
                           that.list[j].ramTotalSize = value.ramTotalSize;
@@ -418,7 +434,7 @@
               if (res.data.data.length > 0 && row.id === this.list[i].id) {
                 this.list[i].comps = res.data.data
                 for(let j=0;j<this.list[i].comps.length;j++){
-                  this.list[i].comps[j].online = this.list[i].online;
+                  this.list[i].comps[j].online = false;
                   this.list[i].comps[j].ifRestart = false;
                   this.list[i].comps[j].ifWait = false;
 
