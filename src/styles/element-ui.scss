@@ -140,3 +140,18 @@
      overflow-y: scroll;
    }
  }
+
+ .no-padding-dialog {
+   .el-dialog {
+     .el-dialog__body {
+       padding-top: 0;
+     }
+   }
+   .filter-item {
+     .el-input__inner {
+       border-radius: 100px;
+       height: 30px;
+       line-height: 30px;
+     }
+   }
+ }
