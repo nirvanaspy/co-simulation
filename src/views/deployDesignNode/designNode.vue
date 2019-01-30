@@ -381,7 +381,7 @@
                     style="width: 100%;">
             <el-table-column align="left" width="40" type="expand">
               <template slot-scope="props">
-                <el-table
+                <!--<el-table
                   border
                   stripe highlight-current-row
                   :data="props.row.hisVersion"
@@ -400,10 +400,26 @@
                   </el-table-column>
                   <el-table-column label="操作" align="center" width="80">
                     <template slot-scope="scope">
-                      <el-button size="mini" type="success" @click="handleBindComp(scope.row.id, props.row)" :loading="props.row.binding || scope.row.binding">绑定</el-button>
+                      <el-button size="mini" type="success" @click="handleBindComp(scope.row.id, scope.row, props.row)" :loading="props.row.binding || scope.row.binding">绑定</el-button>
                     </template>
                   </el-table-column>
-                </el-table>
+                </el-table>-->
+                <div v-loading="props.row.hisVersion == undefined" style="min-height: 60px;" element-loading-text="正在查询历史组件" element-loading-spinner="el-icon-loading">
+                  <div v-for="item in props.row.hisVersion" style="width: 100%;padding: 10px;" class="comp-his">
+                    <span style="display: inline-block;width: 70%;">
+                      <svg-icon icon-class="history1"></svg-icon>
+                      {{item.createTime}}
+                    </span>
+                    <span style="display: inline-block;width: 20%;text-align: center">
+                    <!--<el-button size="mini" type="success" @click="handleBindComp(item.id, item, props.row)" :loading="props.row.binding || item.binding">绑定</el-button>-->
+                    <el-tooltip content="绑定此版本" effect="dark" placement="top-start">
+                      <el-button type="text" @click="handleBindComp(item.id, item, props.row)" :loading="props.row.binding || item.binding">
+                        <svg-icon icon-class="bind" style="font-size: 16px;position: relative;top: 2px;"></svg-icon>
+                      </el-button>
+                    </el-tooltip>
+                  </span>
+                  </div>
+                </div>
               </template>
             </el-table-column>
             <el-table-column align="center" label="可选组件" min-width="120" class-name="small-padding fixed-width">
@@ -440,7 +456,8 @@
             <el-table-column align="center" label="操作" width="100" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <el-tooltip class="item" effect="dark" content="解除绑定" placement="top">
-                  <span style="color: #f56c6c;font-size: 17px;margin-right: 6px;cursor: pointer;" @click="unbindComp(scope.row)"><svg-icon icon-class="delete"></svg-icon></span>
+                  <el-button type="text" style="color: #f56c6c;font-size: 17px;margin-right: 6px;" @click="unbindComp(scope.row)"><svg-icon icon-class="delete"></svg-icon></el-button>
+                  <!--<span style="color: #f56c6c;font-size: 17px;margin-right: 6px;cursor: pointer;" @click="unbindComp(scope.row)" ><svg-icon icon-class="delete"></svg-icon></span>-->
                 </el-tooltip>
                 <el-popover
                   placement="left"
@@ -1111,11 +1128,12 @@
           })
         }
       },
-      handleBindComp(id, fatherRow) {
+      handleBindComp(id, row, fatherRow) {
         fatherRow.binding = true
-        this.availableCompList.forEach((item, index) => {
-          if(item.id === fatherRow.id) {
-            this.$set(this.availableCompList, index, fatherRow)
+        this.availableCompList.forEach((itemA, indexA) => {
+          if(itemA.id === fatherRow.id) {
+            console.log(itemA.id)
+            this.$set(this.availableCompList, indexA, fatherRow)
           }
         })
         bindSingleCompHisToNode(this.currentNodeId, id).then((res) => {
@@ -1134,9 +1152,45 @@
           })
         }).catch(() => {
           fatherRow.binding = false
-          this.availableCompList.forEach((item, index) => {
-            if(item.id === fatherRow.id) {
-              this.$set(this.availableCompList, index, fatherRow)
+          this.availableCompList.forEach((itemA, indexA) => {
+            if(itemA.id === fatherRow.id) {
+              this.$set(this.availableCompList, indexA, fatherRow)
+            }
+          })
+          this.$notify({
+            title: '失败',
+            message: '组件绑定失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      bindCompLatest(id, fatherRow) {
+        fatherRow.binding = true
+        this.availableCompList.forEach((itemA, indexA) => {
+          if(itemA.id === fatherRow.id) {
+            this.$set(this.availableCompList, indexA, fatherRow)
+          }
+        })
+        bindSingleCompHisToNode(this.currentNodeId, id).then((res) => {
+          this.availableCompList.forEach((item,index) => {
+            if(item.id === res.data.data.componentEntity.id) {
+              let indexOfComp = this.compExpands.indexOf(res.data.data.componentEntity.id)
+              if(indexOfComp !== -1) {
+                this.compExpands.splice(indexOfComp, 1)
+              }
+              this.availableCompList.splice(index, 1)
+              getNodeDetail(this.currentNodeId).then((res) => {
+                this.bindedCompList = res.data.data
+                this.nodeDetail = res.data.data
+              })
+            }
+          })
+        }).catch(() => {
+          fatherRow.binding = false
+          this.availableCompList.forEach((itemA, indexA) => {
+            if(itemA.id === fatherRow.id) {
+              this.$set(this.availableCompList, indexA, fatherRow)
             }
           })
           this.$notify({
@@ -1151,13 +1205,19 @@
         return row.id
       },
       unbindComp(row) {
+        if(row.unBinding === true) {
+          return
+        }
+        row.unBinding = true
         deleteBindDetail(row.id).then((res) => {
+          row.unBinding = false
           this.availableCompList.push(row.componentEntity)
           getNodeDetail(this.currentNodeId).then((res) => {
             this.bindedCompList = res.data.data
             this.nodeDetail = res.data.data
           })
         }).catch(() => {
+          row.unBinding = false
           this.$notify({
             title: '失败',
             message: '组件解绑失败',
@@ -1210,7 +1270,7 @@
         compHisVersion(row.id, query).then((res) => {
           if(res.data.data.totalElements > 0) {
             let id = res.data.data.content[0].id
-            this.handleBindComp(id, row)
+            this.bindCompLatest(id, row)
           } else {
             return
           }
@@ -1224,7 +1284,12 @@
         })
       },
       keepUpdated(row, flag) {
+        if(row.editing === true) {
+          return
+        }
+        row.editing = true
         keepLatest(row.id, flag).then((res) => {
+          row.editing = false
           row.keepLatest = res.data.data.keepLatest
           this.$notify({
             title: '成功',
@@ -1233,6 +1298,7 @@
             duration: 2000
           })
         }).catch(() => {
+          row.editing = false
           this.$notify({
             title: '失败',
             message: '',
@@ -1241,11 +1307,7 @@
           })
         })
       },
-
-
-
-
-
+      // 绑定相关操作结束
 
       beforeSubmit: function (rowId, row) { //绑定前的准备工作 绑定前获取设备的id，获取所选部署设计的id
         this.componentHisIds = []
@@ -1753,6 +1815,12 @@
     line-height: 26px;
     position: relative;
     top: 2px;
+  }
+  .comp-his:hover {
+    background: rgb(245, 247, 250) !important;
+  }
+  .comp-his:nth-child(odd) {
+    background: rgb(250,250,250);
   }
 </style>
 
