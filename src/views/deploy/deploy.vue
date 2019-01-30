@@ -122,15 +122,16 @@
                 <span v-if="scope.row.online === false" style="color: red;">
                   设备离线
                 </span>
-                <span v-else-if="scope.row.online === true && (scope.row.ifWait === false || scope.row.ifComplete === true) &&  scope.row.ifRestart === false" @click="deployByComp(scope.row)" style="color: dodgerblue;font-size: 20px;">
+                <span v-else-if="scope.row.online === true && (scope.row.ifWait === false || scope.row.ifComplete === true) &&  scope.row.ifRestart === false" @click="deployByComp(scope.row)" style="color: dodgerblue;font-size: 20px;cursor: pointer;">
                   <svg-icon  icon-class="deploy"></svg-icon>
                 </span>
-                <span v-else-if="scope.row.online === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)" style="font-size:20px;color: #ea4a64;">
-                  <svg-icon  icon-class="restart2"></svg-icon>
-                </span>
-                <span v-else-if="scope.row.online === true && scope.row.ifRestart === false && scope.row.ifWait === true" style="color: limegreen;font-size: 20px;">
+                <span v-else-if="scope.row.online === true && scope.row.ifComplete === false && scope.row.ifWait === true" style="color: limegreen;font-size: 20px;">
                   <svg-icon  icon-class="wait2"></svg-icon>
                 </span>
+                <span v-else-if="scope.row.online === true && scope.row.ifComplete === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)" style="font-size:20px;color: limegreen;cursor: pointer;">
+                  <svg-icon  icon-class="restart2"></svg-icon>
+                </span>
+
 
                 <!--<el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
                            @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>-->
@@ -299,7 +300,7 @@
         let url = service.defaults.baseURL + '/OMS';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
-        stompClient.debug=null
+        //stompClient.debug=null
         let that = this;
         stompClient.connect({}, function (frame) {
           stompClient.subscribe('/onlineDevice', function (response) {
@@ -311,6 +312,12 @@
             if(that.list.length > 0){
               for(let i=0;i<that.list.length;i++){
                 that.list[i].online = false;
+
+                if(that.list[i].comps !== undefined){
+                  for(let k=0;k<that.list[i].comps.length;k++){   // 组件的在线状态
+                    that.list[i].comps[k].online = false;
+                  }
+                }
 
                 if(that.list[i].online === false && that.list[i].virtual === true){
                   that.list.splice(i,1);
@@ -348,6 +355,15 @@
                       if(that.list[j].deviceEntity !== null) {
                         if(value.hostAddress === that.list[j].deviceEntity.hostAddress){      //查找在线设备
                           that.list[j].online = true;
+
+                          if(that.list[j].online && that.list[j].comps!== undefined){
+                            for(let k=0;k<that.list[j].comps.length;k++){   //重置组件的在线状态
+                              if(that.list[j].comps[k].deploymentDesignNodeEntity.id === that.list[j].id){
+                                that.list[j].comps[k].online = true;
+                              }
+                            }
+                          }
+
                           /*that.list[j].cpuClock = value.cpuClock;
                           that.list[j].cpuUtilization = value.cpuUtilization;
                           that.list[j].ramTotalSize = value.ramTotalSize;
@@ -391,9 +407,11 @@
                         for(let k=0;k<that.list[j].comps.length;k++){   //重置为可部署状态
                           if(that.list[j].progress !== 100){
                             that.list[j].comps[k].ifComplete = false;
+                            that.list[j].comps[k].ifWait = true;
                             //that.list[j].comps[k].ifWait = true;
                           }else{
                             that.list[j].comps[k].ifComplete = true;
+                            that.list[j].comps[k].ifWait = false;
                           }
                         }
 
@@ -418,10 +436,9 @@
               if (res.data.data.length > 0 && row.id === this.list[i].id) {
                 this.list[i].comps = res.data.data
                 for(let j=0;j<this.list[i].comps.length;j++){
-                  this.list[i].comps[j].online = this.list[i].online;
+                  this.list[i].comps[j].online = false;
                   this.list[i].comps[j].ifRestart = false;
                   this.list[i].comps[j].ifWait = false;
-
 
                 }
                 console.log(this.list[i].comps)
@@ -596,9 +613,7 @@
                 console.log(this.list[i].id)
                 if(row.deploymentDesignNodeEntity.id === this.list[i].id){
                   for(let j=0;j<this.list[i].comps.length;j++){
-                    if(!this.list[i].comps[j].ifRestart){
-                      this.list[i].comps[j].ifWait = true;
-                    }
+                    this.list[i].comps[j].ifWait = true;
                   }
 
                   console.log(this.list[i].comps)
