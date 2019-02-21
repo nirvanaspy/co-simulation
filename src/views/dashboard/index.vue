@@ -33,9 +33,9 @@ export default {
 <style scoped>
   .dashboard-container{
     position: absolute;
-    top: 85px;
+    top: 63px;
     bottom: 0;
     width: 100%;
-    height: 90%;
+    /*height: 100%;*/
   }
 </style>

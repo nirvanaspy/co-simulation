@@ -62,29 +62,8 @@ const user = {
   /* eslint-disable */
   actions: {
     // 用户名登录
-    // 原始版本LoginByUsername
-    /*LoginByUsername({ commit }, userInfo) {
-      const username = userInfo.username.trim()
-      return new Promise((resolve, reject) => {
-        loginByUsername(username, userInfo.password).then(response => {
-          const data = response.data
-          commit('SET_TOKEN', data.token)
-          setToken(response.data.token)
-          resolve()
-        }).catch(error => {
-          reject(error)
-        })
-      })
-    },*/
     LoginByUsername({ commit }, formData) {
-      //const username = userInfo.username.trim()
-      //const qs = require('qs');
       return new Promise((resolve, reject) => {
-        /*const data = {
-          'username': username,
-          'password': userInfo.password
-        }
-        const proData = qs.stringify(data);*/
         removeExpire()
         removeExpire2()
         loginByUsername(formData).then(response => {
@@ -100,33 +79,8 @@ const user = {
         })
       })
     },
-    // 获取用户信息 原始版本
-    /*GetUserInfo({ commit, state }) {
-      return new Promise((resolve, reject) => {
-        getUserInfo(state.token).then(response => {
-          if (!response.data) { // 由于mockjs 不支持自定义状态码只能这样hack
-            reject('error')
-            /!*console.log('getUserInfoError')*!/
-          }
-          const data = response.data
-          commit('SET_ROLES', data.roles)
-          commit('SET_NAME', data.name)
-          commit('SET_AVATAR', data.avatar)
-          commit('SET_INTRODUCTION', data.introduction)
-          resolve(response)
-        }).catch(error => {
-          reject(error)
-        })
-      })
-    },*/
     GetUserInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
-        /*getUserInfo(state.token).then(response => {
-
-        }).catch(error => {
-          console.log('getuserinfoerror')
-          reject(error)
-        })*/
         if (!state.token) { // 由于mockjs 不支持自定义状态码只能这样hack
           reject('error')
           console.log('hasNoToken')
@@ -139,13 +93,10 @@ const user = {
         setUserId(decodeToken.userId)
         setExpire(decodeToken.exp)
         setExpire2(decodeRefreshToken.exp)   //refreshToken
-        // console.log(dateNow)
-        // const rolesset = data.username === 'admin' ? 'admin' : 'editor'
-        const rolesset = decodeToken.authorities.length > 1 ? 'admin' : 'editor'
+        // const rolesset = decodeToken.authorities.length > 1 ? 'admin' : 'editor'
+        const rolesset = decodeToken.authorities[0] ==  'ROLE_ADMIN' ? 'admin' : 'editor'
+        console.log(decodeToken.authorities[0])
         commit('SET_ROLES', rolesset)
-        /*commit('SET_NAME', data.username)
-        commit('SET_AVATAR', '')
-        commit('SET_INTRODUCTION', '')*/
         resolve()
       })
     },
@@ -202,7 +153,6 @@ const user = {
       return new Promise(resolve => {
         commit('SET_TOKEN', role)
         setToken(role)
-        alert(223)
         getUserInfo(role).then(response => {
           const data = response.data
           commit('SET_ROLES', data.roles)

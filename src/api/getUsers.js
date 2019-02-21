@@ -18,7 +18,7 @@ export function getUserId() {
 }
 export function updateUser(data, id) {
   return request({
-    url: '/users/' + id + '/password',
+    url: '/users/' + id,
     method: 'patch',
     data
   })
@@ -31,8 +31,11 @@ export function deleteUser(id) {
 }
 export function addUser(data) {
   return request({
-    url: 'users/user',
+    url: '/users',
     method: 'post',
+    headers: {
+      'Content-Type': 'application/json'
+    },
     data
   })
 }
@@ -43,5 +46,20 @@ export function UserIfExist(name) {
     params: {
       username: name
     }
+  })
+}
+export function disableUser(id, data) {
+  return request({
+    url: '/users/' + id + '/authority',
+    method: 'patch',
+    data
+  })
+}
+
+export function distributeUserRole(id, data) {
+  return request({
+    url: '/users/' + id + '/distribute',
+    method: 'patch',
+    data
   })
 }

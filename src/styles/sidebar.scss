@@ -3,15 +3,16 @@
   .main-container {
     min-height: 100%;
     transition: margin-left .28s;
-    margin-left: 180px;
+    margin-left: 200px;
   }
   // 侧边栏
   .sidebar-container {
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
     .horizontal-collapse-transition {
       transition: 0s width ease-in-out, 0s padding-left ease-in-out, 0s padding-right ease-in-out;
     }
     transition: width .28s;
-    width: 180px !important;
+    width: 200px !important;
     height: 100%;
     position: fixed;
     font-size: 0px;
@@ -65,9 +66,10 @@
   .nest-menu .el-submenu>.el-submenu__title,
   .el-submenu .el-menu-item {
     min-width: 180px !important;
-    background-color: $subMenuBg !important;
+    // background-color: $subMenuBg !important;
+    background-color: #fff !important;
     &:hover {
-      background-color: $menuHover !important;
+      background-color: rgb(250, 251, 252) !important;
     }
   }
   .el-menu--collapse .el-menu .el-submenu {

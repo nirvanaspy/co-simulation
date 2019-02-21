@@ -5,47 +5,14 @@
     <breadcrumb class="breadcrumb-container"></breadcrumb>
 
     <div class="right-menu">
-      <!--<error-log class="errLog-container right-menu-item"></error-log>-->
 
       <el-tooltip effect="dark" :content="$t('navbar.screenfull')" placement="bottom">
         <screenfull class="screenfull right-menu-item"></screenfull>
       </el-tooltip>
 
-      <span style="font-weight: 400 !important;color: #97a8be;line-height: 50px;position: relative;top: -13px;">
+      <span style="font-weight: 400 !important;color: #fff;line-height: 50px;position: relative;top: -13px;">
           {{selectedProName}}
       </span>
-
-
-      <!--<lang-select class="international right-menu-item"></lang-select>
-      <el-tooltip effect="dark" :content="$t('navbar.theme')" placement="bottom">
-        <theme-picker class="theme-switch right-menu-item"></theme-picker>
-      </el-tooltip>-->
-
-      <!--<el-dropdown class="avatar-container right-menu-item" trigger="click">
-        <div class="component-item proImg">
-          <pan-thumb class="proImg" width="40px" height="40px" image="https://wpimg.wallstcn.com/577965b9-bb9e-4e02-9f0c-095b41417191">
-            项目
-          </pan-thumb>
-          <i class="el-icon-caret-bottom proIcon"></i>
-        </div>
-        <el-dropdown-menu slot="dropdown">
-          <el-select
-            @focus="onFocus"
-            v-model="selected"
-            filterable
-            remote
-            allow-create
-            default-first-option
-            placeholder="选择或创建项目"
-            @change="changePro">
-            <el-option
-              v-for="item in list"
-              :key="item.name"
-              :value="item.name">
-            </el-option>
-          </el-select>
-        </el-dropdown-menu>
-      </el-dropdown>-->
 
       <el-dropdown class="avatar-container right-menu-item" trigger="click">
         <div class="avatar-wrapper">
@@ -130,23 +97,6 @@
       ThemePicker
     },
     data() {
-      /*const validatePassword = (rule, value, callback) => {
-        if (value.length < 6) {
-          callback(new Error('请输入正确的密码,至少六位！'))
-        } else {
-          callback()
-        }
-      }
-
-      const validatePasswordAgain = (rule, value, callback) => {
-        if (value.length < 6) {
-          callback(new Error('请输入正确的密码,至少六位！'))
-        } else if(this.form.passwordAgain !== this.form.passwordNew) {
-          callback(new Error('两次密码输入不一致，请再次输入新密码！'))
-        } else {
-          callback()
-        }
-      }*/
       const validatePassword = (rule, value, callback) => {
         if (!isvalidPwd(value)) {
           callback(new Error('密码必须是6-16位数字和字母的组合！'))
@@ -434,16 +384,20 @@
     cursor: pointer;
   }
   .navbar {
-    height: 50px;
-    line-height: 50px;
+    height: 63px;
+    line-height: 63px;
     border-radius: 0px !important;
+    background: linear-gradient(120deg, #00e4d0, #5983e8);
+    padding-left: 40px;
     .hamburger-container {
-      line-height: 58px;
-      height: 50px;
+      line-height: 70px;
+      height: 63px;
       float: left;
       padding: 0 10px;
     }
     .breadcrumb-container {
+      height: 63px;
+      line-height: 63px;
       float: left;
     }
     .errLog-container {

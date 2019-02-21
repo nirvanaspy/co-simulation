@@ -5,7 +5,7 @@
     </div>
     <div style="position:relative;">
       <pan-thumb class="panThumb" :image="avatar"></pan-thumb>
-      <mallki className='mallki-text' text='vue-element-admin'></mallki>
+      <mallki className='mallki-text' text='co-simulation'></mallki>
       <div style="padding-top:35px;" class='progress-item'>
         <span>Vue</span>
         <el-progress :percentage="70"></el-progress>

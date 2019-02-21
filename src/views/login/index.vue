@@ -3,44 +3,30 @@
     <el-form class="login-form" autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left">
       <div class="title-container">
         <h3 class="title">{{$t('login.title')}}</h3>
-        <lang-select class="set-language"></lang-select>
       </div>
-      <!--<div class="ipContainer">
-        <el-form-item prop="ipConfig" class="ipform">
-          <span class="svg-container svg-container_ip">
-            <svg-icon icon-class="IP" />
-          </span>
-          <el-input name="ipConfig" type="text" v-model="loginForm.ipConfig" autoComplete="on" placeholder="IP地址" />
-        </el-form-item>
-        &lt;!&ndash;<span class="colon">:</span>&ndash;&gt;
-        <el-form-item prop="port" class="portform">
-          <span class="svg-container">
-            <svg-icon icon-class="port" />
-          </span>
-          <el-input name="port" type="text" v-model="loginForm.port" autoComplete="on" placeholder="端口号" />
-        </el-form-item>
-      </div>-->
-      <el-form-item prop="username">
+      <div class="form-container">
+        <el-form-item prop="username">
         <span class="svg-container svg-container_login">
           <svg-icon icon-class="user" />
         </span>
-        <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="username" />
-      </el-form-item>
+          <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="username" />
+        </el-form-item>
 
-      <el-form-item prop="password">
+        <el-form-item prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
-        <el-input name="password" :type="passwordType" @keyup.enter.native="handleLogin" v-model="loginForm.password" autoComplete="on" placeholder="password" />
-        <span class="show-pwd" @click="showPwd">
-          <svg-icon icon-class="eye" />
+          <el-input name="password" :type="passwordType" @keyup.enter.native="handleLogin" v-model="loginForm.password" autoComplete="on" placeholder="password" />
+          <span class="show-pwd" @click="showPwd">
+          <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
-      </el-form-item>
+        </el-form-item>
 
-      <el-button type="primary" style="width:100%;margin-bottom:30px;" :loading="loading" @click.native.prevent="handleLogin">{{$t('login.logIn')}}</el-button>
-      <div class="register-container">
-        <span class="register-tips">没有账号？</span>
-        <span class="register-btn" @click="jumpToRegister">注册</span>
+        <el-button type="primary" style="width:100%;margin-bottom:20px;" :loading="loading" @click.native.prevent="handleLogin">{{$t('login.logIn')}}</el-button>
+        <div class="register-container">
+          <span class="register-tips">没有账号？</span>
+          <span class="register-btn" @click="jumpToRegister">注册</span>
+        </div>
       </div>
     </el-form>
   </div>
@@ -48,13 +34,9 @@
 
 <script>
 import { isvalidUsername } from '@/utils/validate'
-import LangSelect from '@/components/LangSelect'
 import { mapMutations } from 'vuex'
-import service from '@/utils/request'
-// import { getUserId } from '@/api/getUsers'
 /* eslint-disable */
 export default {
-  components: { LangSelect},
   name: 'login',
   data() {
     const validateUsername = (rule, value, callback) => {
@@ -102,16 +84,10 @@ export default {
       this.$refs.loginForm.validate(valid => {
         let username = this.loginForm.username;
         let password = this.loginForm.password;
-        /*let ip = this.loginForm.ipConfig;
-        let port = this.loginForm.port;*/
         let expireDays = 30;
         if (valid) {
           this.loading = true
           this.setCookie('username', username, expireDays)
-          // this.setCookie('password', password, expireDays)
-          /*this.setCookie('ip', ip, expireDays)
-          this.setCookie('port', port, expireDays)
-          service.defaults.baseURL = 'http://' + ip + ':' + port + '/apis' // 动态设置api接口*/
 
           let qs = require('qs');
           let formData = qs.stringify({
@@ -125,10 +101,8 @@ export default {
 
           this.$store.dispatch('LoginByUsername', formData).then(() => {
             this.loading = false
-            /*getUserId().then((res) => {
-              this.setCookie('userId', res.data.data.id)
-            })*/
-            this.$router.push({ path: '/projectManage' })
+            this.$router.push({ path: '/user_manage' })
+            // this.$router.push({ path: '/' })
           }).catch(() => {
             this.loading = false
             this.$notify({
@@ -154,21 +128,9 @@ export default {
     })
   },
   created() {
-    /*if(this.getCookie('ip')) {
-      this.loginForm.ipConfig = this.getCookie('ip')
-    }
-    if(this.getCookie('port')) {
-      this.loginForm.port = this.getCookie('port')
-    }*/
     if(this.getCookie('username')) {
       this.loginForm.username = this.getCookie('username')
     }
-    /*this.setIP(this.loginForm.ipConfig)
-    this.setPort(this.loginForm.port)*/
-    // window.addEventListener('hashchange', this.afterQRScan)
-  },
-  destroyed() {
-    // window.removeEventListener('hashchange', this.afterQRScan)
   }
 }
 </script>
@@ -181,57 +143,34 @@ $light_gray:#eee;
 .login-container {
   .el-input {
     display: inline-block;
-    height: 47px;
+    height: 40px;
     width: 85%;
     input {
-      background: transparent;
+      background: #fff;
       border: 0px;
       -webkit-appearance: none;
       border-radius: 0px;
-      padding: 12px 5px 12px 15px;
-      color: $light_gray;
-      height: 47px;
+      padding: 6px 5px 6px 15px;
+      color: #495057;
+      height: 40px;
       &:-webkit-autofill {
-        -webkit-box-shadow: 0 0 0px 1000px $bg inset !important;
-        -webkit-text-fill-color: #fff !important;
+        -webkit-box-shadow: 0 0 0px 1000px rgb(255,255,255) inset !important;
+        -webkit-text-fill-color: #495057 !important;
       }
     }
   }
   .el-form-item {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgb(229, 229, 229);
+    background: #fff;
     border-radius: 5px;
     // color: #454545;
     color: $light_gray;
   }
-  /*.ipContainer {
-    .el-form-item.ipform{
-      width:55%;
-      display: inline-block;
-    }
-    .ipform .el-input{
-      width:60%;
-    }
-    .colon {
-      display: inline-block;
-      text-align: center;
-      width: 5%;
-      color:#fff;
-    }
-    .el-form-item.portform{
-      width:40%;
-      display: inline-block;
-      float: right;
-    }
-    .portform .el-input{
-      width:40%
-    }
-  }*/
 }
 .register-container{
   text-align: center;
   font-size: 14px;
-  color:$light_gray;
+  color:#212529;
   .register-tips{
     margin-right: 4px;
   }
@@ -251,16 +190,17 @@ $light_gray:#eee;
   position: fixed;
   height: 100%;
   width: 100%;
-  background-color: $bg;
+  background: url("./login-back.jpg") center center no-repeat;
+  background-size: cover;
   .login-form {
     position: absolute;
-    left: 0;
-    right: 0;
-    width: 520px;
-    padding: 35px 35px 15px 35px;
-    margin: 0 auto;
     top: 40%;
+    left: 50%;
+    width: 600px;
+    height: 400px;
+    padding: 35px 35px 15px 35px;
     margin-top: -200px;
+    margin-left: -300px;
   }
   .tips {
     font-size: 14px;
@@ -273,7 +213,7 @@ $light_gray:#eee;
     }
   }
   .svg-container {
-    padding: 6px 5px 6px 15px;
+    padding: 2px 5px 2px 15px;
     color: $dark_gray;
     vertical-align: middle;
     width: 30px;
@@ -282,15 +222,17 @@ $light_gray:#eee;
       font-size: 20px;
     }
   }
+  .svg-container.svg-container_login {
+    padding-left: 13px;
+  }
   .title-container {
     position: relative;
     .title {
-      font-size: 26px;
-      font-weight: 400;
-      color: $light_gray;
+      font-size: 30px;
+      font-weight: 500;
+      color: rgb(33, 37, 41);
       margin: 0px auto 40px auto;
       text-align: center;
-      font-weight: bold;
     }
     .set-language {
       color: #fff;
@@ -299,19 +241,20 @@ $light_gray:#eee;
       right: 0px;
     }
   }
+  .form-container {
+    background: #fff;
+    padding: 40px 40px 20px;
+    border-radius: 4px;
+    box-shadow: 0 -25px 37.7px 11.3px rgba(8, 143, 220, 0.07);
+  }
   .show-pwd {
     position: absolute;
     right: 10px;
-    top: 7px;
+    top: 3px;
     font-size: 16px;
     color: $dark_gray;
     cursor: pointer;
     user-select: none;
-  }
-  .thirdparty-button {
-    position: absolute;
-    right: 35px;
-    bottom: 28px;
   }
 }
 </style>

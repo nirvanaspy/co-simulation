@@ -1,412 +1,287 @@
 <template>
-  <div class="userManage-container">
-    <el-header>
-      <div class="right-menu">
-        <span calss="userName" style="position: relative;top: -12px;color: #fff;">{{userName}}</span>
-        <el-dropdown class="avatar-container right-menu-item" trigger="click">
-          <div class="avatar-wrapper">
-            <pan-thumb class="proImg" width="40px" height="40px" image="./2/jpg">
-            </pan-thumb>
-            <!--<img class="user-avatar" src="./2.jpg">-->
-            <i class="el-icon-caret-bottom"></i>
-          </div>
-          <el-dropdown-menu slot="dropdown">
-            <router-link to="/projectManage">
-              <el-dropdown-item>
-                <span style="display:block;">项目管理</span>
-              </el-dropdown-item>
-            </router-link>
-            <!--<el-dropdown-item>
-              <span v-if="role === 'admin'" style="display:block;">用户管理</span>
-              <span v-else @click="modifyPasswordVisible = true" style="display:block;">修改密码</span>
-            </el-dropdown-item>-->
-            <el-dropdown-item divided>
-              <span @click="logout" style="display:block;">{{$t('navbar.logOut')}}</span>
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-      </div>
-    </el-header>
-    <div class="login-form">
-      <div class="title-container">
-        <h3 class="title" style="margin-bottom:30px">
-          用户管理
-        </h3>
-        <div>
-          <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
-            <el-input style="width: 200px;" class="filter-item" placeholder="用户名" v-model="searchQuery">
-            </el-input>
-          </div>
-          <el-button size="mini" type="success"
-                     @click="handleCreate"
-                     style="float:right;margin-top:2px;">添加
-          </el-button>
-        </div>
-      </div>
-      <el-table :key='tableKey'
-                :data="listA"
-                v-loading="listLoading"
-                element-loading-text="给我一点时间"
-                fit
-                highlight-current-row
-                height="65%"
-                style="width: 100%;border-radius:8px;">
-        <el-table-column min-width="150px" :label="$t('table.username')">
-          <template slot-scope="scope">
-            <span class="link-type" @click="handleUpdate(scope.row)">{{scope.row.username}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" :label="$t('table.actions')" width="230" class-name="small-padding fixed-width">
-          <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">{{$t('table.edit')}}</el-button>
-            <el-button size="mini" type="danger" @click="handleDelete(scope.row)" :loading="scope.row.delLoading" v-if="scope.row.authorities.length === 1">{{$t('table.delete')}}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="currentPage"
-        :page-sizes="[10,20,30,50]"
-        :page-size="listQuery.size"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="this.total"
-        background
-        style="text-align: center;margin-top:20px"
-      >
-      </el-pagination>
-    </div>
-    <!--修改用户-->
-    <el-dialog title="修改用户" :visible.sync="dialogFormVisible" append-to-body width="40%">
-      <el-form :rules="modifyRules" ref="modifyDataForm" :model="form" label-width="100px" style='width:80%; margin:0 auto;'>
-        <el-form-item label="新密码" prop="passwordNew">
-          <el-input v-model="form.passwordNew" :type="passwordType"></el-input>
-          <span class="show-pwd" @click="showPwd">
-            <svg-icon icon-class="eye" />
-          </span>
+  <div class="usermanageCont">
+    <span class="editor-create" @click="handlAddUser()" v-if="nowTabs == 0">
+        <svg-icon icon-class="create"></svg-icon>
+    </span>
+    <span class="editor-create" @click="handlAddRole()" v-if="nowTabs == 1">
+        <svg-icon icon-class="create"></svg-icon>
+    </span>
+    <el-row style="height: 100%;">
+      <el-col :xs="24" :sm="24" :md="24">
+        <el-tabs type="border-card" v-model="nowTabs">
+          <el-tab-pane>
+            <span slot="label"><svg-icon icon-class="peoples"></svg-icon> 用户管理</span>
+            <div class="userboard">
+              <div class="filiter-box">
+                <div class="input-group">
+                  <el-input type="text" size="small" style="width:200px;"></el-input>
+                  <div class="input-group-button">
+                    <svg-icon icon-class="search"></svg-icon>
+                  </div>
+                </div>
+              </div>
+              <div v-for="item in userList" class="user-item" v-if="item.username !== 'admin'">
+                <div class="editor-box">
+                  <span class="editor-item editor-edit" @click="handleEditPass(item)">
+                    <svg-icon icon-class="edit"></svg-icon>
+                  </span>
+                  <span class="editor-item editor-delete" @click="handleDeleteUser(item)">
+                    <svg-icon icon-class="delete"></svg-icon>
+                  </span>
+                </div>
+                <div class="avatarCont">
+                  <span class="user-avatar">
+                    <!--<img :src="genenrateAvatar(item.id)" alt="">-->
+                    <svg-icon icon-class="user-1"></svg-icon>
+                  </span>
+                </div>
+                <div class="userMesCont">
+                  <div class="userName">
+                    <span class="username-title">用户名:</span>
+                    <strong class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</strong>
+                  </div>
+                  <div class="userMes">
+                    <div class="user-role name">角色:
+                      <span>  {{item.roleEntity.name}}-{{item.roleEntity.description}}</span>
+                      <el-dropdown placement="bottom-start" trigger="click" @command="handleSelectRole">
+                        <!--<el-button type="primary">
+                            更多菜单<i class="el-icon-arrow-down el-icon--right"></i>
+                        </el-button>-->
+                        <span class="switchrole" @click="handleSelectUser(item)"><svg-icon
+                          icon-class="switchrole"></svg-icon></span>
+                        <el-dropdown-menu slot="dropdown">
+                          <el-dropdown-item v-for="item in roleList" :command="item.id">{{item.name}}</el-dropdown-item>
+                        </el-dropdown-menu>
+                      </el-dropdown>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane>
+            <span slot="label"><svg-icon icon-class="roles"></svg-icon> 角色管理</span>
+            <el-row>
+              <el-col :span="6" v-for="(item, index) in roleList" :key="index" :offset="(index)%3 == 0 ? 0 : 3"
+                      style="margin-bottom: 30px;">
+                <el-card :body-style="{ padding: '0px',background:'rgb(249,249,249)'}" shadow="hover">
+                  <span class="role-icon"><svg-icon icon-class="role1"></svg-icon></span>
+                  <div style="padding: 14px;">
+                    <span>{{item.name}}</span>
+                    <div class="bottom clearfix" style="height: 30px">
+                      <span @click="handleEditRole(item)"
+                            v-if="item.name !== 'user' && item.name !== 'admin'"
+                            class="role-edit">
+                        <svg-icon icon-class="edit"></svg-icon>
+                      </span>
+                      <span @click="handleDeleteRole(item.id)" v-if="item.name !== 'user' && item.name !== 'admin'"
+                            class="role-delete">
+                        <svg-icon icon-class="delete"></svg-icon>
+                      </span>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </el-tab-pane>
+        </el-tabs>
+      </el-col>
+    </el-row>
+    <!--新建用户-->
+    <el-dialog title="新建用户"
+               class="createDialog"
+               :visible.sync="createDialogVisible"
+               width="30%">
+      <el-form label-position="left" label-width="80px" :model="createUserInfo">
+        <el-form-item label="用户名">
+          <el-input v-model="createUserInfo.username"></el-input>
         </el-form-item>
-        <el-form-item label="再次输入" prop="passwordAgain">
-          <el-input v-model="form.passwordAgain" :type="passwordTypeAgain"></el-input>
-          <span class="show-pwd" @click="showPwdAgain">
-            <svg-icon icon-class="eye" />
-          </span>
+        <el-form-item label="密码">
+          <el-input v-model="createUserInfo.password" type="password"></el-input>
+        </el-form-item>
+        <el-form-item label="再次输入">
+          <el-input v-model="createUserInfo.passwordAgain" type="password"></el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">{{$t('table.cancel')}}</el-button>
-        <el-button :disabled="this.btnConfirm" type="primary" @click="updateUser" :loading="modLoading">{{$t('table.confirm')}}</el-button>
-      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="createDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUsers">确 定</el-button>
+      </span>
     </el-dialog>
-    <!--创建用户-->
-    <el-dialog title="添加用户" :visible.sync="createUserFormVisible" append-to-body width="40%">
-      <el-form :rules="rules" ref="createDataForm" :model="createForm" label-width="100px" style='width: 400px; margin:0 auto;'>
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="createForm.username" type="text"></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="createForm.password" :type="passwordType"></el-input>
-          <span class="show-pwd" @click="showPwd">
-            <svg-icon icon-class="eye" />
-          </span>
-        </el-form-item>
-        <el-form-item label="再次输入" prop="passwordAgain">
-          <el-input v-model="createForm.passwordAgain" :type="passwordTypeAgain"></el-input>
-          <span class="show-pwd" @click="showPwdAgain">
-            <svg-icon icon-class="eye" />
-          </span>
+    <!--编辑用户-->
+    <el-dialog title="编辑用户"
+               class="editDialog"
+               :visible.sync="editDialogVisible"
+               width="30%">
+      <el-form label-position="left" label-width="80px" :model="userInfo">
+        <el-form-item label="用户名">
+          <el-input v-model="userInfo.username"></el-input>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="createUserFormVisible = false">{{$t('table.cancel')}}</el-button>
-        <el-button :disabled="this.btnConfirm" type="primary" @click="createUser" :loading="addLoading">{{$t('table.confirm')}}</el-button>
-      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUser()">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!--编辑用户密码-->
+    <el-dialog title="编辑用户密码"
+               class="editDialog"
+               :visible.sync="editPassDialog"
+               width="30%">
+      <el-form label-position="left" label-width="80px" :model="userInfo">
+        <el-form-item label="用户名">
+          <el-input v-model="userInfo.name" disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="输入密码">
+          <el-input v-model="userInfo.password"></el-input>
+        </el-form-item>
+        <el-form-item label="再次输入密码">
+          <el-input v-model="userInfo.passwordAgain"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button @click="editRoleDialog = false">取 消</el-button>
+                <el-button type="primary" @click="editRole()">确 定</el-button>
+            </span>
+    </el-dialog>
+    <!--新建用户角色-->
+    <el-dialog title="新建用户角色"
+               class="createDialog"
+               :visible.sync="createRoleDialog"
+               width="30%">
+      <el-form label-position="left" label-width="80px" :model="createRoleInfo">
+        <el-form-item label="角色名称">
+          <el-input v-model="createRoleInfo.name"></el-input>
+        </el-form-item>
+        <el-form-item label="角色描述">
+          <el-input v-model="createRoleInfo.description"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button @click="createRoleDialog = false">取 消</el-button>
+                <el-button type="primary" @click="addRoles">确 定</el-button>
+            </span>
+    </el-dialog>
+    <!--编辑用户角色-->
+    <el-dialog title="编辑用户角色"
+               class="editDialog"
+               :visible.sync="editRoleDialog"
+               width="30%">
+      <el-form label-position="left" label-width="80px" :model="roleInfo">
+        <el-form-item label="角色名">
+          <el-input v-model="roleInfo.name"></el-input>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="roleInfo.description"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button @click="editRoleDialog = false">取 消</el-button>
+                <el-button type="primary" @click="editRole()">确 定</el-button>
+            </span>
     </el-dialog>
   </div>
 </template>
 
 <script>
-  import PanThumb from '@/components/PanThumb'
+  /*eslint-disable*/
   import { isvalidUsername, isvalidPwd } from '@/utils/validate'
-  import { UserList, updateUser, deleteUser, addUser } from '@/api/getUsers'
+  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole } from '@/api/getUsers'
+  import { roleList } from '@/api/roles'
   import store from '../../store'
 
-  /* import LangSelect from '@/components/LangSelect'*/
-  /* import SocialSign from './socialsignin'*/
-
-  /*eslint-disable*/
   export default {
-    components: { PanThumb },
-    name: 'login',
+    name: 'usermanange',
     data() {
-      const validateUsername = (rule, value, callback) => {
-        if (!isvalidUsername(value)) {
-          callback(new Error('请输入用户名！'))
-        } else {
-          callback()
-        }
-      }
-      const validatePassword = (rule, value, callback) => {
-        if (!isvalidPwd(value)) {
-          callback(new Error('密码必须是6-16位数字和字母的组合！'))
-          this.btnConfirm = true
-          this.passwordValidate = false
-        } else {
-          callback()
-          this.passwordValidate = true
-          if(this.passwordValidate && this.pasAgainValidate) {
-            this.btnConfirm = false
-          }
-        }
-      }
-
-      const validatePasswordAgain = (rule, value, callback) => {
-        if (!isvalidPwd(value)) {
-          callback(new Error('密码必须是6-16位数字和字母的组合！'))
-          this.btnConfirm = true
-          this.pasAgainValidate = false
-        } else if(this.createForm.passwordAgain !== this.createForm.password) {
-          this.btnConfirm = true
-          this.pasAgainValidate = false
-          callback(new Error('两次密码输入不一致，请再次输入新密码！'))
-        } else {
-          callback()
-          this.pasAgainValidate = true
-          if(this.passwordValidate && this.pasAgainValidate) {
-            this.btnConfirm = false
-          }
-        }
-      }
-
-      const validateModifyPasAg = (rule, value, callback) => {
-        if (value.length < 6) {
-          callback(new Error('请输入正确的密码,至少六位！'))
-          this.btnConfirm = true
-          this.pasAgainValidate = false
-        } else if(this.form.passwordAgain !== this.form.passwordNew) {
-          this.btnConfirm = true
-          this.pasAgainValidate = false
-          callback(new Error('两次密码输入不一致，请再次输入新密码！'))
-        } else {
-          callback()
-          this.pasAgainValidate = true
-          if(this.passwordValidate && this.pasAgainValidate) {
-            this.btnConfirm = false
-          }
-        }
-      }
       return {
-        userName: '',
-        selectedId: '',
-        tableKey: 0,
-        list: [],
+        nowTabs: null,
+        selectedUserId: '',
+        userList: [{
+          username: 'aaa',
+          email: 'aaa@qq.com',
+          telephoneNum: '12345678910',
+          id: 'qwertrtgdfgdsassffdfg'
+        }],
         listQuery: {
           page: 0,
           size:10,
           limit: 5,
-          tagname: ''
         },
-        total: null,
-        pagesize:10,//每页的数据条数
-        currentPage:1,//默认开始页面
-        dialogFormVisible: false,
-        createUserFormVisible: false,
-        modifyPasswordVisible: false,
-        addLoading: false,
-        modLoading: false,
-        delLoading: false,
-        passwordType: 'password',
-        passwordTypeAgain: 'password',
-        btnConfirm: false,
-        passwordValidate: false,
-        pasAgainValidate: false,
-        formLabelWidth: '100px',
-        searchQuery: '',
-        temp: {
+        roleList: null,
+        userInfo: {
+          id: '',
+          username: '',
+          password: '',
+          passwordAgain: ''
+        },
+        createUserInfo: {
+          username: '',
+          email: '',
+          telephoneNum: '',
+          password: '',
+          passwordAgain: ''
+        },
+        roleInfo: {
           id: '',
           name: '',
           description: ''
         },
-        form: {
-          passwordAgain: '',
-          passwordNew: ''
+        createRoleInfo: {
+          name: '',
+          description: ''
         },
-        createForm: {
-          username: '',
-          password: '',
-          passwordAgain: ''
-        },
-        rules: {
-          username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-          password: [{ required: true, trigger: 'blur', validator: validatePassword }],
-          passwordAgain: [{ required: true, trigger: 'blur', validator: validatePasswordAgain }]
-        },
-        modifyRules: {
-          passwordNew: [{ required: true, trigger: 'blur', validator: validatePassword }],
-          passwordAgain: [{ required: true, trigger: 'blur', validator: validateModifyPasAg }]
-        },
-        loading: false,
-        listLoading: true,
-        showDialog: false,
-        userData:{
-          username: '',
-          password: ''
-        },
-        token: '',
-        role: ''
+        managerInfo: null,
+        createDialogVisible: false,
+        editDialogVisible: false,
+        deleteDialogVisible: false,
+        createRoleDialog: false,
+        editRoleDialog: false,
+        editPassDialog: false
       }
     },
     created() {
-      this.userName = this.getCookie('username')
-      this.role = store.getters.roles
-      this.getList()
+      this.getUserList()
+      this.getRolesList()
+    },
+    mounted() {
     },
     methods: {
-      showPwd() {
-        if (this.passwordType === 'password') {
-          this.passwordType = ''
-        } else {
-          this.passwordType = 'password'
-        }
-      },
-      showPwdAgain() {
-        if (this.passwordTypeAgain === 'password') {
-          this.passwordTypeAgain = ''
-        } else {
-          this.passwordTypeAgain = 'password'
-        }
-      },
-      logout() {
-        this.$store.dispatch('FedLogOut').then(() => {
-          location.reload()// In order to re-instantiate the vue-router object to avoid bugs
+      getUserList() {
+        UserList(this.listQuery).then((res) => {
+          this.userList = res.data.data
         })
       },
-      resetCreate() {
-        this.createForm = {
-          username: '',
-          password: '',
-          passwordAgain: ''
-        }
-      },
-      resetModify () {
-        this.form = {
-          passwordAgain: '',
-          passwordNew: ''
-        }
-      },
-      getList() {
-        this.listLoading = true
-        if(this.role == 'admin') {
-          UserList(this.listQuery).then(response => {
-            this.list = response.data.data.content
-            this.total = response.data.data.totalElements
-            this.listLoading = false
-            this.listLength = response.data.data.length
-          })
-        }
-      },
-      handleCreate() {
-        this.resetCreate()
-        this.createUserFormVisible = true
-        this.$nextTick(() => {
-          this.$refs['createDataForm'].clearValidate()
+      getRolesList() {
+        roleList(this.listQuery).then((res) => {
+          this.roleList = res.data.data
         })
       },
-      createUser() {
-        this.$refs.createDataForm.validate(valid => {
-          if(valid) {
-            this.addLoading = true
-            var qs = require('qs');
-            let data = {
-              'username': this.createForm.username,
-              'password': this.createForm.password
-            }
-            let datapost = qs.stringify(data)
-            addUser(datapost).then(() => {
-              this.addLoading = false
-              this.$notify({
-                title: '成功',
-                message: '创建成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
-              this.createUserFormVisible = false
-            }).catch(() => {
-              this.addLoading = false
-              this.$notify({
-                title: '失败',
-                message: '创建失败',
-                type: 'error',
-                duration: 2000
-              })
-            })
-          }
-        })
+      handlAddUser() {
+        this.createDialogVisible = true
       },
-      handleUpdate(row) {
-        this.resetModify()
-        this.selectedId = row.id;
-        // console.log(this.selectedId);
-        // this.temp = Object.assign({}, row) // copy obj
-        this.dialogFormVisible = true
-        this.$nextTick(() => {
-          this.$refs['modifyDataForm'].clearValidate()
-        })
+      handleEditUser(item) {
+        this.editDialogVisible = true
+        this.userInfo = Object.assign({}, item)
       },
-      updateUser() {
-        this.$refs['modifyDataForm'].validate((valid) => {
-          if (valid) {
-            this.modLoading = true
-            let data = {
-              password: this.form.passwordNew
-            }
-
-            const id = this.selectedId;
-            let qs = require('qs');
-
-            let userData = qs.stringify(data);
-            updateUser(userData, id).then(() => {
-              this.modLoading = false
-              this.dialogFormVisible = false
-              this.$notify({
-                title: '成功',
-                message: '更新成功',
-                type: 'success',
-                duration: 2000
-              })
-            }).catch(() => {
-              this.modLoading = false
-              this.dialogFormVisible = false
-              this.$notify({
-                title: '失败',
-                message: '更改失败',
-                type: 'error',
-                duration: 2000
-              })
-            })
-          }
-        })
+      handleEditPass(item) {
+        this.editPassDialog = true
+        this.userInfo = Object.assign({}, item)
       },
-      handleDelete(row) {
-        let id = row.id;
-        row.delLoading = true
+      handleDeleteUser(item) {
         this.$confirm('确认删除吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          deleteUser(id).then(() => {
-            row.delLoading = false
+          deleteUser(item.id).then(() => {
+            this.getUserList()
             this.$notify({
               title: '成功',
               message: '删除成功',
               type: 'success',
               duration: 2000
             })
-            this.getList()
           }).catch(() => {
-            row.delLoading = false
             this.$notify({
               title: '失败',
               message: '删除失败',
@@ -415,118 +290,440 @@
             })
           })
         }).catch(() => {
-          row.delLoading = false
           this.$message({
             type: 'info',
             message: '已取消删除'
           })
         })
       },
-      handleSizeChange(val) {
-        this.listQuery.size = val
-        this.pagesize = val
-        this.getList()
+      handleDeleteRole(id) {
+        this.$confirm('确认删除吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          deleteRole(id).then(() => {
+            this.getRolesList()
+            this.$notify({
+              title: '成功',
+              message: '删除成功',
+              type: 'success',
+              duration: 2000
+            })
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: '删除失败',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
       },
-      handleCurrentChange(val) {
-        this.listQuery.page = val - 1
-        this.currentPage = val
-        this.getList()
+      handlAddRole() {
+        this.createRoleDialog = true
+      },
+      handleEditRole(item) {
+        this.editRoleDialog = true
+        this.roleInfo = Object.assign({}, item)
+      },
+      addRoles() {
+        var qs = require('qs')
+        let data = {
+          'name': this.createRoleInfo.name,
+          'description': this.createRoleInfo.description
+        }
+        let datapost = qs.stringify(data)
+        addRole(datapost).then(() => {
+          this.$notify({
+            title: '成功',
+            message: '创建成功',
+            type: 'success',
+            duration: 2000
+          })
+          this.getRolesList()
+          this.createRoleDialog = false
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '创建失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      addUsers() {
+        let data = {
+          'username': this.createUserInfo.username,
+          'password': this.createUserInfo.password
+        }
+        addUser(data).then(() => {
+          this.$notify({
+            title: '成功',
+            message: '创建成功',
+            type: 'success',
+            duration: 2000
+          })
+          this.getUserList()
+          this.createDialogVisible = false
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '创建失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      editUser() {
+        var qs = require('qs')
+        let data = {
+          'username': this.userInfo.username,
+          'email': this.userInfo.email,
+          'telephoneNum': this.userInfo.telephoneNum
+        }
+        let datapost = qs.stringify(data)
+        modifyUser(this.userInfo.id, datapost).then((res) => {
+          this.$notify({
+            title: '成功',
+            message: '更新成功',
+            type: 'success',
+            duration: 2000
+          })
+          this.getUserList()
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '更新失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      editRole() {
+        var qs = require('qs')
+        let data = {
+          'name': this.roleInfo.name,
+          'description': this.roleInfo.description
+        }
+        let datapost = qs.stringify(data)
+        modifyRole(this.roleInfo.id, datapost).then(() => {
+          this.$notify({
+            title: '成功',
+            message: '修改成功',
+            type: 'success',
+            duration: 2000
+          })
+          this.getRolesList()
+          this.editRoleDialog = false
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '修改失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      handleSelectUser(item) {
+        this.selectedUserId = item.id
+      },
+      handleSelectRole(id) {
+        this.$confirm('确认选择该角色吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          var qs = require('qs')
+          let data = {
+            'roleId': id
+          }
+          let datapost = qs.stringify(data)
+          switchRole(this.selectedUserId, datapost).then(() => {
+            this.$notify({
+              title: '成功',
+              message: '角色修改成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getUserList()
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: '角色修改失败',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消选择'
+          })
+        })
       }
     },
     computed: {
-      listA: function () {
-        let self = this;
-        return self.list.filter(function (item) {
-          return item.username.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
-        })
+      /*genenrateAvatar() {
+        return function(hash) {
+          if(hash) {
+            let options = {
+              foreground: [210, 82, 91, 255],               // rgba black
+              background: [255, 255, 255, 0],         // rgba white
+              margin: 0.2,                              // 20% margin
+              size: 40,                                // 420px square
+              format: 'svg'                             // use SVG instead of PNG
+            }
+            let data = new Identicon(hash, options).toString()
+            let src = 'data:image/svg+xml;base64,' + data
+            return src
+          } else {
+            return ''
+          }
+        }
+      },*/
+      listenNowTabs() {
+        return this.nowTabs
+      }
+    },
+    watch: {
+      listenNowTabs: function() {
       }
     }
   }
 </script>
 
-<style rel="stylesheet/scss" lang="scss" scoped>
-  $bg:#2d3a4b;
-  $dark_gray:#889aa4;
-  $light_gray:#eee;
-  .show-pwd {
+<style lang="scss" scoped>
+  .editor-create {
+    right: 35px;
     position: absolute;
-    right: 10px;
-    top: 2px;
-    font-size: 16px;
+    top: 40px;
+    z-index: 1000;
+    // color: rgb(92, 184, 92);
+    color: #12d0d5;
     cursor: pointer;
-    user-select: none;
   }
-  .userManage-container {
-    position: fixed;
+
+  .managerCont {
     height: 100%;
+    padding-right: 30px;
+
+    .managerAvatar {
+      width: 100px;
+      height: 100px;
+      padding: 6px;
+      background: #fff;
+      border-radius: 50%;
+      padding: 8px;
+      margin: 0 auto;
+
+      .avatar {
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+        background: #ddd;
+        border-radius: 50%;
+        font-size: 60px;
+        line-height: 80px;
+      }
+    }
+
+    .managerInfo {
+      width: 100%;
+      padding: 30px 0;
+
+      .info-title, .info-mes {
+        width: 50%;
+        display: inline-block;
+        text-align: left;
+
+        span {
+          display: block;
+        }
+      }
+
+      .infoBox {
+        box-sizing: border-box;
+        height: 35px;
+        line-height: 35px;
+        padding-left: 8px;
+
+        span {
+          display: inline-block;
+          width: 50%;
+          text-align: left;
+          color: rgb(119, 119, 119);
+          font-size: 13px;
+        }
+      }
+
+      .infoBox:nth-child(odd) {
+        background: #fff;
+      }
+    }
+  }
+
+  .usermanageCont {
+    /*隐藏滚动条，当IE下溢出，仍然可以滚动*/
+    -ms-overflow-style: none;
+    /*火狐下隐藏滚动条*/
+    overflow: -moz-scrollbars-none;
+  }
+
+  /*Chrome下隐藏滚动条，溢出可以透明滚动*/
+  .usermanageCont::-webkit-scrollbar {
+    width: 0px
+  }
+
+  .usermanageCont {
+    box-sizing: border-box;
+    padding: 32px;
+    background-color: #f2f8f9;
     width: 100%;
-    background-color: $bg;
-    .login-form {
-      position: absolute;
-      left: 0;
-      right: 0;
-      width: 60%;
-      height: 100%;
-      padding: 0px 35px 15px 35px;
-      margin: 10px auto;
-    }
-    .svg-container {
-      padding: 6px 5px 6px 15px;
-      color: $dark_gray;
-      vertical-align: middle;
-      width: 30px;
-      display: inline-block;
-      &_login,&_ip {
-        font-size: 20px;
-      }
-    }
-    .title-container {
+    // height: 100%;
+    overflow-y: scroll;
+    position: absolute;
+    top: 63px;
+    bottom: 0;
+
+    .user-item {
       position: relative;
-      .title {
-        font-size: 26px;
-        font-weight: 400;
-        color: $light_gray;
-        margin: 0px auto 40px auto;
+      overflow: hidden;
+      border-bottom: 1px solid #eee;
+      // margin-bottom: 10px;
+    }
+
+    .editor-box {
+      position: absolute;
+      top: 4px;
+      right: 0px;
+
+      .editor-item {
+        width: 20px;
+        margin-right: 4px;
+        font-size: 18px;
+        cursor: pointer;
+
+        &.editor-create {
+          // color: rgb(92, 184, 92)
+          color: #12d0d5;
+        }
+
+        &.editor-edit {
+          color: rgb(240, 173, 48)
+        }
+
+        &.editor-delete {
+          color: rgb(233, 102, 44)
+        }
+      }
+    }
+
+    .avatarCont {
+      float: left;
+      width: 80px;
+      height: 100%;
+      // background: #123;
+      font-size: 40px;
+
+      .user-avatar {
+        display: inline-block;
+        /*width: 40px;
+        height: 40px;*/
+        margin-top: 8px;
+        // background: #eee;
+        border-radius: 6px;
         text-align: center;
-        font-weight: bold;
+        cursor: pointer;
       }
-      .set-language {
-        color: #fff;
-        position: absolute;
-        top: 5px;
-        right: 0px;
+    }
+
+    .userMesCont {
+      float: left;
+      width: calc(100% - 80px);
+      height: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      text-align: left;
+      // background: #445;
+      .name {
+        color: rgb(119, 119, 119);
+        font-size: 14px;
       }
+
+      .username-title {
+        color: #777;
+        font-size: 14px;
+      }
+
+      .username-text {
+        // color: #777;
+        margin-left: 10px;
+      }
+
+      .userMes div {
+        height: 24px;
+        line-height: 24px;
+      }
+
+      .switchrole {
+        margin-left: 10px;
+        font-size: 20px;
+        cursor: pointer;
+      }
+    }
+
+    .userboard {
+      background: #fff;
+      padding: 0 18px 18px 0;
+    }
+
+    .role-icon {
+      display: block;
+      width: 100%;
+      height: 72px;
+      background: rgba(231, 76, 60, 0.8);
+      font-size: 50px;
     }
   }
-  .right-menu {
-    float: right;
-    height: 100%;
-    &:focus {
-      outline: none;
-    }
-    .right-menu-item {
-      display: inline-block;
-      margin: 0 8px;
-    }
-    .avatar-container {
-      height: 50px;
-      margin-right: 30px;
-      .avatar-wrapper {
-        cursor: pointer;
-        margin-top: 5px;
-        position: relative;
-        .user-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-        }
-        .el-icon-caret-bottom {
-          position: absolute;
-          right: -20px;
-          top: 25px;
-          font-size: 12px;
-        }
-      }
-    }
+
+  .filiter-box {
+    text-align: left;
+    padding-bottom: 20px;
+    padding-left: 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .input-group {
+    padding: 0 10px;
+  }
+
+  .input-group-button {
+    height: 32px;
+    width: 32px;
+    line-height: 32px;
+    position: relative;
+    top: 1px;
+    left: -10px;
+    display: inline-block;
+    // background: #3f7b5f;
+    background: #12d0d5;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .role-edit {
+    color: rgb(240, 173, 48);
+    cursor: pointer;
+  }
+
+  .role-delete {
+    color: rgb(233, 102, 44);
+    cursor: pointer;
   }
 </style>

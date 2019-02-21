@@ -4,7 +4,6 @@ import { Message } from 'element-ui'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css'// progress bar style
 import { getToken } from '@/utils/auth' // getToken from cookie
-import { getCookies } from '../src/main.js'
 
 NProgress.configure({ showSpinner: false })// NProgress Configuration
 
@@ -14,46 +13,8 @@ function hasPermission(roles, permissionRoles) {
   if (!permissionRoles) return true
   return roles.some(role => permissionRoles.indexOf(role) >= 0)
 }
+
 const whiteList = ['/login', '/authredirect', '/register']// no redirect whitelist
-/* router.beforeEach((to, from, next) => {
-/!*  if (to.path === './login') {
-    next({path: '/login'})
-    return
-  }*!/
-  NProgress.start()
-  if (getToken()) {
-    if (to.path === '/login') {
-      next({ path: '/' })
-      NProgress.done() // if current page is dashboard will not trigger	afterEach hook, so manually handle it
-    } else {
-      if (store.getters.roles) {
-        store.dispatch('GetUserInfo').then(res => {// 拉取用户信息
-         /!* router.addRoutes(store.getters.addRouters)*!/
-          console.log(store.getters)
-          const roles = store.getters.loginname === 'admin' ? ['admin'] : ['editor']
-          store.dispatch('GenerateRoutes', { roles }).then(() => {// 根据roles权限生成可访问的路由表
-            router.addRoutes(store.getters.addRouters)// 动态添加可访问路由表
-            next() //
-          })
-        }).catch(() => {
-          store.dispatch('FedLogOut').then(() => {
-            Message.error('验证失败,请重新登录')
-            next({ path: '/login' })
-          })
-        })
-      } else {
-        next()
-      }
-    }
-  } else {
-    if (whiteList.indexOf(to.path) !== -1) {
-      next()
-    } else {
-      next('/login')
-      NProgress.done()
-    }
-  }
-})*/
 router.beforeEach((to, from, next) => {
   NProgress.start() // start progress bar
   if (getToken()) { // determine if there has token
@@ -61,13 +22,12 @@ router.beforeEach((to, from, next) => {
       next({ path: '/' })
       NProgress.done() // if current page is dashboard will not trigger	afterEach hook, so manually handle it
     } else {
-      if (store.getters.roles.length === 0) { // 判断当前用户是否已拉取完user_info信息
-        store.dispatch('GetUserInfo').then(res => { // 拉取user_info
-          const roles = [store.getters.roles] // note: roles must be a array! such as: ['editor','develop']
+      if (store.getters.roles.length === 0) {
+        store.dispatch('GetUserInfo').then(res => {
+          const roles = store.getters.roles// note: roles must be a array! such as: ['editor','develop']
           store.dispatch('GenerateRoutes', { roles }).then(() => { // 根据roles权限生成可访问的路由表
             router.addRoutes(store.getters.addRouters) // 动态添加可访问路由表
             next({ ...to, replace: true })
-            // next({ path: '/projectManage', replace: true }) // hack方法 确保addRoutes已完成 ,set the replace: true so the navigation will not leave a history record
           })
         }).catch(() => {
           store.dispatch('FedLogOut').then(() => {
@@ -76,13 +36,11 @@ router.beforeEach((to, from, next) => {
           })
         })
       } else {
-        // 没有动态改变权限的需求可直接next() 删除下方权限判断 ↓
         if (hasPermission(store.getters.roles, to.meta.roles)) {
           next()
         } else {
           next({ path: '/401', replace: true, query: { noGoBack: true }})
         }
-        // 可删 ↑
       }
     }
   } else {
@@ -90,11 +48,11 @@ router.beforeEach((to, from, next) => {
     if (whiteList.indexOf(to.path) !== -1) { // 在免登录白名单，直接进入
       next()
     } else {
-      next('/login') // 否则全部重定向到登录页
-      NProgress.done() // if current page is login will not trigger afterEach hook, so manually handle it
+      next('/login')
+      NProgress.done()
     }
   }
 })
 router.afterEach(() => {
-  NProgress.done() // finish progress bar
+  NProgress.done()
 })

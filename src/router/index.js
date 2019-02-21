@@ -30,12 +30,13 @@ import Layout from '../views/layout/Layout'
 export const constantRouterMap = [
   { path: '/login', component: _import('login/index'), hidden: true },
   { path: '/projectManage', component: _import('projectManage/index'), hidden: true },
-  { path: '/user_manage', component: _import('user_manage/index'), hidden: true },
+  /* { path: '/user_manage', component: _import('user_manage/index'), hidden: true },*/
+  { path: '/role_manage', component: _import('user_manage/roleManage'), hidden: true },
   { path: '/register', component: _import('register/index'), hidden: true },
   { path: '/authredirect', component: _import('login/authredirect'), hidden: true },
   { path: '/404', component: _import('errorPage/404'), hidden: true },
   { path: '/401', component: _import('errorPage/401'), hidden: true },
-  {
+  /* {
     path: '',
     component: Layout,
     redirect: 'projectManage',
@@ -47,8 +48,21 @@ export const constantRouterMap = [
       name: 'projectManage',
       meta: { title: 'projectManage', noCache: true }
     }]
-  },
+  },*/
   {
+    path: '',
+    component: Layout,
+    redirect: 'dashboard',
+    children: [
+      {
+        path: 'dashboard',
+        component: () => import('@/views/dashboard/index'),
+        name: 'Dashboard',
+        meta: { title: 'dashboard', icon: 'dashboard', noCache: true, affix: true }
+      }
+    ]
+  }
+  /* {
     path: '/dashboard',
     component: Layout,
     children: [{
@@ -57,7 +71,7 @@ export const constantRouterMap = [
       name: 'dashboard',
       meta: { title: 'dashboard', icon: 'dashboard', noCache: true }
     }]
-  }
+  }*/
 /*  {
     path: '/documentation',
     component: Layout,
@@ -80,6 +94,10 @@ export default new Router({
 export const asyncRouterMap = [
 
   { path: '*', redirect: '/404', hidden: true },
+  { path: '/user_manage',
+    component: Layout,
+    children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'components1' }}]
+  },
   {
     path: '/components',
     component: Layout,
