@@ -195,21 +195,20 @@ code {
   z-index: 1000 !important;
 }
 .searchContainer .el-input__inner {
-  /*background-color: #2d3a4b;
-  color:#fff;
-  border-color:#409Eff;
-  height: 30px;*/
-  border-color: #606d80;
+  padding-left: 34px;
+  border-color: transparent;
   color: #fff;
   height: 30px;
   border-radius: 20px;
-  background: #2d3a4b;
-  // background: #39414c;
+  background: transparent;
 }
 
 .searchContainer {
+  input::-webkit-input-placeholder {
+    color: #bbb;
+  }
   .el-input__inner:hover, .el-input__inner:focus {
-    background: #39414c;
+    background: #18c9d6;
   }
 }
 

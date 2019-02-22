@@ -25,6 +25,12 @@
                   <span class="editor-item editor-edit" @click="handleEditPass(item)">
                     <svg-icon icon-class="edit"></svg-icon>
                   </span>
+                  <span class="editor-item editor-disable" @click="handleDisableUser(item)">
+                    <svg-icon icon-class="disable"></svg-icon>
+                  </span>
+                  <span class="editor-item editor-enable" @click="handleEnableUser(item)">
+                    <svg-icon icon-class="enable"></svg-icon>
+                  </span>
                   <span class="editor-item editor-delete" @click="handleDeleteUser(item)">
                     <svg-icon icon-class="delete"></svg-icon>
                   </span>
@@ -38,11 +44,11 @@
                 <div class="userMesCont">
                   <div class="userName">
                     <span class="username-title">用户名:</span>
-                    <strong class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</strong>
+                    <span class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</span>
                   </div>
                   <div class="userMes">
                     <div class="user-role name">角色:
-                      <span>  {{item.roleEntity.name}}-{{item.roleEntity.description}}</span>
+                      <!--<span>  {{item.roleEntity.name}}-{{item.roleEntity.description}}</span>-->
                       <el-dropdown placement="bottom-start" trigger="click" @command="handleSelectRole">
                         <!--<el-button type="primary">
                             更多菜单<i class="el-icon-arrow-down el-icon--right"></i>
@@ -64,11 +70,12 @@
             <el-row>
               <el-col :span="6" v-for="(item, index) in roleList" :key="index" :offset="(index)%3 == 0 ? 0 : 3"
                       style="margin-bottom: 30px;">
-                <el-card :body-style="{ padding: '0px',background:'rgb(249,249,249)'}" shadow="hover">
-                  <span class="role-icon"><svg-icon icon-class="role1"></svg-icon></span>
-                  <div style="padding: 14px;">
-                    <span>{{item.name}}</span>
-                    <div class="bottom clearfix" style="height: 30px">
+                <el-card :body-style="{ padding: '0px',background:'#fff'}" shadow="hover">
+                  <span class="role-icon"><svg-icon icon-class="role"></svg-icon></span>
+                  <div style="padding: 14px;position: relative;">
+                    <div class="role-name">角色名称: {{item.name}}</div>
+                    <div class="role-description">角色名称: {{item.description}}</div>
+                    <div class="bottom clearfix role-edit-box">
                       <span @click="handleEditRole(item)"
                             v-if="item.name !== 'user' && item.name !== 'admin'"
                             class="role-edit">
@@ -130,18 +137,18 @@
                width="30%">
       <el-form label-position="left" label-width="80px" :model="userInfo">
         <el-form-item label="用户名">
-          <el-input v-model="userInfo.name" disabled="true"></el-input>
+          <el-input v-model="userInfo.username" disabled="true"></el-input>
         </el-form-item>
         <el-form-item label="输入密码">
-          <el-input v-model="userInfo.password"></el-input>
+          <el-input v-model="userInfo.newPassword"></el-input>
         </el-form-item>
-        <el-form-item label="再次输入密码">
+        <el-form-item label="再次输入">
           <el-input v-model="userInfo.passwordAgain"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
                 <el-button @click="editRoleDialog = false">取 消</el-button>
-                <el-button type="primary" @click="editRole()">确 定</el-button>
+                <el-button type="primary" @click="editPass()">确 定</el-button>
             </span>
     </el-dialog>
     <!--新建用户角色-->
@@ -187,7 +194,7 @@
   /*eslint-disable*/
   import { isvalidUsername, isvalidPwd } from '@/utils/validate'
   import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole } from '@/api/getUsers'
-  import { roleList } from '@/api/roles'
+  import { roleList, deleteRole, addRole, updateRole } from '@/api/roles'
   import store from '../../store'
 
   export default {
@@ -207,17 +214,42 @@
           size:10,
           limit: 5,
         },
-        roleList: null,
+        // roleList: null,
+        roleList: [
+          {
+            name: 'abc',
+            id: '1223123'
+          },
+          {
+            name: 'abc',
+            id: '1223123'
+          },
+          {
+            name: 'abc',
+            id: '1223123'
+          },
+          {
+            name: 'abc',
+            id: '1223123'
+          },
+          {
+            name: 'abc',
+            id: '1223123'
+          },
+          {
+            name: 'abc',
+            id: '1223123'
+          }
+        ],
         userInfo: {
           id: '',
           username: '',
           password: '',
-          passwordAgain: ''
+          newPassword: '',
+          passwordAgain: '',
         },
         createUserInfo: {
           username: '',
-          email: '',
-          telephoneNum: '',
           password: '',
           passwordAgain: ''
         },
@@ -248,7 +280,7 @@
     methods: {
       getUserList() {
         UserList(this.listQuery).then((res) => {
-          this.userList = res.data.data
+          this.userList = res.data.data.content
         })
       },
       getRolesList() {
@@ -256,7 +288,15 @@
           this.roleList = res.data.data
         })
       },
+      resetCreateUser() {
+        this.createUserInfo = {
+          username: '',
+          password: '',
+          passwordAgain: ''
+        }
+      },
       handlAddUser() {
+        this.resetCreateUser()
         this.createDialogVisible = true
       },
       handleEditUser(item) {
@@ -266,6 +306,38 @@
       handleEditPass(item) {
         this.editPassDialog = true
         this.userInfo = Object.assign({}, item)
+      },
+      handleDisableUser(item){
+        this.$confirm('确认禁用此用户吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let data = {
+            enabled: false
+          }
+          let qs = require('qs');
+          let postData = qs.stringify(data);
+          disableUser(item.id, postData).then((res) => {
+
+          })
+        })
+      },
+      handleEnableUser(item) {
+        this.$confirm('确认将此用户解禁吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let data = {
+            enabled: true
+          }
+          let qs = require('qs');
+          let postData = qs.stringify(data);
+          disableUser(item.id, postData).then((res) => {
+
+          })
+        })
       },
       handleDeleteUser(item) {
         this.$confirm('确认删除吗？', '提示', {
@@ -412,7 +484,7 @@
           'description': this.roleInfo.description
         }
         let datapost = qs.stringify(data)
-        modifyRole(this.roleInfo.id, datapost).then(() => {
+        updateRole(datapost, this.roleInfo.id,).then(() => {
           this.$notify({
             title: '成功',
             message: '修改成功',
@@ -429,6 +501,9 @@
             duration: 2000
           })
         })
+      },
+      editPass() {
+
       },
       handleSelectUser(item) {
         this.selectedUserId = item.id
@@ -469,24 +544,6 @@
       }
     },
     computed: {
-      /*genenrateAvatar() {
-        return function(hash) {
-          if(hash) {
-            let options = {
-              foreground: [210, 82, 91, 255],               // rgba black
-              background: [255, 255, 255, 0],         // rgba white
-              margin: 0.2,                              // 20% margin
-              size: 40,                                // 420px square
-              format: 'svg'                             // use SVG instead of PNG
-            }
-            let data = new Identicon(hash, options).toString()
-            let src = 'data:image/svg+xml;base64,' + data
-            return src
-          } else {
-            return ''
-          }
-        }
-      },*/
       listenNowTabs() {
         return this.nowTabs
       }
@@ -615,18 +672,26 @@
         }
 
         &.editor-edit {
-          color: rgb(240, 173, 48)
+          // color: rgb(240, 173, 48)
+          color: #3f9fe1
         }
 
         &.editor-delete {
           color: rgb(233, 102, 44)
+        }
+
+        &.editor-disable {
+          color: #f04d4e;
+        }
+        &.editor-enable {
+          color: #2eb2dc;
         }
       }
     }
 
     .avatarCont {
       float: left;
-      width: 80px;
+      width: 60px;
       height: 100%;
       // background: #123;
       font-size: 40px;
@@ -663,6 +728,8 @@
 
       .username-text {
         // color: #777;
+        font-weight: 500;
+        font-size: 14px;
         margin-left: 10px;
       }
 
@@ -686,9 +753,11 @@
     .role-icon {
       display: block;
       width: 100%;
-      height: 72px;
-      background: rgba(231, 76, 60, 0.8);
-      font-size: 50px;
+      height: 48px;
+      padding-left: 10px;
+      background: rgba(66, 156, 266, 0.66);
+      // background: rgba(46, 178, 220, 0.75);
+      font-size: 40px;
     }
   }
 
@@ -717,13 +786,27 @@
     text-align: center;
   }
 
+  .role-edit-box {
+    position: absolute;
+    top: -40px;
+    right: 10px;
+  }
   .role-edit {
-    color: rgb(240, 173, 48);
+    // color: rgb(240, 173, 48);
+    color: #4a7de6;
     cursor: pointer;
   }
 
   .role-delete {
     color: rgb(233, 102, 44);
     cursor: pointer;
+  }
+
+  .role-name, .role-description{
+    height: 20px;
+    line-height: 20px;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #777;
   }
 </style>

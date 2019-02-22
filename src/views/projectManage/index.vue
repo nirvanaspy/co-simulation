@@ -1,9 +1,14 @@
 <template>
   <div class="project-container">
-    <el-header style="background: #2d3a4b;line-height: 60px;">
+    <el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
       <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
-        <el-input style="width: 200px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+        <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
+        <el-input style="width: 160px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
         </el-input>
+        <div class="proTitle">
+          <svg-icon icon-class="co-simulation"></svg-icon>
+          CO-Simulation
+        </div>
       </div>
       <div class="right-menu">
         <span calss="userName" style="position: relative;top: -12px;color: #fff;">{{userName}}</span>
@@ -11,7 +16,6 @@
           <div class="avatar-wrapper">
             <pan-thumb class="proImg" width="40px" height="40px" image="./2/png">
             </pan-thumb>
-            <!--<img class="user-avatar" src="./2.jpg">-->
             <i class="el-icon-caret-bottom"></i>
           </div>
           <el-dropdown-menu slot="dropdown">
@@ -36,8 +40,7 @@
     </div>
     <el-tabs tab-position="left" style="height: calc(100% - 200px);" @tab-click="handleTabClick">
       <el-tab-pane label="所有项目">
-        <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document"
-                                                                            style="padding-left: 10px;"></i></span>
+        <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document" style="padding-left: 10px;"></i></span>
         <div class="project-list">
           <div v-if="listA.length === 0" class="no-project-container">
             <span class="no-project-icon">
@@ -82,6 +85,15 @@
             </div>
             <div class="project-operation project-detail"></div>
           </div>
+          <div style="position: absolute; left: 0; top: 100px;width: 300px;">
+            <el-tree
+              class="filter-tree"
+              :data="list"
+              :props="defaultProps"
+              default-expand-all
+              ref="tree2">
+            </el-tree>
+          </div>
         </div>
         <el-pagination
           v-if="listA.length"
@@ -98,8 +110,7 @@
         </el-pagination>
       </el-tab-pane>
       <el-tab-pane label="回收站">
-        <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete"
-                                                                           style="padding-left: 10px;"></i></span>
+        <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete" style="padding-left: 10px;"></i></span>
         <div class="project-list hisList">
           <div v-if="listA.length === 0" class="no-project-container">
             <span class="no-project-icon">
@@ -324,6 +335,10 @@
         errorMessage: '操作失败！',
         hisBtnLoading: false,
         isHistory: false,
+        defaultProps: {
+          children: 'children',
+          label: 'name'
+        }
       }
     },
     created() {
@@ -821,7 +836,22 @@
     cursor: pointer;
     user-select: none;
   }
-
+  .icon-search {
+    position: absolute;
+    top: 1px;
+    left: 30px;
+    z-index: 99;
+  }
+  .proTitle {
+    position: absolute;
+    width: 140px;
+    top: 0;
+    left: 50%;
+    margin-left: -70px;
+    background: linear-gradient(to right, #5786e8, #2961d2);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
   .project-container {
     position: fixed;
     height: 100%;
@@ -842,7 +872,7 @@
         background: #fff;
         padding: 5px 10px;
         margin-bottom: 10px;
-        border-left: 4px solid rgb(25, 170, 246);
+        border-left: 2px solid rgb(25, 170, 246);
         cursor: pointer;
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
         font-size: 14px;
@@ -899,6 +929,14 @@
             margin-left: 6px;
             color: #ccc;
           }
+          .icons-delete {
+            position: relative;
+            font-size: 23px;
+            top: 2px;
+          }
+          .icons-edit {
+            color: #3f9fe1;
+          }
         }
       }
     }
@@ -906,31 +944,31 @@
     .project-item:hover, .project-item:focus, .new-project-container:hover, .new-project-container:focus {
       // margin-bottom: 16px;
       border-radius: 4px;
-      border-left-width: 8px;
-      box-shadow: 4px 4px 30px rgba(0, 0, 0, .2);
+      border-left-width: 4px;
+      box-shadow: 1px 1px 10px rgba(0, 0, 0, .2);
 
       .info-name, .new-info {
         color: #3da8f5 !important;
       }
 
-      .icons-delete {
+      /*.icons-delete {
         color: #f56c6c !important;
       }
 
       .icons-edit {
         color: #3da8f5 !important;
-      }
+      }*/
     }
 
     .project-list.hisList {
       .project-item {
-        border-left: 4px solid #f56c6c;
+        border-left: 2px solid #f56c6c;
       }
 
       .project-item:hover {
         border-radius: 4px;
-        border-left-width: 8px;
-        box-shadow: 4px 4px 30px rgba(0, 0, 0, .2);
+        border-left-width: 4px;
+        box-shadow: 1px 1px 10px rgba(0, 0, 0, .2);
       }
     }
 

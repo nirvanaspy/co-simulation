@@ -178,3 +178,89 @@
  .el-tabs--border-card  {
    box-shadow: 0 1px 1px 0 rgba(0,0,0,.06), 0 0 6px 0 rgba(0,0,0,.04);
  }
+
+
+ //弹框样式(golobal)
+ .usermanageCont {
+   .el-dialog {
+     width: 400px !important;
+   }
+ }
+ .el-dialog__header {
+   background: #2eb2dc !important;
+   .el-dialog__title {
+     color: #fff;
+   }
+   .el-icon-close {
+     color: #fff;
+   }
+ }
+ .el-dialog__header {
+   padding: 10px 20px!important;
+   .el-dialog__headerbtn {
+     top: 13px;
+   }
+ }
+
+ /*.createDialog {
+   .el-dialog__header {
+     // background: rgb(92,184,92) !important;
+     .el-dialog__title {
+       color: #fff;
+     }
+     .el-icon-close {
+       color: #fff;
+     }
+   }
+ }
+
+ .editDialog {
+   .el-dialog__header {
+     // background: rgb(240,173,48) !important;
+     .el-dialog__title {
+       color: #fff;
+     }
+     .el-icon-close {
+       color: #fff;
+     }
+   }
+ }*/
+
+ .personInfoDialog {
+   .el-form-item__content {
+     line-height: 30px;
+   }
+   .el-form-item {
+     margin-bottom: 8px !important;
+   }
+   .el-form-item__label {
+     line-height: 30px;
+   }
+   .el-input, .el-form-item__content {
+     height: 30px;
+   }
+   input.el-input__inner {
+     height: 30px;
+   }
+   .el-dialog__body {
+     text-align: left;
+   }
+   .el-dialog__footer {
+     padding: 0px 20px 10px;
+   }
+ }
+ .usermanageCont {
+   .el-tabs__content {
+     padding: 20px 40px;
+   }
+ }
+
+
+ .project-container {
+   .el-tabs__nav-wrap::after {
+     background-color: transparent;
+   }
+   .el-tabs__nav-wrap.is-left {
+     margin-top: 20px;
+   }
+ }
