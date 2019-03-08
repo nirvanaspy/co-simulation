@@ -30,8 +30,6 @@ import Layout from '../views/layout/Layout'
 export const constantRouterMap = [
   { path: '/login', component: _import('login/index'), hidden: true },
   { path: '/projectManage', component: _import('projectManage/index'), hidden: true },
-  /* { path: '/user_manage', component: _import('user_manage/index'), hidden: true },*/
-  { path: '/role_manage', component: _import('user_manage/roleManage'), hidden: true },
   { path: '/register', component: _import('register/index'), hidden: true },
   { path: '/authredirect', component: _import('login/authredirect'), hidden: true },
   { path: '/404', component: _import('errorPage/404'), hidden: true },
@@ -96,12 +94,33 @@ export const asyncRouterMap = [
   { path: '*', redirect: '/404', hidden: true },
   { path: '/user_manage',
     component: Layout,
-    children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'components1' }}]
+    children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'user' }}],
+    meta: {
+      roles: ['ROLE_ADMIN']
+    }
+  },
+  { path: '/task_manage',
+    component: _import('tasks/index'),
+    name: 'task_manage',
+    meta: { title: '任务管理', icon: 'components1' },
+    hidden: true
+  },
+  { path: '/visio',
+    component: _import('visio/index-back'),
+    name: 'visio',
+    meta: { title: 'template', icon: 'components1' },
+    hidden: true
+  },
+  {
+    path: '/taskFiles',
+    component: Layout,
+    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '功能模块1', icon: 'example' }}]
   },
   {
     path: '/components',
     component: Layout,
-    children: [{ path: 'index', component: _import('components/index'), name: 'components', meta: { title: 'components', icon: 'components1' }}]
+    // children: [{ path: 'index', component: _import('components/index'), name: 'components', meta: { title: 'components', icon: 'components1' }}]
+    children: [{ path: 'index', component: _import('components/index'), name: 'components', meta: { title: '功能模块1', icon: 'example' }}]
   },
   {
     path: '/componentTypes',
@@ -112,7 +131,8 @@ export const asyncRouterMap = [
   {
     path: '/device',
     component: Layout,
-    children: [{ path: 'device', component: _import('device/device'), name: 'device', meta: { title: 'device', icon: 'computer' }}]
+    // children: [{ path: 'device', component: _import('device/device'), name: 'device', meta: { title: 'device', icon: 'computer' }}]
+    children: [{ path: 'device', component: _import('device/device'), name: 'device', meta: { title: '功能模块2', icon: 'example' }}]
   },
   /* {
     path: '/scan',
@@ -128,12 +148,14 @@ export const asyncRouterMap = [
   {
     path: '/deployPlan',
     component: Layout,
-    children: [{ path: 'deployPlan', component: _import('deployPlan/deployPlan'), name: 'deployPlan', meta: { title: 'deployPlan', icon: 'example' }}]
+    // children: [{ path: 'deployPlan', component: _import('deployPlan/deployPlan'), name: 'deployPlan', meta: { title: 'deployPlan', icon: 'example' }}]
+    children: [{ path: 'deployPlan', component: _import('deployPlan/deployPlan'), name: 'deployPlan', meta: { title: '功能模块3', icon: 'example' }}]
   },
   {
     path: '/log',
     component: Layout,
-    children: [{ path: 'index', component: _import('log/index'), name: 'log', meta: { title: 'log', icon: 'log' }}]
+    // children: [{ path: 'index', component: _import('log/index'), name: 'log', meta: { title: 'log', icon: 'log' }}]
+    children: [{ path: 'index', component: _import('log/index'), name: 'log', meta: { title: '功能模块4', icon: 'example' }}]
   },
   {
     path: '/deployPlanDetail',

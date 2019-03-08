@@ -57,7 +57,7 @@ export default {
   },
   created() {
     this.userId = this.getCookie('userId')
-    this.role = this.$store.getters.roles
+    this.role = this.$store.getters.roles[0]
     this.getLog(this.userId)
   },
   methods: {

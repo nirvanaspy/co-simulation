@@ -94,8 +94,9 @@ const user = {
         setExpire(decodeToken.exp)
         setExpire2(decodeRefreshToken.exp)   //refreshToken
         // const rolesset = decodeToken.authorities.length > 1 ? 'admin' : 'editor'
-        const rolesset = decodeToken.authorities[0] ==  'ROLE_ADMIN' ? 'admin' : 'editor'
-        console.log(decodeToken.authorities[0])
+        // const rolesset = decodeToken.authorities[0] ==  'ROLE_ADMIN' ? 'admin' : 'editor'
+        const rolesset = decodeToken.authorities
+        console.log(rolesset)
         commit('SET_ROLES', rolesset)
         resolve()
       })
