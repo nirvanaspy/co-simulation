@@ -2,6 +2,7 @@
   <div class="login-container">
     <el-form class="login-form" autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left">
       <div class="title-container">
+        <!--<div class="sys-title">co-simulation</div>-->
         <h3 class="title">{{$t('login.title')}}</h3>
       </div>
       <div class="form-container">
@@ -101,7 +102,13 @@ export default {
 
           this.$store.dispatch('LoginByUsername', formData).then(() => {
             this.loading = false
-            this.$router.push({ path: '/user_manage' })
+
+            // if(this.$store.getters.roles.includes('ROLE_ADMIN')) {
+            if(this.loginForm.username === 'admin') {
+              this.$router.push({ path: '/user_manage/index' })
+            } else {
+              this.$router.push({ path: '/projectManage' })
+            }
             // this.$router.push({ path: '/' })
           }).catch(() => {
             this.loading = false
@@ -185,7 +192,11 @@ $light_gray:#eee;
 $bg:#2d3a4b;
 $dark_gray:#889aa4;
 $light_gray:#eee;
-
+.sys-title {
+  background: linear-gradient(to right, #5983e8, #00e4d0);
+  -webkit-background-clip: text;
+  color: transparent;
+}
 .login-container {
   position: fixed;
   height: 100%;
