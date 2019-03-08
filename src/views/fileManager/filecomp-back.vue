@@ -131,41 +131,6 @@
       :show-close="false"
       append-to-body
       width="50%">
-      <el-form label-position="left" label-width="70px">
-        <el-form-item label="密级">
-          <!--<el-input v-model="fileUpInfo.secretClass"></el-input>-->
-          <el-select v-model="fileUpInfo.secretClass" placeholder="请选择密级" style="width: 100%">
-            <el-option
-              v-for="item in secretClassOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="类型">
-          <!--<el-input v-model="fileUpInfo.type"></el-input>-->
-          <el-select v-model="fileUpInfo.type" placeholder="请选择密级" style="width: 100%">
-            <el-option
-              v-for="item in typeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="代号">
-          <!--<el-input v-model="fileUpInfo.codeName"></el-input>-->
-          <el-select v-model="fileUpInfo.codeName" placeholder="请选择密级" style="width: 100%">
-            <el-option
-              v-for="item in codeNameOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
       <uploader :options="options"
                 :autoStart="autoStart"
                 :file-status-text="statusText"
@@ -180,14 +145,14 @@
                 element-loading-text="正在校验文件身份，请勿关闭"
       >
         <uploader-unsupport></uploader-unsupport>
-          <uploader-drop>
-            <p>在此处进行操作</p>
-            <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.codeName !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.codeName !== ''">选择文件</uploader-btn>
-            <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
-          </uploader-drop>
-          <!--<uploader-btn>选择文件</uploader-btn>-->
-          <uploader-list ref="uploaderList"></uploader-list>
-        </uploader>
+        <uploader-drop>
+          <p>拖拽文件到此处或</p>
+          <uploader-btn>选择文件</uploader-btn>
+          <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
+        </uploader-drop>
+        <!--<uploader-btn>选择文件</uploader-btn>-->
+        <uploader-list ref="uploaderList"></uploader-list>
+      </uploader>
       <span slot="footer" class="dialog-footer">
         <el-button v-if="!hiddenClose" @click="uploadDialog = false">关 闭</el-button>
         <!--<el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>-->
@@ -261,40 +226,19 @@
     <!--文件信息修改-->
     <el-dialog
       class="maniFileDialog"
-      title="文件信息修改"
+      title="文件重命名"
       :visible.sync="editInfoDialog"
       append-to-body
       width="30%">
-      <el-form label-position="left" label-width="70px">
+      <el-form ref="fileRenameForm" :model="fileEditInfo" label-position="right" label-width="70px" style='width: 80%; margin:0 auto;'>
         <el-form-item label="密级">
-          <el-select v-model="fileEditInfo.secretClass" placeholder="请选择密级" style="width: 100%">
-            <el-option
-              v-for="item in secretClassOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
+          <el-input v-model="fileEditInfo.secretClass"></el-input>
         </el-form-item>
         <el-form-item label="类型">
-          <el-select v-model="fileEditInfo.type" placeholder="请选择类型" style="width: 100%">
-            <el-option
-              v-for="item in typeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
+          <el-input v-model="fileEditInfo.type"></el-input>
         </el-form-item>
         <el-form-item label="代号">
-          <el-select v-model="fileEditInfo.codeName" placeholder="请选择代号" style="width: 100%">
-            <el-option
-              v-for="item in codeNameOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
+          <el-input v-model="fileEditInfo.codeName"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -309,7 +253,7 @@
   /*eslint-disable*/
   import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
-  import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo } from '@/api/pro-design-link'
+  import { getTaskFiles, downloadtaskFile, editFileInfo } from '@/api/pro-design-link'
   import service from '@/utils/request'
   import maniFile from '@/views/fileManager/maniFile'
   import SparkMD5 from 'spark-md5'
@@ -350,61 +294,6 @@
           type: null,
           codeName: null
         },
-        fileUpInfo: {
-          secretClass: null,
-          type: null,
-          codeName: null
-        },
-        secretClassOptions: [
-          {
-            label: '公开',
-            value: 0
-          },
-          {
-            label: '内部',
-            value: 1
-          },
-          {
-            label: '秘密',
-            value: 2
-          },
-          {
-            label: '机密',
-            value: 3
-          },
-          {
-            label: '绝密',
-            value: 4
-          }
-        ],
-        typeOptions: [
-          {
-            label: '参数文件',
-            value: '0'
-          },
-          {
-            label: '模型文件',
-            value: '1'
-          },
-          {
-            label: '报告文件',
-            value: '2'
-          },
-          {
-            label: '实验数据',
-            value: '3'
-          }
-        ],
-        codeNameOptions: [
-          {
-            label: '产品型号',
-            value: 0
-          },
-          {
-            label: '文件图号',
-            value: 1
-          }
-        ],
         uploadDialog: false,
         uploadFolderDialog: false,
         renameDialog: false,
@@ -451,7 +340,6 @@
           accept: 'image/*'
         },
         statusText: {
-          computeMD5: '正在计算MD5',
           success: '上传结束',
           error: '出错了',
           uploading: '上传中',
@@ -677,10 +565,7 @@
                   fileId: res.data.data.id,
                   MD5: fileA.md5,
                   name: fileA.name,
-                  relativePath: '/' + fileA.relativePath,
-                  secretClass: that.fileUpInfo.secretClass,
-                  type: that.fileUpInfo.type,
-                  codeName: that.fileUpInfo.codeName
+                  relativePath: '/' + fileA.relativePath
                 }
                 that.fileInfoList.push(infoList)
                 let resVal = ''
@@ -726,7 +611,6 @@
           if(zenfile.md5){
             resolve(zenfile.md5)
           }else{
-            zenfile.status = 'computeMD5'
             let spark = new SparkMD5()
             let fileReader = new FileReader()
             let blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
@@ -801,9 +685,6 @@
             MD5: arguments[1].md5,
             name: arguments[1].name,
             relativePath: '/' + arguments[1].relativePath,
-            secretClass: this.fileUpInfo.secretClass,
-            type: this.fileUpInfo.type,
-            codeName: this.fileUpInfo.codeName
           }
           this.fileInfoList.push(infoList)
         })
@@ -829,7 +710,6 @@
           let fileA = fileAdded[i]
           this.resolveMd5(fileA, chunkSize).then(function (result) {
             fileA.md5 = result
-            // fileA.status = 'computeMD5'
             fileA.uniqueIdentifier = result
             hasMd5(fileA.md5).then((res) => {
               if (res.data.data.id) {
@@ -964,24 +844,15 @@
           type: 'warning'
         }).then(() => {
           this.listLoading = true
-          deleteTaskFile(row.id).then((res) => {
-            if(res.data.code === 0) {
-              this.getList()
-              this.$notify({
-                title: '成功',
-                message: row.name + '删除成功',
-                type: 'success',
-                duration: 2000
-              })
-            } else {
-              this.$notify({
-                title: '失败',
-                message: res.data.msg,
-                type: 'error',
-                duration: 2000
-              })
-            }
+          deleteCompFiles(row.id).then((res) => {
             this.listLoading = false
+            this.getList()
+            this.$notify({
+              title: '成功',
+              message: row.name + '删除成功',
+              type: 'success',
+              duration: 2000
+            })
           }).catch(() => {
             this.listLoading = false
             this.$notify({
@@ -1210,8 +1081,6 @@
               type: 'success',
               duration: 2000
             })
-            this.editInfoDialog = false
-            this.getList()
           } else {
             this.$notify({
               title: '失败',
@@ -1283,14 +1152,14 @@
     watch: {
       selectCompId(newValue, oldValue) {
         this.componentId = this.selectCompId,
-        this.parentNodeId = ''
+          this.parentNodeId = ''
         if(this.componentId) {
           this.initData()
         }
       },
       selectCompName(newValue, oldValue) {
         this.componentId = this.selectCompId,
-        this.parentNodeId = ''
+          this.parentNodeId = ''
         if(this.componentId) {
           this.initData()
         }
