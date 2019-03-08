@@ -205,7 +205,7 @@ code {
 
 .searchContainer {
   input::-webkit-input-placeholder {
-    color: #bbb;
+    color: #fff;
   }
   .el-input__inner:hover, .el-input__inner:focus {
     background: #18c9d6;
@@ -297,5 +297,23 @@ code {
 .uploadDialog {
   .el-dialog {
     min-width: 700px;
+  }
+}
+
+.kanban {
+  &.todo {
+    .board-column-header {
+      background: #4A9FF9!important;
+    }
+  }
+  &.working {
+    .board-column-header {
+      background: #f9944a!important;
+    }
+  }
+  &.done {
+    .board-column-header {
+      background: #2ac06d!important;
+    }
   }
 }

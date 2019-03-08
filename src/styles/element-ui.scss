@@ -60,6 +60,13 @@
    position: relative;
    margin: 0 auto;
  }
+ .visio-dialog .el-dialog {
+   height: 80%;
+   margin-top: 10vh !important;
+   .el-dialog__body {
+     height: calc(100% - 40px);
+   }
+ }
 
  //文章页textarea修改样式
  .article-textarea {
@@ -187,7 +194,9 @@
    }
  }
  .el-dialog__header {
-   background: #2eb2dc !important;
+   // background: #2eb2dc !important;
+   background: #82d4ec !important;
+   height: 40px;
    .el-dialog__title {
      color: #fff;
    }
@@ -199,6 +208,9 @@
    padding: 10px 20px!important;
    .el-dialog__headerbtn {
      top: 13px;
+   }
+   .el-dialog__headerbtn:hover .el-dialog__close {
+     color: #fff;
    }
  }
 
@@ -262,5 +274,56 @@
    }
    .el-tabs__nav-wrap.is-left {
      margin-top: 20px;
+   }
+   .el-tabs__header.is-top {
+     width: 60%;
+     max-width: 800px;
+     margin: 0 auto;
+   }
+   .el-tabs__item {
+     color: #777;
+   }
+   .el-tabs__item.is-active {
+     color: #409EFF;
+   }
+ }
+ .pro-setting-dialog {
+    .el-dialog {
+      max-width: 800px;
+      min-width: 600px;
+      .el-dialog__header {
+        text-align: center;
+        font-weight: 700;
+      }
+      .el-dialog__body {
+        padding: 10px 20px 20px 0;
+      }
+    }
+   .el-tabs__item {
+     color: #777;
+     font-size: 14px;
+     font-weight: 500;
+   }
+   .el-tabs__item.is-active {
+     color: #409EFF;
+   }
+   .el-tabs__content {
+     padding-left: 20px;
+   }
+   .el-input__inner {
+     height: 44px;
+     line-height: 44px;
+   }
+ }
+
+ .role-select {
+   min-width: 240px;
+   .el-input__inner {
+     border: none;
+     height: 30px;
+     line-height: 30px;
+   }
+   .el-input__suffix {
+     display: none;
    }
  }
