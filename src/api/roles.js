@@ -10,6 +10,7 @@ export function roleList(listQuery) {
     }
   })
 }
+
 export function updateRole(data, id) {
   return request({
     url: '/role/' + id,
@@ -17,12 +18,14 @@ export function updateRole(data, id) {
     data
   })
 }
+
 export function deleteRole(id) {
   return request({
     url: '/role/' + id,
     method: 'delete'
   })
 }
+
 export function addRole(data) {
   return request({
     url: '/role',

@@ -10,13 +10,21 @@ export function UserList(listQuery) {
     }
   })
 }
+
+export function allUser() {
+  return request({
+    url: '/users',
+    method: 'get'
+  })
+}
+
 export function getUserId() {
   return request({
     url: '/users/info',
     method: 'get'
   })
 }
-export function updateUser(data, id) {
+export function updateUser(id, data) {
   return request({
     url: '/users/' + id,
     method: 'patch',
@@ -29,12 +37,13 @@ export function deleteUser(id) {
     method: 'delete'
   })
 }
-export function addUser(data) {
+export function addUser(data, roleName) {
   return request({
     url: '/users',
     method: 'post',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'roleName': roleName
     },
     data
   })
@@ -59,6 +68,14 @@ export function disableUser(id, data) {
 export function distributeUserRole(id, data) {
   return request({
     url: '/users/' + id + '/distribute',
+    method: 'patch',
+    data
+  })
+}
+
+export function updatePassword(id, data) {
+  return request({
+    url: '/users/' + id + '/password',
     method: 'patch',
     data
   })

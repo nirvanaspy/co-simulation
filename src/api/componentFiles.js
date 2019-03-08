@@ -26,7 +26,7 @@ export function mergeFile(data) {
 
 export function uploadFiles(compId, parentId, data) {
   return request({
-    url: '/components/' + compId + '/uploadfiles',
+    url: '/subtasks/' + compId + '/uploadfiles',
     method: 'post',
     headers: {
       'content-type': 'application/json;charset=utf-8',

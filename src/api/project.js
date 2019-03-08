@@ -14,7 +14,7 @@ export function projectList(listQuery) {
 
 export function projectList_user(id, listQuery) {
   return request({
-    url: '/users/' + id + '/projects',
+    url: 'projects/byUserId/' + id,
     method: 'get',
     params: {
       deleted: false,
@@ -24,9 +24,9 @@ export function projectList_user(id, listQuery) {
   })
 }
 
-export function createProject(data, id) {
+export function createProject(data) {
   return request({
-    url: '/users/' + id + '/project',
+    url: '/projects',
     method: 'post',
     data
   })
@@ -40,10 +40,19 @@ export function updateProject(data, id) {
   })
 }
 
-export function deleteProject(id) {
+export function updateProPic(id, data) {
   return request({
-    url: '/projects/' + id,
-    method: 'delete'
+    url: '/projects/' + id + '/updatePic',
+    method: 'patch',
+    data
+  })
+}
+
+export function deleteProject(id, data) {
+  return request({
+    url: '/projects/' + id + '/delete',
+    method: 'patch',
+    data
   })
 }
 
@@ -61,7 +70,7 @@ export function projectListHis(listQuery) {
 
 export function projectList_userHis(id, listQuery) {
   return request({
-    url: '/users/' + id + '/projects',
+    url: 'projects/byUserId/' + id,
     method: 'get',
     params: {
       deleted: true,
@@ -72,10 +81,11 @@ export function projectList_userHis(id, listQuery) {
 }
 
 // 恢复已删除工程
-export function restorePro(id) {
+export function restorePro(id, data) {
   return request({
     url: '/projects/' + id + '/restore',
-    method: 'patch'
+    method: 'patch',
+    data
   })
 }
 
@@ -94,5 +104,14 @@ export function starPro(id, hasStar) {
     params: {
       hasStar: hasStar
     }
+  })
+}
+
+// 设置节点，令号
+export function arrangePro(id, data) {
+  return request({
+    url: '/projects/' + id + '/arrange',
+    method: 'patch',
+    data
   })
 }
