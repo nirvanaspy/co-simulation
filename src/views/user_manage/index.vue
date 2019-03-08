@@ -22,23 +22,36 @@
               </div>
               <div v-for="item in userList" class="user-item" v-if="item.username !== 'admin'">
                 <div class="editor-box">
+                  <!--<span class="editor-item editor-edit" @click="handleEnableSelect(item)">
+                    <el-tooltip content="修改角色" placement="top">
+                      <svg-icon icon-class="switchrole"></svg-icon>
+                    </el-tooltip>
+                  </span>-->
                   <span class="editor-item editor-edit" @click="handleEditPass(item)">
-                    <svg-icon icon-class="edit"></svg-icon>
+                    <el-tooltip content="修改密码" placement="top">
+                      <svg-icon icon-class="edit"></svg-icon>
+                    </el-tooltip>
                   </span>
-                  <span class="editor-item editor-disable" @click="handleDisableUser(item)">
-                    <svg-icon icon-class="disable"></svg-icon>
+                  <span v-if="item.enabled" class="editor-item editor-disable" @click="handleDisableUser(item)">
+                    <el-tooltip content="禁用用户" placement="top">
+                      <svg-icon icon-class="disable"></svg-icon>
+                    </el-tooltip>
                   </span>
-                  <span class="editor-item editor-enable" @click="handleEnableUser(item)">
-                    <svg-icon icon-class="enable"></svg-icon>
+                  <span v-if="!item.enabled" class="editor-item editor-enable" @click="handleEnableUser(item)">
+                    <el-tooltip content="解除禁用" placement="top">
+                      <svg-icon icon-class="enable"></svg-icon>
+                    </el-tooltip>
                   </span>
                   <span class="editor-item editor-delete" @click="handleDeleteUser(item)">
-                    <svg-icon icon-class="delete"></svg-icon>
+                    <el-tooltip content="删除用户" placement="top">
+                      <svg-icon icon-class="delete"></svg-icon>
+                    </el-tooltip>
                   </span>
                 </div>
                 <div class="avatarCont">
                   <span class="user-avatar">
                     <!--<img :src="genenrateAvatar(item.id)" alt="">-->
-                    <svg-icon icon-class="user-1"></svg-icon>
+                    <svg-icon :icon-class="item.enabled === true ? 'user-1' : 'user-disable'"></svg-icon>
                   </span>
                 </div>
                 <div class="userMesCont">
@@ -46,19 +59,39 @@
                     <span class="username-title">用户名:</span>
                     <span class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</span>
                   </div>
+                  <div class="userSecret">
+                    <span class="username-title">密级:</span>
+                    <span class="secret-text">{{computedSecret(item.secretClass)}}</span>
+                  </div>
                   <div class="userMes">
-                    <div class="user-role name">角色:
-                      <!--<span>  {{item.roleEntity.name}}-{{item.roleEntity.description}}</span>-->
+                    <div class="user-role name" v-if="item.roleEntities">
+                      <span class="role-text">角色:</span>
+                      <!--<span v-for="role in item.roleEntities" style="margin-left: 6px;">{{role.name}}-{{role.description}}</span>
                       <el-dropdown placement="bottom-start" trigger="click" @command="handleSelectRole">
-                        <!--<el-button type="primary">
-                            更多菜单<i class="el-icon-arrow-down el-icon--right"></i>
-                        </el-button>-->
-                        <span class="switchrole" @click="handleSelectUser(item)"><svg-icon
-                          icon-class="switchrole"></svg-icon></span>
+                        <span class="switchrole" @click="handleSelectUser(item)">
+                          <el-tooltip content="修改角色" placement="top">
+                            <svg-icon icon-class="switchrole"></svg-icon>
+                          </el-tooltip>
+                        </span>
                         <el-dropdown-menu slot="dropdown">
-                          <el-dropdown-item v-for="item in roleList" :command="item.id">{{item.name}}</el-dropdown-item>
+                          <el-dropdown-item v-for="item in roleList" :key="item.id" :command="item.id">{{item.description}}</el-dropdown-item>
                         </el-dropdown-menu>
-                      </el-dropdown>
+                      </el-dropdown>-->
+                      <el-select
+                        class="role-select"
+                        v-model="item.roleEntities"
+                        value-key="id"
+                        multiple
+                        style="margin-left: 52px;width:calc(100% - 200px);min-width: 300px;"
+                        @change="handleSelectRole(item, item.roleEntities)"
+                        placeholder="请选择">
+                        <el-option
+                          v-for="role in roleList"
+                          :key="role.id"
+                          :label="role.description"
+                          :value="role">
+                        </el-option>
+                      </el-select>
                     </div>
                   </div>
                 </div>
@@ -103,6 +136,26 @@
         <el-form-item label="用户名">
           <el-input v-model="createUserInfo.username"></el-input>
         </el-form-item>
+        <el-form-item label="用户密级">
+          <el-select v-model="createUserInfo.secretClass" style="width: 100%;">
+            <el-option
+              v-for="item in secretOptions"
+              :key="item.value"
+              :label="item.name"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="用户角色">
+          <el-select v-model="createUserInfo.roleName" placeholder="请选择" style="width: 100%;">
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.description"
+              :value="item.name">
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="密码">
           <el-input v-model="createUserInfo.password" type="password"></el-input>
         </el-form-item>
@@ -124,6 +177,16 @@
         <el-form-item label="用户名">
           <el-input v-model="userInfo.username"></el-input>
         </el-form-item>
+        <el-form-item label="用户密级">
+          <el-select v-model="userInfo.secretClass" style="width: 100%;">
+            <el-option
+              v-for="item in secretOptions"
+              :key="item.value"
+              :label="item.name"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
@@ -137,19 +200,19 @@
                width="30%">
       <el-form label-position="left" label-width="80px" :model="userInfo">
         <el-form-item label="用户名">
-          <el-input v-model="userInfo.username" disabled="true"></el-input>
+          <el-input v-model="userInfo.username" :disabled="true"></el-input>
         </el-form-item>
         <el-form-item label="输入密码">
-          <el-input v-model="userInfo.newPassword"></el-input>
+          <el-input v-model="userInfo.newPassword" type="password"></el-input>
         </el-form-item>
         <el-form-item label="再次输入">
-          <el-input v-model="userInfo.passwordAgain"></el-input>
+          <el-input v-model="userInfo.passwordAgain" type="password"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-                <el-button @click="editRoleDialog = false">取 消</el-button>
-                <el-button type="primary" @click="editPass()">确 定</el-button>
-            </span>
+        <el-button @click="editPassDialog = false">取 消</el-button>
+        <el-button type="primary" @click="editPass()">确 定</el-button>
+      </span>
     </el-dialog>
     <!--新建用户角色-->
     <el-dialog title="新建用户角色"
@@ -193,7 +256,7 @@
 <script>
   /*eslint-disable*/
   import { isvalidUsername, isvalidPwd } from '@/utils/validate'
-  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole } from '@/api/getUsers'
+  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole, updatePassword } from '@/api/getUsers'
   import { roleList, deleteRole, addRole, updateRole } from '@/api/roles'
   import store from '../../store'
 
@@ -203,56 +266,51 @@
       return {
         nowTabs: null,
         selectedUserId: '',
-        userList: [{
-          username: 'aaa',
-          email: 'aaa@qq.com',
-          telephoneNum: '12345678910',
-          id: 'qwertrtgdfgdsassffdfg'
-        }],
+        userList: [],
         listQuery: {
           page: 0,
           size:10,
           limit: 5,
         },
         // roleList: null,
-        roleList: [
-          {
-            name: 'abc',
-            id: '1223123'
-          },
-          {
-            name: 'abc',
-            id: '1223123'
-          },
-          {
-            name: 'abc',
-            id: '1223123'
-          },
-          {
-            name: 'abc',
-            id: '1223123'
-          },
-          {
-            name: 'abc',
-            id: '1223123'
-          },
-          {
-            name: 'abc',
-            id: '1223123'
-          }
-        ],
+        roleList: [],
         userInfo: {
           id: '',
           username: '',
           password: '',
           newPassword: '',
           passwordAgain: '',
+          secretClass: 0
         },
         createUserInfo: {
           username: '',
+          secretClass: 0,
           password: '',
-          passwordAgain: ''
+          passwordAgain: '',
+          roleName: ''
         },
+        secretOptions: [
+          {
+            value: 0,
+            name: '公开'
+          },
+          {
+            value: 1,
+            name: '内部'
+          },
+          {
+            value: 2,
+            name: '秘密'
+          },
+          {
+            value: 3,
+            name: '机密'
+          },
+          {
+            value: 4,
+            name: '绝密'
+          },
+        ],
         roleInfo: {
           id: '',
           name: '',
@@ -280,19 +338,42 @@
     methods: {
       getUserList() {
         UserList(this.listQuery).then((res) => {
-          this.userList = res.data.data.content
+          if(res.data.code === 0) {
+            this.userList = res.data.data
+            this.userList.forEach((item) => {
+              item.originRoleEntities = item.roleEntities
+            })
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       getRolesList() {
         roleList(this.listQuery).then((res) => {
-          this.roleList = res.data.data
+          if(res.data.code === 0) {
+            this.roleList = res.data.data
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       resetCreateUser() {
         this.createUserInfo = {
           username: '',
           password: '',
-          passwordAgain: ''
+          passwordAgain: '',
+          secretClass: 0,
+          roleName: ''
         }
       },
       handlAddUser() {
@@ -319,7 +400,22 @@
           let qs = require('qs');
           let postData = qs.stringify(data);
           disableUser(item.id, postData).then((res) => {
-
+            if(res.data.code === 0) {
+              this.getUserList()
+              this.$notify({
+                title: '成功',
+                message: '用户禁用成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
           })
         })
       },
@@ -335,7 +431,22 @@
           let qs = require('qs');
           let postData = qs.stringify(data);
           disableUser(item.id, postData).then((res) => {
-
+            if(res.data.code === 0) {
+              this.getUserList()
+              this.$notify({
+                title: '成功',
+                message: '用户解禁成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
           })
         })
       },
@@ -345,21 +456,23 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          deleteUser(item.id).then(() => {
-            this.getUserList()
-            this.$notify({
-              title: '成功',
-              message: '删除成功',
-              type: 'success',
-              duration: 2000
-            })
-          }).catch(() => {
-            this.$notify({
-              title: '失败',
-              message: '删除失败',
-              type: 'error',
-              duration: 2000
-            })
+          deleteUser(item.id).then((res) => {
+            if(res.data.code === 0) {
+              this.getUserList()
+              this.$notify({
+                title: '成功',
+                message: '删除成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
           })
         }).catch(() => {
           this.$message({
@@ -374,21 +487,23 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          deleteRole(id).then(() => {
-            this.getRolesList()
-            this.$notify({
-              title: '成功',
-              message: '删除成功',
-              type: 'success',
-              duration: 2000
-            })
-          }).catch(() => {
-            this.$notify({
-              title: '失败',
-              message: '删除失败',
-              type: 'error',
-              duration: 2000
-            })
+          deleteRole(id).then((res) => {
+            if(res.data.code === 0) {
+              this.getRolesList()
+              this.$notify({
+                title: '成功',
+                message: '删除成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
           })
         }).catch(() => {
           this.$message({
@@ -410,71 +525,80 @@
           'name': this.createRoleInfo.name,
           'description': this.createRoleInfo.description
         }
-        let datapost = qs.stringify(data)
-        addRole(datapost).then(() => {
-          this.$notify({
-            title: '成功',
-            message: '创建成功',
-            type: 'success',
-            duration: 2000
-          })
-          this.getRolesList()
-          this.createRoleDialog = false
-        }).catch(() => {
-          this.$notify({
-            title: '失败',
-            message: '创建失败',
-            type: 'error',
-            duration: 2000
-          })
+        // let datapost = qs.stringify(data)
+        addRole(data).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '创建成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getRolesList()
+            this.createRoleDialog = false
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       addUsers() {
         let data = {
           'username': this.createUserInfo.username,
-          'password': this.createUserInfo.password
+          'password': this.createUserInfo.password,
+          'secretClass': this.createUserInfo.secretClass,
+          'roleName': this.createUserInfo.roleName
         }
-        addUser(data).then(() => {
-          this.$notify({
-            title: '成功',
-            message: '创建成功',
-            type: 'success',
-            duration: 2000
-          })
-          this.getUserList()
-          this.createDialogVisible = false
-        }).catch(() => {
-          this.$notify({
-            title: '失败',
-            message: '创建失败',
-            type: 'error',
-            duration: 2000
-          })
+        let roleName = this.createUserInfo.roleName
+        addUser(data, roleName).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '创建成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getUserList()
+            this.createDialogVisible = false
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       editUser() {
         var qs = require('qs')
         let data = {
           'username': this.userInfo.username,
-          'email': this.userInfo.email,
-          'telephoneNum': this.userInfo.telephoneNum
+          'secretClass': this.userInfo.secretClass
         }
         let datapost = qs.stringify(data)
-        modifyUser(this.userInfo.id, datapost).then((res) => {
-          this.$notify({
-            title: '成功',
-            message: '更新成功',
-            type: 'success',
-            duration: 2000
-          })
-          this.getUserList()
-        }).catch(() => {
-          this.$notify({
-            title: '失败',
-            message: '更新失败',
-            type: 'error',
-            duration: 2000
-          })
+        updateUser(this.userInfo.id, datapost).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getUserList()
+            this.editDialogVisible = false
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       editRole() {
@@ -484,31 +608,55 @@
           'description': this.roleInfo.description
         }
         let datapost = qs.stringify(data)
-        updateRole(datapost, this.roleInfo.id,).then(() => {
-          this.$notify({
-            title: '成功',
-            message: '修改成功',
-            type: 'success',
-            duration: 2000
-          })
-          this.getRolesList()
-          this.editRoleDialog = false
-        }).catch(() => {
-          this.$notify({
-            title: '失败',
-            message: '修改失败',
-            type: 'error',
-            duration: 2000
-          })
+        updateRole(datapost, this.roleInfo.id,).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '修改成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getRolesList()
+            this.editRoleDialog = false
+          } else {
+            this.$notify({
+              title: '失败',
+              message: '修改失败',
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       editPass() {
-
+        var qs = require('qs')
+        let data = {
+          'password': this.userInfo.newPassword
+        }
+        let datapost = qs.stringify(data)
+        updatePassword(this.userInfo.id, datapost).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '密码修改成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.editPassDialog = false
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
       },
       handleSelectUser(item) {
         this.selectedUserId = item.id
       },
-      handleSelectRole(id) {
+      /*handleSelectRole(id) {
         this.$confirm('确认选择该角色吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -519,21 +667,23 @@
             'roleId': id
           }
           let datapost = qs.stringify(data)
-          switchRole(this.selectedUserId, datapost).then(() => {
-            this.$notify({
-              title: '成功',
-              message: '角色修改成功',
-              type: 'success',
-              duration: 2000
-            })
-            this.getUserList()
-          }).catch(() => {
-            this.$notify({
-              title: '失败',
-              message: '角色修改失败',
-              type: 'error',
-              duration: 2000
-            })
+          distributeUserRole(this.selectedUserId, datapost).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: res.data.msg,
+                type: 'success',
+                duration: 2000
+              })
+              this.getUserList()
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
           })
         }).catch(() => {
           this.$message({
@@ -542,10 +692,77 @@
           })
         })
       }
+    },*/
+      handleEnableSelect(item) {
+        item.edit = true
+      },
+      handleSelectRole(item, roleEntities) {
+        /*this.$confirm('确认选择该角色吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消选择'
+          })
+        })
+      }*/
+        let ids = []
+        roleEntities.forEach((item) => {
+          ids.push(item.id)
+        })
+        let roleIds = (ids + '').replace(/\[|]/g, '')
+        var qs = require('qs')
+        let data = {
+          'ids': roleIds
+        }
+        let datapost = qs.stringify(data)
+        distributeUserRole(item.id, datapost).then((res) => {
+          if (res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '角色修改成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getUserList()
+          } else {
+            item.roleEntities = item.originRoleEntities
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      }
     },
     computed: {
       listenNowTabs() {
         return this.nowTabs
+      },
+      computedSecret() {
+        return function(secretClass) {
+          if(secretClass === 0) {
+            return '公开'
+          }
+          if(secretClass === 1) {
+            return '内部'
+          }
+          if(secretClass === 2) {
+            return '秘密'
+          }
+          if(secretClass === 3) {
+            return '机密'
+          }
+          if(secretClass === 4) {
+            return '绝密'
+          }
+        }
       }
     },
     watch: {
@@ -684,6 +901,8 @@
           color: #f04d4e;
         }
         &.editor-enable {
+          position: relative;
+          top: 1px;
           color: #2eb2dc;
         }
       }
@@ -719,8 +938,11 @@
       .name {
         color: rgb(119, 119, 119);
         font-size: 14px;
+        position: relative;
       }
-
+      .userSecret {
+        margin-top: 6px;
+      }
       .username-title {
         color: #777;
         font-size: 14px;
@@ -732,16 +954,29 @@
         font-size: 14px;
         margin-left: 10px;
       }
-
+      .secret-text {
+        color: #777;
+        font-weight: 500;
+        font-size: 14px;
+        margin-left: 22px;
+      }
       .userMes div {
-        height: 24px;
-        line-height: 24px;
+        /*height: 24px;
+        line-height: 24px;*/
+        /*height: 30px;
+        line-height: 30px;*/
       }
 
       .switchrole {
         margin-left: 10px;
         font-size: 20px;
         cursor: pointer;
+      }
+      .role-text {
+        display: inline-block;
+        height: 30px;
+        position: absolute;
+        top: 8px;bottom: 0;
       }
     }
 
