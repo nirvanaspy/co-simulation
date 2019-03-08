@@ -3,8 +3,22 @@
     <el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
       <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
         <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
-        <el-input style="width: 160px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+        <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
         </el-input>
+
+        <el-dropdown trigger="click" placement="bottom-start">
+          <span class="add-item">
+            <svg-icon icon-class="add"></svg-icon>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item v-if="this.role === 'ROLE_PROJECT_MANAGER'">
+              <span @click="handleCreate($event)"><svg-icon class="add-item-icon" icon-class="tree-pro"></svg-icon>创建项目</span>
+            </el-dropdown-item>
+            <el-dropdown-item>
+              <span @click="handleMangeDesignLinks"><svg-icon icon-class="tree-task" class="add-item-icon"></svg-icon>设计环节</span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
         <div class="proTitle">
           <svg-icon icon-class="co-simulation"></svg-icon>
           CO-Simulation
@@ -20,8 +34,8 @@
           </div>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item>
-              <span v-if="role === 'admin'" style="display:block;">
-                <router-link to="/user_manage">用户管理</router-link>
+              <span v-if="role === 'ROLE_ADMIN'" style="display:block;">
+                <router-link to="/user_manage/index">用户管理</router-link>
               </span>
               <span v-else @click="handleModifyPassword" style="display:block;">修改密码</span>
             </el-dropdown-item>
@@ -34,139 +48,160 @@
     </el-header>
     <div class="title-container">
       <h3 class="title" style="margin-bottom:30px">
-        <!--<span v-if="!isHistory">项目管理</span>
-        <span v-else>项目管理回收站</span>-->
       </h3>
     </div>
-    <el-tabs tab-position="left" style="height: calc(100% - 200px);" @tab-click="handleTabClick">
-      <el-tab-pane label="所有项目">
-        <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document" style="padding-left: 10px;"></i></span>
-        <div class="project-list">
-          <div v-if="listA.length === 0" class="no-project-container">
+    <el-row :gutter="20">
+      <!--结构树-->
+      <el-col :span="6">
+        <div style="width: 300px;margin: 60px auto;">
+          <el-tree v-if="!isHistory" class="filter-tree" :data="listTree" :props="defaultProps" :default-expand-all="false" :render-content="renderContent">ref="tree2">
+          </el-tree>
+        </div>
+      </el-col>
+      <!--项目详情-->
+      <el-col :span="12">
+        <el-tabs tab-position="top" style="height: calc(100% - 200px);" @tab-click="handleTabClick">
+          <el-tab-pane label="所有项目">
+            <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document" style="padding-left: 10px;"></i></span>
+            <div class="project-list">
+              <div v-if="listA.length === 0" class="no-project-container">
             <span class="no-project-icon">
               <svg-icon icon-class="工程"></svg-icon>
             </span>
-            <div class="no-project-desc">
-              暂无项目
+                <div class="no-project-desc">
+                  暂无项目
+                </div>
+              </div>
+              <div v-for="item in listA" v-if="!item.deleted" class="project-item">
+                <div class="project-star project-detail">
+                  <span class="star-container" @click="toggleStar(item)">
+                    <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
+                    <svg-icon v-else icon-class="star-dark"></svg-icon>
+                  </span>
+                </div>
+                <div class="project-info project-detail">
+                  <div class="info-detail info-name" @click="handleSelect(item)">{{item.name}}</div>
+                  <div class="info-detail info-description">{{item.description}}</div>
+                </div>
+                <div class="project-operation project-detail">
+                  <span class="icons icons-setting" @click="handleProSetting(item)">
+                    <el-tooltip content="打开项目设置" placement="top">
+                      <svg-icon icon-class="components3"></svg-icon>
+                    </el-tooltip>
+                  </span>
+                  <!--<span class="icons icons-edit" @click="handleUpdate(item)">
+                    <el-tooltip content="编辑" placement="top">
+                      <svg-icon icon-class="edit"></svg-icon>
+                    </el-tooltip>
+                  </span>-->
+                  <span class="icons icons-delete" @click="handleDelete(item)">
+                    <el-tooltip content="删除" placement="top">
+                      <svg-icon icon-class="delete"></svg-icon>
+                    </el-tooltip>
+                  </span>
+                </div>
+              </div>
+              <div class="new-project-container" v-if="!isHistory && this.role === 'ROLE_PROJECT_MANAGER'">
+                <div class="project-star project-detail new-info">
+                  <span class="star-container">
+                    <svg-icon icon-class="add-1"></svg-icon>
+                  </span>
+                </div>
+                <div class="project-info project-detail">
+                  <div class="info-detail new-info" @click="handleCreate($event)">创建新项目</div>
+                </div>
+                <div class="project-operation project-detail"></div>
+              </div>
             </div>
-          </div>
-          <div v-for="item in listA" v-if="!item.deleted" class="project-item">
-            <div class="project-star project-detail">
-            <span class="star-container" @click="toggleStar(item)">
-              <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
-              <svg-icon v-else icon-class="star-dark"></svg-icon>
-            </span>
+            <el-pagination
+              v-if="listA.length"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="currentPage"
+              :page-sizes="[10,20,30,50]"
+              :page-size="listQuery.limit"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="this.total"
+              background
+              style="text-align: center;margin-top:20px;width: 100%;"
+            >
+            </el-pagination>
+          </el-tab-pane>
+          <el-tab-pane label="回收站">
+            <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete" style="padding-left: 10px;"></i></span>
+            <div class="project-list hisList">
+              <div v-if="listA.length === 0" class="no-project-container">
+                <span class="no-project-icon">
+                  <svg-icon icon-class="工程"></svg-icon>
+                </span>
+                <div class="no-project-desc">
+                  暂无项目
+                </div>
+              </div>
+              <div v-for="item in listA" v-if="item.deleted" class="project-item">
+                <div class="project-star project-detail">
+                  <span class="star-container">
+                    <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
+                    <svg-icon v-else icon-class="star-dark"></svg-icon>
+                  </span>
+                </div>
+                <div class="project-info project-detail">
+                  <div class="info-detail info-name">{{item.name}}</div>
+                  <div class="info-detail info-description">{{item.description}}</div>
+                </div>
+                <div class="project-operation project-detail">
+                  <span class="icons icons-edit" @click="handleResHisPro(item)">
+                    <el-tooltip content="恢复" placement="top">
+                      <svg-icon icon-class="recover"></svg-icon>
+                    </el-tooltip>
+                  </span>
+                  <span class="icons icons-delete" @click="handleDelHisPro(item)">
+                    <el-tooltip content="清除" placement="top">
+                      <svg-icon icon-class="delete"></svg-icon>
+                    </el-tooltip>
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="project-info project-detail">
-              <div class="info-detail info-name" @click="handleSelect(item)">{{item.name}}</div>
-              <div class="info-detail info-description">{{item.description}}</div>
-            </div>
-            <div class="project-operation project-detail">
-            <span class="icons icons-edit" @click="handleUpdate(item)">
-              <el-tooltip content="编辑" placement="top">
-                <svg-icon icon-class="edit"></svg-icon>
-              </el-tooltip>
-            </span>
-            <span class="icons icons-delete" @click="handleDelete(item)">
-              <el-tooltip content="删除" placement="top">
-                <svg-icon icon-class="delete"></svg-icon>
-              </el-tooltip>
-            </span>
-            </div>
-          </div>
-          <div class="new-project-container" v-if="this.role == 'editor' && !isHistory">
-            <div class="project-star project-detail new-info">
-              <span class="star-container">
-                <svg-icon icon-class="add-1"></svg-icon>
-              </span>
-            </div>
-            <div class="project-info project-detail">
-              <div class="info-detail new-info" @click="handleCreate($event)">创建新项目</div>
-            </div>
-            <div class="project-operation project-detail"></div>
-          </div>
-          <div style="position: absolute; left: 0; top: 100px;width: 300px;">
-            <el-tree
-              class="filter-tree"
-              :data="list"
-              :props="defaultProps"
-              default-expand-all
-              ref="tree2">
-            </el-tree>
-          </div>
-        </div>
-        <el-pagination
-          v-if="listA.length"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="currentPage"
-          :page-sizes="[10,20,30,50]"
-          :page-size="listQuery.limit"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="this.total"
-          background
-          style="text-align: center;margin-top:20px;width: 100%;"
-        >
-        </el-pagination>
-      </el-tab-pane>
-      <el-tab-pane label="回收站">
-        <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete" style="padding-left: 10px;"></i></span>
-        <div class="project-list hisList">
-          <div v-if="listA.length === 0" class="no-project-container">
-            <span class="no-project-icon">
-              <svg-icon icon-class="工程"></svg-icon>
-            </span>
-            <div class="no-project-desc">
-              暂无项目
-            </div>
-          </div>
-          <div v-for="item in listA" v-if="item.deleted" class="project-item">
-            <div class="project-star project-detail">
-              <span class="star-container">
-                <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
-                <svg-icon v-else icon-class="star-dark"></svg-icon>
-              </span>
-            </div>
-            <div class="project-info project-detail">
-              <div class="info-detail info-name">{{item.name}}</div>
-              <div class="info-detail info-description">{{item.description}}</div>
-            </div>
-            <div class="project-operation project-detail">
-              <span class="icons icons-edit" @click="handleResHisPro(item)">
-                <el-tooltip content="恢复" placement="top">
-                  <svg-icon icon-class="recover"></svg-icon>
-                </el-tooltip>
-              </span>
-              <span class="icons icons-delete" @click="handleDelHisPro(item)">
-                <el-tooltip content="清除" placement="top">
-                  <svg-icon icon-class="delete"></svg-icon>
-                </el-tooltip>
-              </span>
-            </div>
-          </div>
-        </div>
-        <el-pagination
-          v-if="listA.length"
-          @size-change="handleSizeChange1"
-          @current-change="handleCurrentChange1"
-          :current-page="currentPage1"
-          :page-sizes="[10,20,30,50]"
-          :page-size="listQuery1.limit"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="this.total1"
-          background
-          style="text-align: center;margin-top:20px;width: 100%;"
-        >
-        </el-pagination>
-      </el-tab-pane>
-    </el-tabs>
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%"
-               class="limit-width-dialog">
-      <el-form :rules="rules" ref="dataForm" :model="temp" style='width: 80%; margin:0 auto;'>
-        <el-form-item :label="$t('table.projectName')" prop="name" :label-width="formLabelWidth">
+            <el-pagination
+              v-if="listA.length"
+              @size-change="handleSizeChange1"
+              @current-change="handleCurrentChange1"
+              :current-page="currentPage1"
+              :page-sizes="[10,20,30,50]"
+              :page-size="listQuery1.limit"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="this.total1"
+              background
+              style="text-align: center;margin-top:20px;width: 100%;"
+            >
+            </el-pagination>
+          </el-tab-pane>
+        </el-tabs>
+      </el-col>
+      <!--占位-->
+      <el-col :span="6"><div class="grid-content bg-purple"></div></el-col>
+    </el-row>
+    <!--创建或者修改项目-->
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%" class="limit-width-dialog">
+      <div class="img-container"></div>
+      <div class="text-container">为不同的产品建立各自的项目</div>
+      <el-form :rules="rules" ref="dataForm" :model="temp" style='width: 100%; margin:0 auto;' label-width="70px">
+        <el-form-item :label="$t('table.projectName')" prop="name">
           <el-input v-model="temp.name"></el-input>
         </el-form-item>
-        <el-form-item :label="$t('table.projectDesc')" prop="description" :label-width="formLabelWidth">
+        <el-form-item label="负责人" prop="manager" >
+          <el-select v-model="temp.manager" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
+            <el-option
+              :loading="getMaLoading"
+              v-for="item in proManagerOptions"
+              :key="item.id"
+              :label="item.username"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('table.projectDesc')" prop="description">
           <el-input v-model="temp.description"></el-input>
         </el-form-item>
       </el-form>
@@ -175,16 +210,14 @@
         <el-button v-if="dialogStatus=='create'" type="primary" @click="createData" :loading="creProLoading">
           {{$t('table.confirm')}}
         </el-button>
-        <el-button v-else type="primary" @click="updateData" :loading="creProLoading">{{$t('table.confirm')}}
-        </el-button>
+        <!--<el-button v-else type="primary" @click="updateData" :loading="creProLoading">{{$t('table.confirm')}}
+        </el-button>-->
       </div>
     </el-dialog>
     <!--普通用户修改密码-->
     <el-dialog title="修改密码" :visible.sync="modifyPasswordVisible" append-to-body width="40%" class="limit-width-dialog">
+
       <el-form :model="form" ref="modifyPassForm" :rules="modifyRules" style="width: 80%; margin:0 auto;">
-        <!--<el-form-item label="原密码" :label-width="formLabelWidth">
-          <el-input type="password" v-model="form.passwordOld" auto-complete="off"></el-input>
-        </el-form-item>-->
         <el-form-item label="新密码" :label-width="formLabelWidth" prop="passwordNew">
           <el-input :type="passwordType" v-model="form.passwordNew" auto-complete="off"></el-input>
           <span class="show-pwd" @click="showPwd">
@@ -198,11 +231,111 @@
           </span>
         </el-form-item>
       </el-form>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="modifyPasswordVisible = false">取 消</el-button>
         <el-button :disabled="this.btnConfirm" type="primary" @click="modifyPassword" :loading="modPasLoading">确 定
         </el-button>
       </div>
+
+    </el-dialog>
+    <!--修改项目设置-->
+    <el-dialog title="项目设置" :visible.sync="proSettingVisible" append-to-body width="60%" class="pro-setting-dialog">
+      <el-tabs tab-position="left" style="height: 600px;">
+        <el-tab-pane label="项目概览">
+          <span class="tab-name" slot="label"><i class="el-icon-tickets" style="padding-right: 10px;"></i>项目概览</span>
+          <el-form label-position="top" :model="temp" style="width: 100%;">
+            <el-form-item :label="$t('table.projectName')" :label-width="formLabelWidth">
+              <el-input v-model="temp.name" :disabled="!hasPermission"></el-input>
+            </el-form-item>
+            <el-form-item label="项目描述" :label-width="formLabelWidth">
+              <el-input v-model="temp.description" :disabled="!hasPermission" type="textarea"></el-input>
+            </el-form-item>
+            <el-form-item label="项目负责人" :label-width="formLabelWidth">
+              <span v-if="temp.pic">{{temp.pic.username}}</span>
+              <el-dropdown placement="bottom-start" trigger="click" @click.native="getAbleUser" @command="setPersonInC" v-if="hasPermission">
+                <span class="switPic">
+                  <el-tooltip content="修改负责人" placement="top">
+                    <svg-icon icon-class="switch"></svg-icon>
+                  </el-tooltip>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item v-for="(item, index) in proManagerOptions"
+                                    :key="index"
+                                    :loading="getMaLoading"
+                                    :command="item">{{item.username}}</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-form-item>
+          </el-form>
+          <el-button type="primary" style="float: right;" @click="updateData" :disabled="!hasPermission || (temp.name === saveTemp.name && temp.description === saveTemp.description) || (temp.description === '' && saveTemp.description === null && temp.name === saveTemp.name)">保 存</el-button>
+        </el-tab-pane>
+        <!--<el-tab-pane label="任务管理">
+          <span class="tab-name" slot="label"><i class="el-icon-setting" style="padding-right: 10px;"></i>配置管理</span>
+          <div>
+            &lt;!&ndash;<el-select v-model="temp.proDesignLinkEntitySet" multiple placeholder="请选择" @focus="getDesignLinks" style="width: 100%;" @change="setProDesignLink">
+              <el-option
+                v-for="item in designLinks"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>&ndash;&gt;
+            <div v-for="item in temp.proDesignLinkEntitySet"></div>
+          </div>
+        </el-tab-pane>-->
+        <el-tab-pane label="日程设置">
+          <span class="tab-name" slot="label"><i class="el-icon-date" style="padding-right: 10px;"></i>日程设置</span>
+          <div>
+            <!--<div>
+              <span>项目令号与节点</span>
+              <span class="setOrder" >
+                <svg-icon icon-class="components3"></svg-icon>
+              </span>
+            </div>-->
+            <div>
+              <div class="item-box">
+                <div class="item-name">项目令号：</div>
+                <div v-if="temp.orderNum === null"><el-input v-model="orderNum" placeholder="暂无令号，请输入"></el-input></div>
+                <div v-else>
+                  <el-input v-model="temp.orderNum" placeholder="请输入内容"></el-input>
+                  <!--<el-button type="primary" size="mini" @click="updateOrderNum">修改</el-button>-->
+                </div>
+              </div>
+              <div class="item-box">
+                <div class="item-name">交付节点：</div>
+                <div v-if="temp.finishTime === null">
+                  <el-date-picker
+                    v-model="finishTime"
+                    type="date"
+                    placeholder="选择日期"
+                    format="yyyy 年 MM 月 dd 日"
+                    value-format="timestamp">
+                  </el-date-picker>
+                </div>
+                <div v-else>
+                  <el-date-picker
+                    v-model="temp.finishTime"
+                    type="date"
+                    placeholder="选择日期"
+                    format="yyyy 年 MM 月 dd 日"
+                    value-format="timestamp">
+                  </el-date-picker>
+                  <!--<el-button type="primary" size="mini" @click="updateFinishTimeAndOrder">修改</el-button>-->
+                </div>
+              </div>
+              <div>
+                <el-button class="edit-button" v-if="temp.finishTime === null || temp.orderNum === null" type="primary" @click="setFinishTimeAndOrder">设置</el-button>
+                <el-button class="edit-button" v-else type="primary" @click="updateFinishTimeAndOrder">修改</el-button>
+              </div>
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
+    <!--管理设计环节-->
+    <el-dialog title="设计环节管理" :visible.sync="designLinkVisible" append-to-body width="40%" class="limit-width-dialog">
+      <designLink v-if="designLinkVisible"></designLink>
     </el-dialog>
   </div>
 </template>
@@ -215,22 +348,22 @@
     projectList_user,
     createProject,
     updateProject,
+    updateProPic,
     deleteProject,
     projectListHis,
     projectList_userHis,
     restorePro,
     cleanPro,
-    starPro
+    starPro,
+    arrangePro
   } from '@/api/project'
-  import { getUserId, updateUser } from '@/api/getUsers'
+  import { updatePassword, allUser } from '@/api/getUsers'
+  import { getLinks } from '@/api/designLinks'
   import store from '../../store'
-
-  /* import LangSelect from '@/components/LangSelect'*/
-  /* import SocialSign from './socialsignin'*/
-
+  import designLink from '@/views/designLinks/index'
   /*eslint-disable*/
   export default {
-    components: {PanThumb},
+    components: {PanThumb,designLink},
     name: 'login',
     data() {
       const validatePassword = (rule, value, callback) => {
@@ -268,8 +401,10 @@
         userId: '',
         userName: '',
         selectedId: '',
+        hasPermission: false,
         tableKey: 0,
         list: [],
+        proManagerOptions: [],
         listQuery: {
           page: 0,
           size: 10,
@@ -291,6 +426,8 @@
         searchQuery: '',
         dialogFormVisible: false,
         modifyPasswordVisible: false,
+        proSettingVisible: false,
+        designLinkVisible: false,
         modPasLoading: false,
         passwordType: 'password',
         passwordTypeAgain: 'password',
@@ -303,6 +440,9 @@
           name: '',
           description: ''
         },
+        saveTemp: {
+
+        },
         form: {
           passwordNew: '',
           passwordAgain: ''
@@ -314,6 +454,7 @@
         },
         rules: {
           name: [{required: true, message: '请输入工程名！', trigger: 'blur'}],
+          manager: [{required: true, message: '请选择项目负责人！', trigger: 'change'}]
           // description: [{ required: true, message: 'description is required', trigger: 'blur' }]
         },
         modifyRules: {
@@ -324,6 +465,7 @@
         listLoading: true,
         creProLoading: false,
         ediuserLoading: false,
+        getMaLoading: false,
         delLoading: false,
         showDialog: false,
         userData: {
@@ -338,23 +480,22 @@
         defaultProps: {
           children: 'children',
           label: 'name'
-        }
+        },
+        finishTime: '',
+        orderNum: '',
+        designLinks: []
       }
     },
     created() {
-      this.role = store.getters.roles
-
+      this.role = store.getters.roles[0]
       this.userId = this.getCookie('userId')
       this.userName = this.getCookie('username')
-
       this.getList()
-      // this.getUserInfo()
     },
     mounted() {
     },
     methods: {
       handleTabClick(tab, event) {
-        console.log(tab.label);
         if (tab.label === '回收站') {
           this.showHistory()
         } else if (tab.label === '所有项目') {
@@ -380,39 +521,83 @@
           location.reload()// In order to re-instantiate the vue-router object to avoid bugs
         })
       },
-      getUserInfo() {
-        getUserId().then(res => {
-          this.userId = res.data.data.id
-          this.userName = res.data.data.username
-        })
-      },
       getList() {
         this.listLoading = true
-        if (this.role == 'admin') {
+        if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
-            this.list = response.data.data.content
-            this.listLoading = false
-            this.listLength = response.data.data.length
-            this.total = response.data.data.totalElements
+            if(response.data.code === 0) {
+              this.list = response.data.data
+              this.list.forEach((item) => {
+                item.icon = 'tree-pro'
+                item.children = [{
+                  name: '仿真任务1',
+                  icon: 'tree-task'
+                }, {
+                  name: '仿真任务2',
+                  icon: 'tree-task'
+                }]
+              })
+              this.listLoading = false
+              this.total = response.data.data.totalElements
+            }
           })
-        } else if (this.role == 'editor') {
+        } else {
           // alert(this.userId)
           projectList_user(this.userId, this.listQuery).then(response => {
-            this.list = response.data.data.content
+            if(response.data.code === 0) {
+              this.list = response.data.data
+              this.list.forEach((item) => {
+                item.icon = 'tree-pro'
+                item.children = [{
+                  name: '仿真任务1',
+                  icon: 'tree-task'
+                }, {
+                  name: '仿真任务2',
+                  icon: 'tree-task'
+                }]
+              })
+            }
             this.listLoading = false
-            this.listLength = response.data.data.length
-            this.total = response.data.data.totalElements
           })
         }
-
       },
       resetTemp() {
         this.temp = {
           id: '',
           name: '',
-          description: ''
+          description: '',
+          manager: ''
         }
       },
+
+      // 查询可供选择的项目管理员
+      getAbleUser() {
+        this.getMaLoading = true
+        allUser().then((res) => {
+          if(res.data.code === 0) {
+            this.proManagerOptions = []
+            res.data.data.forEach((item) => {
+              /*if(item.roleEntities.name === 'project_manager' || item.roleEntity.name === 'normal_designer') {
+                this.proManagerOptions.push(item)
+              }*/
+              item.roleEntities.some(role => {
+                if(role.name === 'project_manager' || role.name === 'normal_designer') {
+                  this.proManagerOptions.push(item)
+                }
+              })
+              /*if(item.roleEntities.some(role => 'project_manager'.indexOf(role.name) > 0)) {
+                this.proManagerOptions.push(item)
+              }*/
+            })
+            this.getMaLoading = false
+          } else {
+            this.getMaLoading = false
+          }
+        }).catch(() => {
+          this.getMaLoading = false
+        })
+      },
+      // 打开创建项目弹框
       handleCreate(event) {
         this.resetTemp()
         this.dialogStatus = 'create'
@@ -422,27 +607,41 @@
           this.$refs['dataForm'].clearValidate()
         })
       },
-      createData() {        //创建项目
+      // 创建项目
+      createData() {
         let qs = require('qs');
         this.$refs['dataForm'].validate((valid) => {
-          this.creProLoading = true
           if (valid) {
+            this.creProLoading = true
             let data = {
               'name': this.temp.name,
+              'creatorId': this.userId,
+              'picId': this.temp.manager,
               'description': this.temp.description
             };
             let proData = qs.stringify(data);
-            createProject(proData, this.userId).then(() => {
-              this.creProLoading = false
-              this.list.unshift(this.temp)
-              this.dialogFormVisible = false
-              this.$notify({
-                title: '成功',
-                message: '创建成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
+            createProject(proData).then((res) => {
+              if(res.data.code === 0) {
+                this.creProLoading = false
+                this.list.unshift(this.temp)
+                this.dialogFormVisible = false
+                this.$notify({
+                  title: '成功',
+                  message: '创建成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.getList()
+              } else {
+                this.creProLoading = false
+                this.errorMessage = '操作失败！'
+                this.$notify({
+                  title: '失败',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
             }).catch(error => {
               this.creProLoading = false
               this.errorMessage = '操作失败！'
@@ -461,71 +660,67 @@
       },
       handleUpdate(row) {
         this.selectedId = row.id;
-        console.log(this.selectedId);
         this.temp = Object.assign({}, row) // copy obj
         this.dialogStatus = 'update'
         this.dialogFormVisible = true
-        this.$nextTick(() => {
+        /*this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
-        })
+        })*/
       },
       updateData() {
+        /*this.$refs['dataForm'].validate((valid) => {
+            if (valid) {
+
+            }
+        })*/
         let qs = require('qs');
-        this.$refs['dataForm'].validate((valid) => {
-          if (valid) {
-            this.creProLoading = true
-            let data = {
-              'name': this.temp.name,
-              'description': this.temp.description
-            };
-
-            const id = this.selectedId;
-            // let beforUpdateName = '';
-
-            console.log("改前改后-----------")
-
-
-            /*for(let i=0;i<this.list.length;i++){
-              if(id == this.list[i].id){
-                beforUpdateName = this.list[i].name;
-                console.log(beforUpdateName);
+        this.creProLoading = true
+        let data = {
+          'name': this.temp.name,
+          'description': this.temp.description,
+          'userId': this.userId
+        };
+        // const id = this.selectedId;
+        let id = this.temp.id
+        let proData = qs.stringify(data);
+        updateProject(proData, id).then((res) => {
+          if(res.data.code === 0) {
+            this.creProLoading = false
+            for (const v of this.list) {
+              if (v.id === this.temp.id) {
+                const index = this.list.indexOf(v)
+                this.list.splice(index, 1, this.temp)
+                break
               }
-            }*/
-
-            /*console.log(this.temp.name);
-
-            console.log(id);*/
-            let proData = qs.stringify(data);
-            updateProject(proData, id).then(() => {
-              this.creProLoading = false
-              for (const v of this.list) {
-                if (v.id === this.temp.id) {
-                  const index = this.list.indexOf(v)
-                  this.list.splice(index, 1, this.temp)
-                  break
-                }
-              }
-              this.dialogFormVisible = false
-              this.$notify({
-                title: '成功',
-                message: '更新成功',
-                type: 'success',
-                duration: 2000
-              })
-            }).catch((error) => {
-              this.creProLoading = false
-              this.errorMessage = '操作失败！'
-              if (error.response.data.message) {
-                this.errorMessage = error.response.data.message
-              }
-              this.$notify({
-                title: '失败',
-                message: this.errorMessage,
-                type: 'error',
-                duration: 2000
-              })
+            }
+            this.dialogFormVisible = false
+            this.$notify({
+              title: '成功',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.creProLoading = false
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
             })
           }
+        }).catch((error) => {
+          this.creProLoading = false
+          this.errorMessage = '操作失败！'
+          if (error.response.data.message) {
+            this.errorMessage = error.response.data.message
+          }
+          this.$notify({
+            title: '失败',
+            message: this.errorMessage,
+            type: 'error',
+            duration: 2000
+          })
         })
       },
       handleDelete(row) {
@@ -537,16 +732,30 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          deleteProject(id).then(() => {
-            // this.delLoading = false
-            row.delLoading = false
-            this.$notify({
-              title: '成功',
-              message: '删除成功',
-              type: 'success',
-              duration: 2000
-            })
-            this.getList()
+          let qs = require('qs')
+          let data = {
+            'userId': this.userId
+          };
+          let dataPost = qs.stringify(data)
+          deleteProject(id, dataPost).then((res) => {
+            if(res.data.code === 0) {
+              row.delLoading = false
+              this.$notify({
+                title: '成功',
+                message: '删除成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+            } else {
+              row.delLoading = false
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
           }).catch(() => {
             // this.delLoading = false
             row.delLoading = false
@@ -558,11 +767,64 @@
             })
           })
         }).catch(() => {
-          // this.delLoading = false
           row.delLoading = false
           this.$message({
             type: 'info',
             message: '已取消删除'
+          })
+        })
+      },
+      handleProSetting(item) {
+        this.hasPermission = false
+        if(item.creator.id === this.userId || item.pic.id === this.userId) {
+          this.hasPermission = true
+        }
+        this.proSettingVisible = true
+        this.temp = Object.assign({}, item)
+        this.saveTemp = {
+          name: this.temp.name,
+          description: this.temp.description
+        }
+
+      },
+      // 切换项目负责人
+      setPersonInC(pic) {
+        this.$confirm('确认移交项目给' + pic.username + '吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let qs = require('qs');
+          let data = {
+            'picId': pic.id,
+            'creatorId': this.userId
+          };
+          let postData = qs.stringify(data);
+          updateProPic(this.temp.id, postData).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '项目移交成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.temp.pic.username = pic.username
+              console.log(this.temp)
+              console.log(this.saveTemp)
+              this.getList()
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消操作'
           })
         })
       },
@@ -589,27 +851,27 @@
             }
             var qs = require('qs');
             let datapost = qs.stringify(data)
-            // console.log(this.userId)
-            updateUser(datapost, this.userId).then(() => {
+            updatePassword(this.userId, datapost).then((res) => {
+              if(res.data.code === 0) {
+                this.modifyPasswordVisible = false
+                this.$notify({
+                  title: '成功',
+                  message: '密码修改成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.$store.dispatch('FedLogOut').then(() => {
+                  location.reload()// In order to re-instantiate the vue-router object to avoid bugs
+                })
+              } else {
+                this.$notify({
+                  title: '失败',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
               this.modPasLoading = false
-              this.modifyPasswordVisible = false
-              this.$notify({
-                title: '成功',
-                message: '修改成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.$store.dispatch('FedLogOut').then(() => {
-                location.reload()// In order to re-instantiate the vue-router object to avoid bugs
-              })
-            }).catch(() => {
-              this.modPasLoading = false
-              this.$notify({
-                title: '失败',
-                message: '修改失败',
-                type: 'error',
-                duration: 2000
-              })
             })
           }
         })
@@ -618,7 +880,15 @@
         this.$store.commit('SET_PROJECTID', row.id)
         // let proName = URLEncoder.encode(row.name, 'utf-8')
         this.$store.commit('SET_PROJECTNAME', row.name)
-        this.$router.push({path: '/dashboard/dashboard'})
+        // this.$router.push({path: '/dashboard/dashboard'})
+        this.$router.push({
+          path: '/task_manage',
+          name: 'task_manage',
+          query: {
+            name: row.name,
+            id: row.id
+          }
+        })
       },
       handleSizeChange(val) {
         this.listQuery.size = val
@@ -643,12 +913,12 @@
       showHistory: function () {
         this.listLoading = true
         this.hisBtnLoading = true
-        if (this.role == 'admin') {
+        if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectListHis(this.listQuery).then(response => {
-            console.log(this.listQuery)
-            this.isHistory = true
-            this.list = response.data.data.content
-            this.total1 = response.data.data.totalElements
+            if(response.data.code === 0) {
+              this.isHistory = true
+              this.list = response.data.data
+            }
             this.listLoading = false
             this.hisBtnLoading = false
           }).catch(() => {
@@ -661,13 +931,13 @@
               duration: '2000'
             })
           })
-        } else if (this.role == 'editor') {
+        } else {
           projectList_userHis(this.userId, this.listQuery).then(response => {
-            this.isHistory = true
-            this.list = response.data.data.content
+            if(response.data.code === 0) {
+              this.isHistory = true
+              this.list = response.data.data
+            }
             this.listLoading = false
-            this.listLength = response.data.data.length
-            this.total1 = response.data.data.totalElements
             this.hisBtnLoading = false
           }).catch(() => {
             this.listLoading = false
@@ -684,16 +954,21 @@
       showNow: function () {
         this.listLoading = true
         this.hisBtnLoading = true
-        if (this.role == 'admin') {
-          /*projectList(this.listQuery).then(response => {
-            this.list = response.data.data.content
-            this.listLoading = false
-            this.listLength = response.data.data.length
-            this.total = response.data.data.totalElements
-          })*/
+        if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
-            this.list = response.data.data.content
-            this.total = response.data.data.totalElements
+            if(response.data.code === 0) {
+              this.list = response.data.data
+              this.list.forEach((item) => {
+                item.icon = 'tree-pro'
+                item.children = [{
+                  name: '仿真任务1',
+                  icon: 'tree-task'
+                }, {
+                  name: '仿真任务2',
+                  icon: 'tree-task'
+                }]
+              })
+            }
             this.listLoading = false
             this.hisBtnLoading = false
             this.isHistory = false
@@ -707,14 +982,22 @@
               duration: '2000'
             })
           })
-        } else if (this.role == 'editor') {
+        } else {
           // alert(this.userId)
           projectList_user(this.userId, this.listQuery).then(response => {
-            this.list = response.data.data.content
+            this.list = response.data.data
+            this.list.forEach((item) => {
+              item.icon = 'tree-pro'
+              item.children = [{
+                name: '仿真任务1',
+                icon: 'tree-task'
+              }, {
+                name: '仿真任务2',
+                icon: 'tree-task'
+              }]
+            })
             this.listLoading = false
             this.hisBtnLoading = false
-            this.listLength = response.data.data.length
-            this.total = response.data.data.totalElements
             this.isHistory = false
           }).catch(() => {
             this.listLoading = false
@@ -767,7 +1050,12 @@
           type: 'warning'
         }).then(() => {
           this.listLoading = true
-          restorePro(row.id).then(() => {
+          let qs = require('qs')
+          let data = {
+            'userId': this.userId
+          };
+          let dataPost = qs.stringify(data)
+          restorePro(row.id, dataPost).then(() => {
             this.listLoading = false
             this.showHistory()
             this.$notify({
@@ -804,6 +1092,132 @@
             this.getList()
           })
         })
+      },
+      renderContent(h, { node, data, store }) {
+        if(data.icon) {
+          return (
+            <span>
+            <svg-icon icon-class={data.icon} style="margin-right:6px;"></svg-icon>
+            <span style="color:#777;font-size:12px;">{node.label}</span>
+            </span>
+          )
+        } else {
+          return (
+            <span>
+            <svg-icon icon-class='documentation' style="margin-right:6px;"></svg-icon>
+            <span style="color:#777;font-size:12px;">{node.label}</span>
+            </span>
+          )
+        }
+
+      },
+      handleMangeDesignLinks() {
+        this.designLinkVisible = true
+      },
+      setFinishTimeAndOrder() {
+        let qs = require('qs')
+        let data = {
+          finishTime: this.finishTime.toString(),
+          orderNum: this.orderNum,
+          userId: this.userId
+        }
+        let dataPost = qs.stringify(data)
+        arrangePro(this.temp.id, dataPost).then(res => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '设置节点成功！',
+              type: 'success',
+              duration: 2000
+            })
+            this.temp.finishTime = this.finishTime
+            this.temp.orderNum = this.orderNum
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
+      updateOrderNum() {
+        if(this.temp.orderNum == ''){
+          this.$message({
+            type: 'info',
+            message: '输入不能为空!'
+          })
+          return
+        }
+        let qs = require('qs');
+        let data = {
+          orderNum: this.temp.orderNum,
+          userId: this.userId
+        }
+        let id = this.temp.id
+        let proData = qs.stringify(data);
+        updateProject(proData, id).then(res => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '更新项目令号成功！',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
+      updateFinishTimeAndOrder() {
+        if(this.temp.orderNum == '' || this.temp.finishTime == ''){
+          this.$message({
+            type: 'info',
+            message: '输入不能为空!'
+          })
+          return
+        }
+        let qs = require('qs');
+        let data = {
+          finishTime: this.temp.finishTime.toString(),
+          orderNum: this.temp.orderNum,
+          userId: this.userId
+        }
+        let id = this.temp.id
+        let proData = qs.stringify(data);
+        updateProject(proData, id).then(res => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '更新项目节点成功！',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
+      getDesignLinks() {
+        getLinks().then(res => {
+          if(res.data.code === 0) {
+            this.designLinks = res.data.data
+          }
+        })
+      },
+      setProDesignLink(val) {
+        console.log(val)
       }
     },
     computed: {
@@ -811,6 +1225,12 @@
         let self = this;
         return self.list.filter(function (item) {
           return item.name.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+        })
+      },
+      listTree: function() {
+        let self = this
+        return self.list.filter(function (item) {
+          return item.deleted === false
         })
       }
     },
@@ -842,6 +1262,14 @@
     left: 30px;
     z-index: 99;
   }
+  .add-item {
+    color: #fff;
+    font-size: 17px;
+    cursor: pointer;
+  }
+  .add-item-icon {
+    margin-right: 6px;
+  }
   .proTitle {
     position: absolute;
     width: 140px;
@@ -851,6 +1279,20 @@
     background: linear-gradient(to right, #5786e8, #2961d2);
     -webkit-background-clip: text;
     color: transparent;
+  }
+  .img-container {
+    width: 100%;
+    height: 140px;
+    margin: 0 auto;
+    background: url("./createPro-back.png") center center no-repeat;
+    background-size: 113px 90px;
+  }
+  .text-container {
+    text-align: center;
+    color: #777;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
   }
   .project-container {
     position: fixed;
@@ -862,7 +1304,7 @@
 
     .project-list {
       width: 60%;
-      // min-width: 400px;
+      min-width: 600px;
       max-width: 800px;
       margin: 20px auto;
 
@@ -900,8 +1342,8 @@
         }
 
         .project-info {
-          width: calc(100% - 100px);
-          padding: 0 20px;
+          width: calc(100% - 140px);
+          padding: 0 10px 0 20px;
 
           .info-detail {
             height: 25px;
@@ -921,18 +1363,22 @@
         }
 
         .project-operation {
-          width: 60px;
+          width: 100px;
           line-height: 50px;
 
           .icons {
-            font-size: 20px;
+            font-size: 16px;
             margin-left: 6px;
             color: #ccc;
           }
+          .icons-setting {
+            color: #26bada;
+          }
           .icons-delete {
             position: relative;
-            font-size: 23px;
-            top: 2px;
+            font-size: 18px;
+            top: 0px;
+            left: -2px;
           }
           .icons-edit {
             color: #3f9fe1;
@@ -1061,5 +1507,24 @@
         }
       }
     }
+  }
+  .switPic {
+    cursor: pointer;
+    margin-left: 6px;
+  }
+  .setOrder {
+    cursor: pointer;
+  }
+  .item-box {
+    margin-bottom: 22px;
+  }
+  .item-name {
+    line-height: 36px;
+    padding: 0 0 10px;
+    color: #606266;
+    font-weight: 700;
+  }
+  .edit-button {
+    float: right;
   }
 </style>
