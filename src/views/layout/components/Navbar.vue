@@ -35,8 +35,8 @@
             <span @click="jumpToProManage">项目管理</span>
           </el-dropdown-item>
           <el-dropdown-item divided>
-            <span v-if="role === 'admin'" style="display:block;">
-              <router-link to="/user_manage">用户管理</router-link>
+            <span v-if="role === 'ROLE_ADMIN'" style="display:block;">
+              <router-link to="/user_manage/index">用户管理</router-link>
             </span>
             <span v-else @click="handleModifyPassword" style="display:block;">修改密码</span>
           </el-dropdown-item>
@@ -136,6 +136,7 @@
         listLoading: true,
         proName: '',
         selectedProName: '',
+        taskSelectedName: '',
         selected: '',
         dialogFormVisible: false,
         modifyPasswordVisible: false,
@@ -167,24 +168,14 @@
       }
     },
     created() {
-      this.role = this.$store.getters.roles
+      this.role = this.$store.getters.roles[0]
       this.userData.username = this.getCookie('username')
       this.userData.password = this.getCookie('password')
       this.userId = this.getCookie('userId')
-      this.selectedProName = decodeURI(this.getCookie('projectName'))
-      //this.getList()
+      // this.selectedProName = decodeURI(this.getCookie('projectName'))
+      this.taskSelectedName = decodeURI(this.getCookie('taskSelectedName'))
     },
     computed: {
-      listenProLength() {
-        return this.$store.state.app.projectNum
-      },
-      listenProExist(){
-        return this.$store.state.app.projectExist
-
-      },
-      listenProName () {
-        return this.getCookie('projectName')
-      },
       ...mapGetters([
         'sidebar',
         'name',
@@ -192,21 +183,7 @@
         'roles'
       ])
     },
-    watch: {
-      listenProLength: function(a,b) {
-        this.getList()
-      },
-      listenProExist: function(a,b) {
-        this.getList()
-      },
-      listenProName: function(a,b) {
-        this.selectedProName =  this.getCookie('projectName')
-      }
-    },
     methods: {
-      onFocus() {
-        this.getList()
-      },
       showPwd() {
         if (this.passwordType === 'password') {
           this.passwordType = ''
@@ -229,76 +206,7 @@
           this.total = response.data.total
           this.listLoading = false
           this.projectLength = this.list.length
-
-          let isExist = false;
-          if(this.selected != ''){
-            for(let i=0;i<this.list.length;i++){
-              if(this.selected == this.list[i].name){   //判断显示的在现在的列表中是否存在
-                isExist = true;
-                return;
-              }
-            }
-
-            if(!isExist){       //如果不存在
-              this.selected = '';
-              this.$message({
-                message: '请重新选择项目',
-                type: 'warning'
-              });
-            }
-          }
-
         })
-      },
-      //下拉框选择部署设计
-      changePro: function () {
-        this.proName = this.selected;
-        //alert(this.proId);
-        //不存在则创建项目
-        let isReal = false;
-        let projectId = '';
-        let projectName = ''
-        for(let i=0;i<this.list.length;i++){
-          if(this.proName == this.list[i].name){
-            isReal = true;
-            projectId = this.list[i].id;
-            projectName = this.list[i].name
-            let expireDays = 30;
-            this.selectedProName = this.list[i].name
-            this.setCookie('projectId', projectId, expireDays);
-            this.setCookie('projectName',projectName)
-            this.setProjectId(projectId)
-            break;
-          }
-        }
-        if(!isReal){
-          let qs = require('qs');
-          let data = {
-            'name': this.proName,
-            'description': ''
-          };
-          let proData = qs.stringify(data);
-          createProject(this.userData, proData).then(() => {
-            this.list.unshift(this.temp)
-            this.dialogFormVisible = false
-            this.$notify({
-              title: '成功',
-              message: '创建成功',
-              type: 'success',
-              duration: 2000
-            })
-            this.selected = ''
-            this.getList()
-
-            this.setProjectNum(this.projectLength);
-          })
-
-        }else {
-          this.getList();
-          this.setProjectExist(this.projectExist);
-
-        }
-
       },
       toggleSideBar() {
         this.$store.dispatch('toggleSideBar')
@@ -354,13 +262,7 @@
             })
           }
         })
-      },
-      ...mapMutations({
-        setroles: 'SET_ROLES',
-        setProjectNum: 'SET_PROJECTNUM',
-        setProjectExist: 'SET_PROJECTEXIST',
-        setProjectId: 'SET_PROJECTID'
-      })
+      }
     }
   }
 </script>
