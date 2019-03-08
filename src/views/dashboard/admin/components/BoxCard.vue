@@ -5,21 +5,21 @@
     </div>
     <div style="position:relative;">
       <pan-thumb class="panThumb" :image="avatar"></pan-thumb>
-      <mallki className='mallki-text' text='co-simulation'></mallki>
+      <mallki className='mallki-text' text='协同仿真平台'></mallki>
       <div style="padding-top:35px;" class='progress-item'>
-        <span>Vue</span>
+        <span>待处理</span>
         <el-progress :percentage="70"></el-progress>
       </div>
       <div class='progress-item'>
-        <span>JavaScript</span>
+        <span>进行中</span>
         <el-progress :percentage="18"></el-progress>
       </div>
       <div class='progress-item'>
-        <span>Css</span>
+        <span>已超时</span>
         <el-progress :percentage="12"></el-progress>
       </div>
        <div class='progress-item'>
-        <span>ESLint</span>
+        <span>已完成</span>
         <el-progress :percentage="100" status="success"></el-progress>
       </div>
     </div>

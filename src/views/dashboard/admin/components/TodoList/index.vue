@@ -17,7 +17,7 @@
     <footer class="footer" v-show="todos.length">
       <span class="todo-count">
         <strong>{{ remaining }}</strong>
-        {{ remaining | pluralize('item') }} left
+        {{ remaining | pluralize('item') }} 剩余
       </span>
       <ul class="filters">
         <li v-for="(val, key) in filters" :key="key">
@@ -41,14 +41,14 @@ const filters = {
   completed: todos => todos.filter(todo => todo.done)
 }
 const defalutList = [
-  { text: 'star this repository', done: false },
-  { text: 'fork this repository', done: false },
-  { text: 'follow author', done: false },
-  { text: 'vue-element-admin', done: true },
-  { text: 'vue', done: true },
-  { text: 'element-ui', done: true },
-  { text: 'axios', done: true },
-  { text: 'webpack', done: true }
+  { text: '电磁仿真任务4', done: false },
+  { text: '电磁仿真任务5', done: false },
+  { text: '热力学仿真任务3', done: false },
+  { text: '热力学仿真任务2', done: true },
+  { text: '热力学仿真任务1', done: true },
+  { text: '电磁仿真任务1', done: true },
+  { text: '电磁仿真任务2', done: true },
+  { text: '电磁仿真任务3', done: true }
 ]
 export default {
   components: { Todo },
