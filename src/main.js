@@ -22,8 +22,12 @@ import i18n from './lang' // Internationalization
 import './icons' // icon
 import './errorLog'// error log
 import './permission' // permission control
-/*import './mock' */// simulation data
+import '@/ztree/js/jquery-1.4.4.min.js'
 
+
+// visio图表
+import gojs from 'gojs'
+Vue.prototype.go = gojs
 
 import * as filters from './filters' // global filters
 
