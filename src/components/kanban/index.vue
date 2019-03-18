@@ -12,7 +12,7 @@
         <span v-if="element.designLinkEntity">{{element.designLinkEntity.description}}</span>
         <span v-else>{{element.name}}</span>
         <!--<span>{{ element.description }}</span>-->
-        <span style="float: right" @click="handleSelectTask(element)">
+        <span style="float: right" @click.stop="handleSelectTask(element)">
           <svg-icon icon-class="enter"></svg-icon>
         </span>
         <span style="float: right;font-size: 12px;margin-right: 4px;" @click.stop="handleDeleteTask(element)">
@@ -311,7 +311,7 @@
             id: row.id
           },
           query: {
-            name: row.designLinkEntity.name
+            name: row.designLinkEntity ? row.designLinkEntity.name : ''
           }
         })
         this.setCookie('taskSelectedName')
