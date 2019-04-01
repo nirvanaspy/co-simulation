@@ -8,7 +8,8 @@ let ipConfig = getIp()
 let portConfig = getPort()
 // let serviceConfig = 'http://' + ipConfig + ':' + portConfig + '/apis'
 // let serviceConfig = 'http://127.0.0.1:8080' + '/apis'
-let serviceConfig = 'http://192.168.31.134:8080'
+let serviceConfig = 'http://192.168.31.69:8080'
+// let serviceConfig = 'http://127.0.0.1:8080'
 // let serviceConfig = 'http://192.168.31.13:8080' + '/apis'
 
 let timeStamp = getExpire()
@@ -79,6 +80,7 @@ service.interceptors.response.use(
             refreshSubscribers = []
           }).catch(function (err) {
             console.log('Refresh login error: ', error);
+            // console.log(err.response.status)
             Vue.prototype.$confirm('当前登录状态已过期，请重新登录', '系统提示', {
               confirmButtonText: '重新登录',
               cancelButtonText: '取消',

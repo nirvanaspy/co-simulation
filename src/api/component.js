@@ -275,3 +275,14 @@ export function getHisCompFiles(id, parent) {
     }
   })
 }
+
+// 预览文件
+export function previewFiles(id, parent) {
+  return request({
+    url: '/previewFile',
+    method: 'get',
+    params: {
+      subtaskFileId: id
+    }
+  })
+}

@@ -80,3 +80,11 @@ export function updatePassword(id, data) {
     data
   })
 }
+
+export function updateSecretClass(id, data) {
+  return request({
+    url: '/users/' + id + '/secretClass',
+    method: 'patch',
+    data
+  })
+}

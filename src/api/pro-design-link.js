@@ -20,9 +20,10 @@ export function setProLinks(proId, data) {
 }
 
 // 更新子任务信息
-export function updateProDesignLink(id, data) {
+export function updateProDesignLink(uid, pid, data) {
   return request({
-    url: '/subtasks/' + id + '/updateDesignLink',
+    // url: '/subtasks/' + uid + '/byProject/' + pid,
+    url: '/subtasks/' + uid + '/updateDesignLink',
     method: 'patch',
     data
   })
@@ -70,7 +71,7 @@ export function setAuditors(proId, data) {
 // 更新文件信息
 export function editFileInfo(id, data) {
   return request({
-    url: '/proDesignLinkFiles/' + id,
+    url: '/subtaskFiles/' + id,
     method: 'patch',
     data
   })
@@ -79,7 +80,7 @@ export function editFileInfo(id, data) {
 // 删除文件
 export function deleteTaskFile(id, data) {
   return request({
-    url: '/proDesignLinkFiles/' + id,
+    url: '/subtaskFiles/' + id,
     method: 'delete',
     data
   })
@@ -98,5 +99,52 @@ export function createProcessNodes(id, data) {
     /* data: {
       processNodeEntities: JSON.stringify([{ a: 'a' }, { b: 'c' }, { d: 'd' }])
     }*/
+  })
+}
+
+// 根据项目查询流程
+export function getProcessNodes(id) {
+  return request({
+    url: '/processNodes/byProjectId/' + id,
+    method: 'get'
+  })
+}
+
+// 根据用户id查询审核的子任务
+export function getAuditTasks(id) {
+  return request({
+    url: '/subtasks/byAssessorId/' + id,
+    method: 'get'
+  })
+}
+
+// 审核
+export function assessSubtask(id, data) {
+  return request({
+    url: '/subtasks/' + id + '/assessSubtask',
+    method: 'patch',
+    data
+  })
+}
+
+// 查询审批意见
+export function getOpinion(id, state) {
+  return request({
+    url: '/subtasks/' + id + '/illustration',
+    method: 'get',
+    params: {
+      state: state
+    }
+  })
+}
+
+// 查询所有流程审批意见
+export function getAllOpinion(id, state) {
+  return request({
+    url: '/subtasks/' + id + '/Allillustration',
+    method: 'get',
+    params: {
+      state: state
+    }
   })
 }

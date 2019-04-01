@@ -327,3 +327,33 @@
      display: none;
    }
  }
+
+ .my-menu-dropdown.el-dropdown-menu{
+   margin-left: -210px;
+   top: 60px!important;
+   .popper__arrow {
+     display: none;
+   }
+ }
+ .audit-dialog {
+   .el-dialog__body {
+     max-height: 600px;
+     overflow-y: auto;
+   }
+ }
+ .audit-collapse {
+   border-top: none;
+   border-bottom: none;
+   margin-top: 20px;
+   .el-collapse-item__header {
+     border: none;
+     color: #606266;
+     font-size: 14px;
+   }
+   .el-collapse-item__header.is-active {
+     // color: #409EFF;
+   }
+   .el-collapse-item__wrap {
+     border: none;
+   }
+ }

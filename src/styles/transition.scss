@@ -45,3 +45,29 @@
   position: absolute;
 }
 
+/*slipe*/
+.slipe-enter-active,
+.slipe-leave-active {
+  transition: opacity 0.28s;
+  // transition: transform 0.28s ease;
+}
+
+.slipe-enter,
+.slipe-leave-active {
+  opacity: 0;
+}
+
+/*fade-transform*/
+.slipe-transform-leave-active,
+.slipe-transform-enter-active {
+  transition: all .5s;
+}
+.slipe-transform-enter {
+  opacity: 0;
+  transform: translateY(-60px);
+}
+.slipe-transform-leave-to {
+  opacity: 0;
+  transform: translateY(60px);
+}
+

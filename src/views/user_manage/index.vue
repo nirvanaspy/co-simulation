@@ -61,7 +61,7 @@
                   </div>
                   <div class="userSecret">
                     <span class="username-title">密级:</span>
-                    <span class="secret-text">{{computedSecret(item.secretClass)}}</span>
+                    <span class="secret-text link-type" @click="handleEditSecretClass(item)">{{computedSecret(item.secretClass)}}</span>
                   </div>
                   <div class="userMes">
                     <div class="user-role name" v-if="item.roleEntities">
@@ -136,7 +136,7 @@
         <el-form-item label="用户名">
           <el-input v-model="createUserInfo.username"></el-input>
         </el-form-item>
-        <el-form-item label="用户密级">
+        <!--<el-form-item label="用户密级">
           <el-select v-model="createUserInfo.secretClass" style="width: 100%;">
             <el-option
               v-for="item in secretOptions"
@@ -145,7 +145,7 @@
               :value="item.value">
             </el-option>
           </el-select>
-        </el-form-item>
+        </el-form-item>-->
         <el-form-item label="用户角色">
           <el-select v-model="createUserInfo.roleName" placeholder="请选择" style="width: 100%;">
             <el-option
@@ -177,6 +177,28 @@
         <el-form-item label="用户名">
           <el-input v-model="userInfo.username"></el-input>
         </el-form-item>
+        <!--<el-form-item label="用户密级">
+          <el-select v-model="userInfo.secretClass" style="width: 100%;">
+            <el-option
+              v-for="item in secretOptions"
+              :key="item.value"
+              :label="item.name"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>-->
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUser()">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!--编辑用户密级-->
+    <el-dialog title="修改用户密级"
+               class="editDialog"
+               :visible.sync="editSecretClassDialog"
+               width="30%">
+      <el-form label-position="left" label-width="80px" :model="userInfo">
         <el-form-item label="用户密级">
           <el-select v-model="userInfo.secretClass" style="width: 100%;">
             <el-option
@@ -189,8 +211,8 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editUser()">确 定</el-button>
+        <el-button @click="editSecretClassDialog = false">取 消</el-button>
+        <el-button type="primary" @click="editSecretClass()">确 定</el-button>
       </span>
     </el-dialog>
     <!--编辑用户密码-->
@@ -256,7 +278,7 @@
 <script>
   /*eslint-disable*/
   import { isvalidUsername, isvalidPwd } from '@/utils/validate'
-  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole, updatePassword } from '@/api/getUsers'
+  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole, updatePassword, updateSecretClass } from '@/api/getUsers'
   import { roleList, deleteRole, addRole, updateRole } from '@/api/roles'
   import store from '../../store'
 
@@ -264,6 +286,7 @@
     name: 'usermanange',
     data() {
       return {
+        role: '',
         nowTabs: null,
         selectedUserId: '',
         userList: [],
@@ -284,7 +307,7 @@
         },
         createUserInfo: {
           username: '',
-          secretClass: 0,
+          // secretClass: 0,
           password: '',
           passwordAgain: '',
           roleName: ''
@@ -306,10 +329,10 @@
             value: 3,
             name: '机密'
           },
-          {
+          /*{
             value: 4,
             name: '绝密'
-          },
+          },*/
         ],
         roleInfo: {
           id: '',
@@ -323,6 +346,7 @@
         managerInfo: null,
         createDialogVisible: false,
         editDialogVisible: false,
+        editSecretClassDialog: false,
         deleteDialogVisible: false,
         createRoleDialog: false,
         editRoleDialog: false,
@@ -330,6 +354,7 @@
       }
     },
     created() {
+      this.role = this.$store.getters.roles[0]
       this.getUserList()
       this.getRolesList()
     },
@@ -372,7 +397,7 @@
           username: '',
           password: '',
           passwordAgain: '',
-          secretClass: 0,
+          // secretClass: 0,
           roleName: ''
         }
       },
@@ -382,6 +407,13 @@
       },
       handleEditUser(item) {
         this.editDialogVisible = true
+        this.userInfo = Object.assign({}, item)
+      },
+      handleEditSecretClass(item) {
+        if(this.role !== 'ROLE_SECURITY_GUARD') {
+          return
+        }
+        this.editSecretClassDialog = true
         this.userInfo = Object.assign({}, item)
       },
       handleEditPass(item) {
@@ -550,7 +582,7 @@
         let data = {
           'username': this.createUserInfo.username,
           'password': this.createUserInfo.password,
-          'secretClass': this.createUserInfo.secretClass,
+          // 'secretClass': this.createUserInfo.secretClass,
           'roleName': this.createUserInfo.roleName
         }
         let roleName = this.createUserInfo.roleName
@@ -578,7 +610,7 @@
         var qs = require('qs')
         let data = {
           'username': this.userInfo.username,
-          'secretClass': this.userInfo.secretClass
+          // 'secretClass': this.userInfo.secretClass
         }
         let datapost = qs.stringify(data)
         updateUser(this.userInfo.id, datapost).then((res) => {
@@ -591,6 +623,32 @@
             })
             this.getUserList()
             this.editDialogVisible = false
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
+      editSecretClass() {
+        var qs = require('qs')
+        let data = {
+          'secretClass': this.userInfo.secretClass
+        }
+        let datapost = qs.stringify(data)
+        updateSecretClass(this.userInfo.id, datapost).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getUserList()
+            this.editSecretClassDialog = false
           } else {
             this.$notify({
               title: '失败',
@@ -955,7 +1013,7 @@
         margin-left: 10px;
       }
       .secret-text {
-        color: #777;
+        // color: #777;
         font-weight: 500;
         font-size: 14px;
         margin-left: 22px;

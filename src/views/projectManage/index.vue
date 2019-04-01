@@ -1,11 +1,10 @@
 <template>
   <div class="project-container">
-    <el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
+    <!--<el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
       <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
         <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
         <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
         </el-input>
-
         <el-dropdown trigger="click" placement="bottom-start">
           <span class="add-item">
             <svg-icon icon-class="add"></svg-icon>
@@ -20,8 +19,36 @@
           </el-dropdown-menu>
         </el-dropdown>
         <div class="proTitle">
-          <svg-icon icon-class="co-simulation"></svg-icon>
-          CO-Simulation
+          <span><svg-icon icon-class="co-simulation"></svg-icon></span>
+          <span>CO-Simulation</span>
+          <el-dropdown style="position:absolute;top:-1px;right: 6px;" trigger="click" placement="bottom-start">
+            <span class="el-dropdown-link my-menu-icon">
+              <svg-icon icon-class="menu"></svg-icon>
+            </span>
+            <el-dropdown-menu slot="dropdown" class="my-menu-dropdown">
+              <div class="flex-menu-box">
+                <div class="flex-menu-item">
+                  <span class="icon-box">
+                    <svg-icon icon-class="knowledge"></svg-icon>
+                  </span>
+                  <span class="icon-text">知识库</span>
+                </div>
+                <div class="flex-menu-item">
+                  <span class="icon-box">
+                    <svg-icon icon-class="config"></svg-icon>
+                  </span>
+                  <span class="icon-text">参数库</span>
+                </div>
+                <div class="flex-menu-item" @click="jumpToAudit()">
+                  <span class="icon-box" style="color: #3f9fe1;">
+                    <svg-icon icon-class="audit"></svg-icon>
+                  </span>
+                  <span class="icon-text">我的审查</span>
+                </div>
+              </div>
+              &lt;!&ndash;<el-dropdown-item>狮子头</el-dropdown-item>&ndash;&gt;
+            </el-dropdown-menu>
+          </el-dropdown>
         </div>
       </div>
       <div class="right-menu">
@@ -45,7 +72,25 @@
           </el-dropdown-menu>
         </el-dropdown>
       </div>
-    </el-header>
+    </el-header>-->
+    <div class="searchContainer my-search-box">
+      <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
+      <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+      </el-input>
+      <el-dropdown trigger="click" placement="bottom-start">
+          <span class="add-item">
+            <svg-icon icon-class="add"></svg-icon>
+          </span>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item v-if="this.role === 'ROLE_PROJECT_MANAGER'">
+            <span @click="handleCreate($event)"><svg-icon class="add-item-icon" icon-class="tree-pro"></svg-icon>创建项目</span>
+          </el-dropdown-item>
+          <el-dropdown-item>
+            <span @click="handleMangeDesignLinks"><svg-icon icon-class="tree-task" class="add-item-icon"></svg-icon>设计环节</span>
+          </el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
     <div class="title-container">
       <h3 class="title" style="margin-bottom:30px">
       </h3>
@@ -80,10 +125,16 @@
                   </span>
                 </div>
                 <div class="project-info project-detail">
-                  <div class="info-detail info-name" @click="handleSelect(item)">{{item.name}}</div>
-                  <div class="info-detail info-description">{{item.description}}</div>
+                  <div class="info-detail info-name"><span @click="handleSelect(item)">{{item.name}}</span></div>
+                  <div class="info-detail info-secretClass">密级：{{computeSecretClass(item.secretClass)}}</div>
+                  <!--<div class="info-detail info-description">{{item.description}}</div>-->
                 </div>
                 <div class="project-operation project-detail">
+                  <span class="icons icons-setting" @click="handleStartPro(item)">
+                    <el-tooltip content="启动项目" placement="top">
+                      <svg-icon icon-class="startup"></svg-icon>
+                    </el-tooltip>
+                  </span>
                   <span class="icons icons-setting" @click="handleProSetting(item)">
                     <el-tooltip content="打开项目设置" placement="top">
                       <svg-icon icon-class="components3"></svg-icon>
@@ -190,8 +241,18 @@
         <el-form-item :label="$t('table.projectName')" prop="name">
           <el-input v-model="temp.name"></el-input>
         </el-form-item>
+        <el-form-item label="密级" prop="secretClass" >
+          <el-select v-model="temp.secretClass" placeholder="请选择项目密级" style="width: 100%" @change="clearPicOption">
+            <el-option
+              v-for="item in secretClassOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="负责人" prop="manager" >
-          <el-select v-model="temp.manager" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
+          <el-select v-model="temp.manager" @focus="getAbleUser" placeholder="请选择项目负责人" style="width: 100%">
             <el-option
               :loading="getMaLoading"
               v-for="item in proManagerOptions"
@@ -355,7 +416,9 @@
     restorePro,
     cleanPro,
     starPro,
-    arrangePro
+    arrangePro,
+    startPro,
+    getProjectAuth
   } from '@/api/project'
   import { updatePassword, allUser } from '@/api/getUsers'
   import { getLinks } from '@/api/designLinks'
@@ -435,10 +498,33 @@
         passwordValidate: false,
         pasAgainValidate: false,
         formLabelWidth: '100px',
+        secretClassOptions: [
+          {
+            label: '公开',
+            value: 0
+          },
+          {
+            label: '内部',
+            value: 1
+          },
+          {
+            label: '秘密',
+            value: 2
+          },
+          {
+            label: '机密',
+            value: 3
+          },
+          /*{
+            label: '绝密',
+            value: 4
+          }*/
+        ],
         temp: {
           id: '',
           name: '',
-          description: ''
+          description: '',
+          secretClass: 0
         },
         saveTemp: {
 
@@ -454,7 +540,8 @@
         },
         rules: {
           name: [{required: true, message: '请输入工程名！', trigger: 'blur'}],
-          manager: [{required: true, message: '请选择项目负责人！', trigger: 'change'}]
+          manager: [{required: true, message: '请选择项目负责人！', trigger: 'change'}],
+          secretClass: [{required: true, message: '请选择项目密级！', trigger: 'change'}]
           // description: [{ required: true, message: 'description is required', trigger: 'blur' }]
         },
         modifyRules: {
@@ -523,7 +610,24 @@
       },
       getList() {
         this.listLoading = true
-        if (this.role == 'ROLE_PROJECT_MANAGER') {
+        projectList(this.listQuery).then(response => {
+          if(response.data.code === 0) {
+            this.list = response.data.data
+            this.list.forEach((item) => {
+              item.icon = 'tree-pro'
+              item.children = [{
+                name: '仿真任务1',
+                icon: 'tree-task'
+              }, {
+                name: '仿真任务2',
+                icon: 'tree-task'
+              }]
+            })
+            this.listLoading = false
+            this.total = response.data.data.totalElements
+          }
+        })
+        /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
             if(response.data.code === 0) {
               this.list = response.data.data
@@ -559,14 +663,15 @@
             }
             this.listLoading = false
           })
-        }
+        }*/
       },
       resetTemp() {
         this.temp = {
           id: '',
           name: '',
           description: '',
-          manager: ''
+          manager: '',
+          secretClass: null
         }
       },
 
@@ -577,17 +682,13 @@
           if(res.data.code === 0) {
             this.proManagerOptions = []
             res.data.data.forEach((item) => {
-              /*if(item.roleEntities.name === 'project_manager' || item.roleEntity.name === 'normal_designer') {
-                this.proManagerOptions.push(item)
-              }*/
-              item.roleEntities.some(role => {
-                if(role.name === 'project_manager' || role.name === 'normal_designer') {
-                  this.proManagerOptions.push(item)
-                }
-              })
-              /*if(item.roleEntities.some(role => 'project_manager'.indexOf(role.name) > 0)) {
-                this.proManagerOptions.push(item)
-              }*/
+              if(item.secretClass >= this.temp.secretClass) {
+                item.roleEntities.some(role => {
+                  if(role.name === 'project_manager' || role.name === 'normal_designer') {
+                    this.proManagerOptions.push(item)
+                  }
+                })
+              }
             })
             this.getMaLoading = false
           } else {
@@ -617,7 +718,8 @@
               'name': this.temp.name,
               'creatorId': this.userId,
               'picId': this.temp.manager,
-              'description': this.temp.description
+              'description': this.temp.description,
+              'secretClass': this.temp.secretClass
             };
             let proData = qs.stringify(data);
             createProject(proData).then((res) => {
@@ -787,6 +889,26 @@
         }
 
       },
+      // 启动项目
+      handleStartPro(row) {
+        startPro(row.id).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '项目启动成功',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
       // 切换项目负责人
       setPersonInC(pic) {
         this.$confirm('确认移交项目给' + pic.username + '吗？', '提示', {
@@ -888,6 +1010,42 @@
             name: row.name,
             id: row.id
           }
+        })
+        // 验证用户密级是否足够
+        getProjectAuth(row.id, this.userId).then((res) => {
+          if(res.data.code === 0) {
+            if(res.data.data === true) {
+              this.$router.push({
+                path: '/task_manage',
+                name: 'task_manage',
+                query: {
+                  name: row.name,
+                  id: row.id
+                }
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: '对不起，您没有无权限查看此项目！',
+                type: 'error',
+                duration: '2000'
+              })
+            }
+          } else {
+            this.$notify({
+              title: '失败',
+              message: '权限验证失败！',
+              type: 'error',
+              duration: '2000'
+            })
+          }
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '权限验证失败！',
+            type: 'error',
+            duration: '2000'
+          })
         })
       },
       handleSizeChange(val) {
@@ -1218,6 +1376,14 @@
       },
       setProDesignLink(val) {
         console.log(val)
+      },
+      jumpToAudit() {
+        this.$router.push({
+          path: '/audit_task'
+        })
+      },
+      clearPicOption() {
+        this.temp.manager = ''
       }
     },
     computed: {
@@ -1232,6 +1398,21 @@
         return self.list.filter(function (item) {
           return item.deleted === false
         })
+      },
+      computeSecretClass() {
+        return function(item) {
+          if(item === 0) {
+            return '公开'
+          } else if (item === 1) {
+            return '内部'
+          } else if (item === 2) {
+            return '秘密'
+          } else if (item === 3) {
+            return '机密'
+          } else if (item === 4) {
+            return '绝密'
+          }
+        }
       }
     },
     mounted() {
@@ -1256,11 +1437,17 @@
     cursor: pointer;
     user-select: none;
   }
-  .icon-search {
+  .my-search-box {
     position: absolute;
+    top: -45px;
+    left: 10px;
+    z-index:1000;
+  }
+  .icon-search {
+    position: relative;
     top: 1px;
     left: 30px;
-    z-index: 99;
+    z-index: 1000;
   }
   .add-item {
     color: #fff;
@@ -1272,13 +1459,51 @@
   }
   .proTitle {
     position: absolute;
-    width: 140px;
+    width: 160px;
     top: 0;
     left: 50%;
     margin-left: -70px;
     background: linear-gradient(to right, #5786e8, #2961d2);
     -webkit-background-clip: text;
     color: transparent;
+  }
+  .my-menu-icon {
+    color: #fff;
+    font-size: 26px;
+    /*position: absolute;
+    top: -1px;
+    right: 4px;*/
+    cursor: pointer;
+  }
+  .flex-menu-box {
+    display: flex;
+    width: 320px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    // justify-content: flex-start;
+    justify-content: space-around;
+    padding: 24px;
+    .flex-menu-item {
+      align-items: center;
+      display: block;
+      width: 60px;
+      // height: 60px;
+      font-size: 42px;
+      text-align: center;
+      line-height: 60px;
+      cursor: pointer;
+      color: #383838;
+      .icon-box {
+        display: block;
+        width: 100%;
+      }
+      .icon-text {
+        display: block;
+        height: 20px;
+        line-height: 20px;
+        font-size: 14px;
+      }
+    }
   }
   .img-container {
     width: 100%;
@@ -1350,7 +1575,9 @@
             line-height: 25px;
             color: rgb(77, 77, 77);
           }
-
+          .info-secretClass {
+            color: #999;
+          }
           .info-description {
             color: rgb(179, 179, 179);
           }
@@ -1367,18 +1594,19 @@
           line-height: 50px;
 
           .icons {
-            font-size: 16px;
+            font-size: 22px;
             margin-left: 6px;
             color: #ccc;
+            cursor: pointer;
           }
           .icons-setting {
             color: #26bada;
           }
           .icons-delete {
             position: relative;
-            font-size: 18px;
-            top: 0px;
-            left: -2px;
+            font-size: 26px;
+            top: 1px;
+            left: -4px;
           }
           .icons-edit {
             color: #3f9fe1;
@@ -1396,7 +1624,6 @@
       .info-name, .new-info {
         color: #3da8f5 !important;
       }
-
       /*.icons-delete {
         color: #f56c6c !important;
       }

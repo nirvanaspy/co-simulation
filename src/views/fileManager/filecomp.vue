@@ -1,6 +1,6 @@
 <template>
   <div class="fileComp">
-    <div class="operationContainer" style="height: 40px;border-bottom:1px solid #ebeef5">
+    <div class="operationContainer" style="height: 40px;border-bottom:1px solid #ebeef5" v-if="forUse !== 'preview'">
       <div style="float: left;padding-left: 10px;">
         <el-breadcrumb separator-class="el-icon-arrow-right">
           <el-breadcrumb-item v-for="(item,index) in breadcrumbList" :key="index"><span style="cursor: pointer;color:rgb(0, 171, 235);" @click="switchFolder(item,index)">{{item.name}}</span></el-breadcrumb-item>
@@ -97,7 +97,12 @@
               <svg-icon icon-class="ellipsis"></svg-icon>
             </span>
             </el-tooltip>
-            <el-dropdown-menu slot="dropdown">
+            <el-dropdown-menu slot="dropdown" v-if="forUse === 'preview'">
+              <el-dropdown-item>
+                <span style="display:inline-block;padding:0 10px;" @click="previewFile(scope.row)">预览</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+            <el-dropdown-menu slot="dropdown" v-else>
               <el-dropdown-item>
                 <span style="display:inline-block;padding:0 10px;" @click="deleteFile(scope.row)">删除</span>
               </el-dropdown-item>
@@ -145,7 +150,7 @@
         </el-form-item>
         <el-form-item label="类型">
           <!--<el-input v-model="fileUpInfo.type"></el-input>-->
-          <el-select v-model="fileUpInfo.type" placeholder="请选择密级" style="width: 100%">
+          <el-select v-model="fileUpInfo.type" placeholder="请选择类型" style="width: 100%">
             <el-option
               v-for="item in typeOptions"
               :key="item.value"
@@ -154,8 +159,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="代号">
-          <!--<el-input v-model="fileUpInfo.codeName"></el-input>-->
+        <!--<el-form-item label="代号">
           <el-select v-model="fileUpInfo.codeName" placeholder="请选择密级" style="width: 100%">
             <el-option
               v-for="item in codeNameOptions"
@@ -164,6 +168,12 @@
               :value="item.value">
             </el-option>
           </el-select>
+        </el-form-item>-->
+        <el-form-item label="产品型号">
+          <el-input v-model="fileUpInfo.productNo" placeholder="请输入产品型号"></el-input>
+        </el-form-item>
+        <el-form-item label="文件图号">
+          <el-input v-model="fileUpInfo.fileNo" placeholder="请输入文件图号"></el-input>
         </el-form-item>
       </el-form>
       <uploader :options="options"
@@ -182,7 +192,7 @@
         <uploader-unsupport></uploader-unsupport>
           <uploader-drop>
             <p>在此处进行操作</p>
-            <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.codeName !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.codeName !== ''">选择文件</uploader-btn>
+            <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== ''">选择文件</uploader-btn>
             <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
           </uploader-drop>
           <!--<uploader-btn>选择文件</uploader-btn>-->
@@ -286,7 +296,13 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="代号">
+        <el-form-item label="产品型号">
+          <el-input v-model="fileEditInfo.productNo" placeholder="请输入产品型号"></el-input>
+        </el-form-item>
+        <el-form-item label="文件图号">
+          <el-input v-model="fileEditInfo.fileNo" placeholder="请输入文件图号"></el-input>
+        </el-form-item>
+        <!--<el-form-item label="代号">
           <el-select v-model="fileEditInfo.codeName" placeholder="请选择代号" style="width: 100%">
             <el-option
               v-for="item in codeNameOptions"
@@ -295,7 +311,7 @@
               :value="item.value">
             </el-option>
           </el-select>
-        </el-form-item>
+        </el-form-item>-->
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="editInfoDialog = false">取 消</el-button>
@@ -307,7 +323,7 @@
 
 <script>
   /*eslint-disable*/
-  import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder } from '@/api/component'
+  import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder, previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
   import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo } from '@/api/pro-design-link'
   import service from '@/utils/request'
@@ -324,6 +340,13 @@
       },
       selectCompName: {
         type: String
+      },
+      forUse: {
+        type: String,
+        default: 'normal'
+      },
+      proClass: {
+        type: String
       }
     },
     components: {
@@ -336,7 +359,7 @@
         userId: '',
         projectId:'',
         componentId: '',
-        compName: '',
+        // compName: '',
         parentNodeId: '',
         newFolderName: '',
         selectFileId: '',
@@ -348,12 +371,16 @@
         fileEditInfo: {
           secretClass: null,
           type: null,
-          codeName: null
+          productNo: null,
+          fileNo: null
+          // codeName: null
         },
         fileUpInfo: {
           secretClass: null,
           type: null,
-          codeName: null
+          productNo: null,
+          fileNo: null
+          // codeName: null
         },
         secretClassOptions: [
           {
@@ -372,10 +399,10 @@
             label: '机密',
             value: 3
           },
-          {
+          /*{
             label: '绝密',
             value: 4
-          }
+          }*/
         ],
         typeOptions: [
           {
@@ -680,7 +707,9 @@
                   relativePath: '/' + fileA.relativePath,
                   secretClass: that.fileUpInfo.secretClass,
                   type: that.fileUpInfo.type,
-                  codeName: that.fileUpInfo.codeName
+                  productNo: that.fileUpInfo.productNo,
+                  fileNo: that.fileUpInfo.fileNo
+                  // codeName: that.fileUpInfo.codeName
                 }
                 that.fileInfoList.push(infoList)
                 let resVal = ''
@@ -783,7 +812,7 @@
       },
       // 上传文件时 fileSuccess 第一个参数为根文件， 第二个参数为上传的文件
       fileSuccess () {
-        console.log('fileSuccess', arguments)
+        // console.log('fileSuccess', arguments)
         // this.fileMd5HeadTailTime(arguments[1].file, this.$refs.uploader.uploader.opts.chunkSize)
         // this.mergeFile(arguments[1].uniqueIdentifier, arguments[1].chunks.length, arguments[1].size, arguments[1].name, arguments[1].relativePath)
         let data = {
@@ -796,18 +825,28 @@
         let datapost = qs.stringify(data)
         this.listLoading = true
         mergeFile(datapost).then((res)=> {
-          let infoList = {
-            fileId: res.data.data.id,
-            MD5: arguments[1].md5,
-            name: arguments[1].name,
-            relativePath: '/' + arguments[1].relativePath,
-            secretClass: this.fileUpInfo.secretClass,
-            type: this.fileUpInfo.type,
-            codeName: this.fileUpInfo.codeName
+          if(res.data.code === 0) {
+            let infoList = {
+              fileId: res.data.data.id,
+              MD5: arguments[1].md5,
+              name: arguments[1].name,
+              relativePath: '/' + arguments[1].relativePath,
+              secretClass: this.fileUpInfo.secretClass,
+              type: this.fileUpInfo.type,
+              productNo: this.fileUpInfo.productNo,
+              fileNo: this.fileUpInfo.fileNo
+              // codeName: this.fileUpInfo.codeName
+            }
+            this.fileInfoList.push(infoList)
+          } else {
+            this.$notify({
+              title: '失败',
+              message: '上传出错了！',
+              type: 'error',
+              duration: 2000
+            })
           }
-          this.fileInfoList.push(infoList)
         })
-
       },
       // 上传文件夹时 fileComplete 第一个参数为根文件（文件夹），第二个参数为最后一个上传的文件
       fileComplete () {
@@ -998,6 +1037,11 @@
           })
         })
       },
+      previewFile(row) {
+        previewFiles(row.id).then((res) => {
+
+        })
+      },
       switchFolder(row,index){
         // console.log(this.breadcrumbList)
         if(row.folder){
@@ -1015,7 +1059,7 @@
         }
       },
       exportFile(row) {
-        let url = service.defaults.baseURL + '/proDesignLinkFiles/' + row.id + '/user/' + this.userId + '/export'
+        let url = service.defaults.baseURL + '/subtaskFiles/' + row.id + '/user/' + this.userId + '/export'
         window.open(url)
       },
       handleMove(row) {
@@ -1191,14 +1235,18 @@
         this.fileEditInfo = {
           secretClass: row.secretClass,
           type: row.type,
-          codeName: row.codeName
+          codeName: row.codeName,
+          productNo: row.productNo,
+          fileNo: row.fileNo
         }
       },
       editFileInfo() {
         let data = {
           'secretClass': this.fileEditInfo.secretClass,
           'type': this.fileEditInfo.type,
-          'codeName': this.fileEditInfo.codeName
+          'productNo': this.fileEditInfo.productNo,
+          'fileNo': this.fileEditInfo.fileNo
+          // 'codeName': this.fileEditInfo.codeName
         }
         var qs = require('qs');
         let datapost = qs.stringify(data)
@@ -1299,16 +1347,26 @@
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
           let datapost = JSON.stringify(this.fileInfoList)
           this.statusText.success = '正在合并文件'
-          uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
+          uploadFiles(this.componentId, this.parentNodeId, datapost).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '上传成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.statusText.success = '文件合并成功'
+            } else {
+              this.$notify({
+                title: '成功',
+                message: '上传失败',
+                type: 'error',
+                duration: 2000
+              })
+              this.statusText.success = '文件合并失败'
+            }
             this.listLoading = false
             this.hiddenClose = false
-            this.$notify({
-              title: '成功',
-              message: '上传成功',
-              type: 'success',
-              duration: 2000
-            })
-            this.statusText.success = '文件合并成功'
             this.getList()
           }).catch(() => {
             this.listLoading = false

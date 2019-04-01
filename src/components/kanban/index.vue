@@ -3,19 +3,22 @@
     <div class="board-column-header">
       {{ headerText }}
     </div>
-    <draggable
+    <!--<draggable></draggable>-->
+    <div
       :list="list"
       :options="options"
       class="board-column-content">
-      <div v-for="element in list" :key="element.id" class="board-item" @click="handleEditTask(element)">
+      <div v-for="element in list" :key="element.id" class="board-item" @dblclick.stop="handleSelectTask(element)">
         <span class="tag-box"></span>
-        <span v-if="element.designLinkEntity">{{element.designLinkEntity.description}}</span>
-        <span v-else>{{element.name}}</span>
-        <!--<span>{{ element.description }}</span>-->
-        <span style="float: right" @click.stop="handleSelectTask(element)">
-          <svg-icon icon-class="enter"></svg-icon>
+        <span @click="handleEditTask(element)">
+          <!--<span v-if="element.designLinkEntity">{{element.designLinkEntity.description}}</span>-->
+          <span class="link-type">{{element.name}}</span>
         </span>
-        <span style="float: right;font-size: 12px;margin-right: 4px;" @click.stop="handleDeleteTask(element)">
+        <!--<span>{{ element.description }}</span>-->
+        <!--<span style="float: right">
+          <svg-icon icon-class="enter"></svg-icon>
+        </span>-->
+        <span style="float: right;font-size: 16px;margin-right: 4px;" @click.stop="handleDeleteTask(element)">
           <svg-icon icon-class="delete"></svg-icon>
         </span>
         <div class="tag-box-mine" v-if="element.finishTime">
@@ -27,20 +30,20 @@
           </span>
         </div>
       </div>
-      <div class="add-item" v-if="taskType == 'undo'" @click="handleAddTask">
+      <!--<div class="add-item" v-if="taskType == 'undo'" @click="handleAddTask">
         <span>+</span>
-      </div>
-    </draggable>
+      </div>-->
+    </div>
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="newTaskDialog" append-to-body width="60%" class="limit-width-dialog">
       <div class="img-container"></div>
-      <div class="text-container">为当前项目创建一个子任务</div>
-      <el-form label-position="left" label-width="120px">
+      <div class="text-container">设置当前子任务</div>
+      <el-form label-position="right" label-width="120px" :rules="rules" :model="taskInfo" ref="taskForm">
         <el-form-item label="任务名" prop="name">
           <label slot="label">
             <svg-icon icon-class="documentation"></svg-icon>
             任务名
           </label>
-          <el-input v-model="taskInfo.name"></el-input>
+          <el-input v-model="taskInfo.name" disabled="disabled"></el-input>
         </el-form-item>
         <!--<el-form-item :label="$t('table.projectDesc')" prop="description">
           <label slot="label">
@@ -49,7 +52,7 @@
           </label>
           <el-input v-model="taskInfo.description"></el-input>
         </el-form-item>-->
-        <el-form-item :label="$t('table.projectDesc')" prop="description">
+        <el-form-item :label="$t('table.projectDesc')" prop="userEntity">
           <label slot="label">
             <svg-icon icon-class="people"></svg-icon>
             执行者
@@ -63,7 +66,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('table.projectDesc')" prop="description">
+        <!--<el-form-item :label="$t('table.projectDesc')" prop="description">
           <label slot="label">
             <svg-icon icon-class="process"></svg-icon>
             设计环节
@@ -76,8 +79,8 @@
               :value="item">
             </el-option>
           </el-select>
-        </el-form-item>
-        <el-form-item>
+        </el-form-item>-->
+        <el-form-item required prop="finishTime">
           <label slot="label">
             <svg-icon icon-class="calendar"></svg-icon>
             截止日期
@@ -156,7 +159,11 @@
         },
         newTaskDialog: false,
         taskPicOptions: [],
-        desiginLinkOptions: []
+        desiginLinkOptions: [],
+        rules: {
+          finishTime: [{required: true, message: '请选择结束时间！', trigger: 'change'}],
+          userEntity: [{required: true, message: '请选择任务负责人！', trigger: 'change'}],
+        },
       }
     },
     created() {
@@ -178,6 +185,9 @@
         this.resetCreat()
         this.dialogStatus = 'create'
         this.newTaskDialog = true
+        this.$nextTick(() => {
+          this.$refs['taskForm'].clearValidate()
+        })
       },
       getAbleUser() {
         allUser().then((res) => {
@@ -202,36 +212,41 @@
         })
       },
       saveTask() {
-        let qs = require('qs')
-        let data = {
-          finishTime: this.taskInfo.finishTime.toString(),
-          userId: this.taskInfo.userId,
-          designLinkEntityId: this.taskInfo.linkId
-        }
-        let dataPost = qs.stringify(data)
-        setProLinks(this.proId, dataPost).then((res) => {
-          if(res.data.code === 0) {
-            this.$notify({
-              title: '成功',
-              message: '任务新建成功！',
-              type: 'success',
-              duration: '2000'
+        this.$refs['taskForm'].validate((valid) => {
+          if(valid) {
+            let qs = require('qs')
+            let data = {
+              finishTime: this.taskInfo.finishTime.toString(),
+              userId: this.taskInfo.userId,
+              designLinkEntityId: this.taskInfo.linkId
+            }
+            let dataPost = qs.stringify(data)
+            setProLinks(this.proId, dataPost).then((res) => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '任务新建成功！',
+                  type: 'success',
+                  duration: '2000'
+                })
+                this.newTaskDialog = false
+                // 成功后调用父组件方法 刷新list
+                this.$emit('onNewTask')
+              } else {
+                this.$notify({
+                  title: '失败',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: '2000'
+                })
+              }
             })
-            this.newTaskDialog = false
-            // 成功后调用父组件方法 刷新list
-            this.$emit('onNewTask')
           } else {
-            this.$notify({
-              title: '失败',
-              message: res.data.msg,
-              type: 'error',
-              duration: '2000'
-            })
+            return false
           }
         })
       },
       handleEditTask(temp) {
-        console.log(temp)
         this.dialogStatus = 'update'
         this.taskInfo = Object.assign({}, temp)
         if (temp.userEntity !== null) {
@@ -241,36 +256,42 @@
           this.desiginLinkOptions = [temp.designLinkEntity]
         }
         this.newTaskDialog = true
-
+        this.$nextTick(() => {
+          this.$refs['taskForm'].clearValidate()
+        })
       },
       editTask() {
-        let qs = require('qs')
-        let data = {
-          finishTime: this.taskInfo.finishTime.toString(),
-          // userId: this.taskInfo.userId,
-          userId: this.taskInfo.userEntity.id,
-          // designLinkEntityId: this.taskInfo.linkId
-          designLinkEntityId: this.taskInfo.designLinkEntity.id
-        }
-        let dataPost = qs.stringify(data)
-        updateProDesignLink(this.taskInfo.id, dataPost).then(res => {
-          if(res.data.code === 0) {
-            this.$notify({
-              title: '成功',
-              message: '任务修改成功！',
-              type: 'success',
-              duration: '2000'
+        this.$refs['taskForm'].validate((valid) => {
+          if(valid) {
+            let qs = require('qs')
+            let data = {
+              finishTime: this.taskInfo.finishTime.toString(),
+              userId: this.taskInfo.userEntity.id,
+              // designLinkEntityId: this.taskInfo.designLinkEntity.id
+            }
+            let dataPost = qs.stringify(data)
+            updateProDesignLink(this.taskInfo.id, this.proId, dataPost).then(res => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '任务修改成功！',
+                  type: 'success',
+                  duration: '2000'
+                })
+                this.newTaskDialog = false
+                // 成功后调用父组件方法 刷新list
+                this.$emit('onNewTask')
+              } else {
+                this.$notify({
+                  title: '失败',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: '2000'
+                })
+              }
             })
-            this.newTaskDialog = false
-            // 成功后调用父组件方法 刷新list
-            this.$emit('onNewTask')
           } else {
-            this.$notify({
-              title: '失败',
-              message: res.data.msg,
-              type: 'error',
-              duration: '2000'
-            })
+            return false
           }
         })
       },
@@ -304,7 +325,7 @@
         })
       },
       handleSelectTask(row) {
-        this.$router.push({
+        /*this.$router.push({
           path: '/taskFiles',
           name: 'taskFiles',
           params: {
@@ -314,7 +335,29 @@
             name: row.designLinkEntity ? row.designLinkEntity.name : ''
           }
         })
-        this.setCookie('taskSelectedName')
+        this.setCookie('taskSelectedName')*/
+        if(row.userEntity !== null) {
+          this.$router.push({
+            path: '/taskFiles',
+            name: 'taskFiles',
+            params: {
+              id: row.id
+            },
+            query: {
+              name: row.designLinkEntity ? row.designLinkEntity.name : '',
+              proClass: row.projectEntity.secretClass
+            }
+          })
+          console.log(row.projectEntity.secretClass)
+          this.setCookie('taskSelectedName')
+        } else {
+          this.$notify({
+            title: '失败',
+            message: '请先指定子任务负责人！',
+            type: 'error',
+            duration: '2000'
+          })
+        }
       }
     },
     computed: {
@@ -393,7 +436,7 @@
         color: #fff;
         border-radius: 3px;
         margin-top: 10px;
-        margin-right: -10px;
+        margin-right: -14px;
       }
       .taskPic {
         // float: right;

@@ -4,12 +4,13 @@
       <span class="operation-btn" @click="saveMyDiagram">保存</span>
       <span class="operation-btn" @click="undoMyDiagram">撤销</span>
       <span class="operation-btn" @click="redoMyDiagram">恢复</span>
-      <el-button @click="createFromTemp" type="primary" size="mini">创建</el-button>
+      <el-button @click="createFromTemp" type="primary" size="mini">保存</el-button>
     </div>
     <div style="width: 100%; display: flex; justify-content: space-between;height:calc(100% - 40px);">
       <div id="myPaletteDiv" style="width: 200px; margin-right: 2px; background-color: whitesmoke; border: solid 1px black"></div>
       <div id="myDiagramDiv" style="flex-grow: 1; height: 100%; border: solid 1px black"></div>
     </div>
+    <div id="myOverviewDIV"></div>
     <!--<div>
        <textarea id="mySavedModel" style="width:100%;height:300px">
            {
@@ -45,6 +46,10 @@
       proId: {
         type: String,
         default: ''
+      },
+      processNodes: {
+        type: Array,
+        default: []
       }
     },
     data() {
@@ -76,6 +81,7 @@
         let myCanvas = go.GraphObject.make
         this.myDiagram = myCanvas(go.Diagram, "myDiagramDiv",  // must name or refer to the DIV HTML element
           {
+            // isReadOnly: true,
             grid: myCanvas(go.Panel, "Grid",
               myCanvas(go.Shape, "LineH", {stroke: "lightgray", strokeWidth: 0.5}),
               myCanvas(go.Shape, "LineH", {stroke: "gray", strokeWidth: 0.5, interval: 10}),
@@ -128,6 +134,18 @@
             }
         });*/
 
+        this.myDiagram.addDiagramListener("SelectionDeleting", function(e) {
+          e.subject.each(function(n) {
+            //n为删除节点或线的对象
+            console.log(n.data.key);
+            return
+            /*if (n.data.key == "5.1") {
+              //不允许删除，给e.cancel赋值
+              e.cancel = true;
+            }*/
+            // alert('已进行流程不允许操作！')
+          })
+        })
         function makePort(name, spot, output, input) {
           // the port is basically just a small transparent square
           return myCanvas(go.Shape, "Circle",
@@ -415,15 +433,79 @@
         let nodeArr = this.myDiagram.model.Gc
         let linkArr = this.myDiagram.model.Pc
 
+        if(nodeArr.length < 2 || linkArr.length < 1) {
+          this.$notify({
+            title: '提示',
+            message: '当前流程不完整，请检查！',
+            type: 'error',
+            duration: 2000
+          })
+          return
+        }
+        /*debugger
+        for(let i = 0; i < linkArr.length; i++) {
+          // 判断节点是否闭合
+          if(!linkArr[i].to || !linkArr[i].from) {
+            this.$notify({
+              title: '提示',
+              message: '节点未闭合，请检查！',
+              type: 'error',
+              duration: 2000
+            })
+            return
+          }
+          for(let j = 1; j < linkArr.length; j++) {
+            // 判断节点间的引用错误
+            // 两个节点间的循环引用 || 两个节点间存在重复引用关系
+            if(i !== j) {
+              if((linkArr[i].to === linkArr[j].from && linkArr[i].from === linkArr[j].to) || (linkArr[i].to === linkArr[j].to && linkArr[i].from === linkArr[j].from)) {
+                this.$notify({
+                  title: '提示',
+                  message: '节点间引用错误，请检查！',
+                  type: 'error',
+                  duration: 2000
+                })
+                return
+              }
+            }
+          }
+        }*/
+
         for(let i = 0; i < nodeArr.length; i++) {
           let ifHasTo = false
           for(let j = 0; j < linkArr.length; j++) {
+            // 判断节点是否闭合
+            if(!linkArr[j].to || !linkArr[j].from) {
+              this.$notify({
+                title: '提示',
+                message: '节点未闭合，请检查！',
+                type: 'error',
+                duration: 2000
+              })
+              return
+            }
+            for(let k = 1; k < linkArr.length; k++) {
+              // 判断节点间的引用错误
+              // 两个节点间的循环引用 || 两个节点间存在重复引用关系
+              if(j !== k) {
+                if((linkArr[j].to === linkArr[k].from && linkArr[j].from === linkArr[k].to) || (linkArr[j].to === linkArr[k].to && linkArr[j].from === linkArr[k].from)) {
+                  this.$notify({
+                    title: '提示',
+                    message: '节点间引用错误，请检查！',
+                    type: 'error',
+                    duration: 2000
+                  })
+                  return
+                }
+              }
+            }
+            // 存入节点及父节点到此节点到指向信息
             if(nodeArr[i].key === linkArr[j].to) {
               ifHasTo = true
               arrRes.push({
                 nodeName: nodeArr[i].text,
                 location: nodeArr[i].loc,
-                sign: nodeArr[i].key,
+                selfSign: nodeArr[i].key,
                 figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
                 nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
                 parentSign: linkArr[j].from,
@@ -431,12 +513,26 @@
                 fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL'
               })
             }
+
           }
+          // 存入起点信息
           if(!ifHasTo){
+            // 初始节点必须为建模
+            if(nodeArr[i].text.indexOf('建模') < 0) {
+              console.log(i)
+              console.log(nodeArr[i])
+              this.$notify({
+                title: '提示',
+                message: '初始流程必须为建模！',
+                type: 'error',
+                duration: 2000
+              })
+              return
+            }
             arrRes.push({
               nodeName: nodeArr[i].text,
               location: nodeArr[i].loc,
-              sign: nodeArr[i].key,
+              selfSign: nodeArr[i].key,
               figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
               nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
               parentSign: 'NULL',
@@ -480,7 +576,45 @@
     mounted() {
       this.init()
       // 实例化之后再进行传值刷新列表
-      this.myDiagram.model = this.go.Model.fromJson(this.originValue)
+      if(this.processNodes.length === 0) {
+        this.myDiagram.model = this.go.Model.fromJson(this.originValue)
+      } else {
+        let nodeArr = []
+        let linkArr = []
+        let myObj = {}
+        for(let i = 0; i < this.processNodes.length; i++) {
+          if(!myObj[this.processNodes[i].selfSign]) {
+            let arrItem = {
+              figure: this.processNodes[i].figure,
+              key: this.processNodes[i].selfSign,
+              loc: this.processNodes[i].location,
+              size: this.processNodes[i].nodeSize,
+              text: this.processNodes[i].nodeName,
+              subTaskEntity: this.processNodes[i].subtaskEntity
+            }
+            if(this.processNodes[i].subtaskEntity.state === 1) {
+              arrItem.fill = '#2ac06d'
+            }
+            // 需要对节点信息进行去重
+            nodeArr.push(arrItem)
+            myObj[this.processNodes[i].selfSign] = true
+          }
+          if(this.processNodes[i].parentSign) {
+            linkArr.push({
+              from: this.processNodes[i].parentSign,
+              to: this.processNodes[i].selfSign,
+              toPort: this.processNodes[i].toPort,
+              fromPort: this.processNodes[i].fromPort,
+              points: []
+            })
+          }
+        }
+        this.originValue.nodeDataArray = nodeArr
+        this.originValue.linkDataArray = linkArr
+        this.myDiagram.model = this.go.Model.fromJson(this.originValue)
+      }
+      // 导航
+      // new this.go.Overview("myOverviewDIV").observed = this.myDiagram;
     }
   }
 </script>

@@ -8,6 +8,7 @@ Vue.use(Router)
 
 /* Layout */
 import Layout from '../views/layout/Layout'
+import MainPage from '../views/mainpage/Mainpage'
 
 /** note: submenu only apppear when children.length>=1
 *   detail see  https://panjiachen.github.io/vue-element-admin-site/#/router-and-nav?id=sidebar
@@ -29,24 +30,11 @@ import Layout from '../views/layout/Layout'
 **/
 export const constantRouterMap = [
   { path: '/login', component: _import('login/index'), hidden: true },
-  { path: '/projectManage', component: _import('projectManage/index'), hidden: true },
+  // { path: '/projectManage', component: _import('projectManage/index'), hidden: true },
   { path: '/register', component: _import('register/index'), hidden: true },
   { path: '/authredirect', component: _import('login/authredirect'), hidden: true },
   { path: '/404', component: _import('errorPage/404'), hidden: true },
   { path: '/401', component: _import('errorPage/401'), hidden: true },
-  /* {
-    path: '',
-    component: Layout,
-    redirect: 'projectManage',
-    hidden: true,
-    meta: { allowBack: false },
-    children: [{
-      path: 'projectManage',
-      component: _import('projectManage/index'),
-      name: 'projectManage',
-      meta: { title: 'projectManage', noCache: true }
-    }]
-  },*/
   {
     path: '',
     component: Layout,
@@ -60,27 +48,6 @@ export const constantRouterMap = [
       }
     ]
   }
-  /* {
-    path: '/dashboard',
-    component: Layout,
-    children: [{
-      path: 'dashboard',
-      component: _import('dashboard/index'),
-      name: 'dashboard',
-      meta: { title: 'dashboard', icon: 'dashboard', noCache: true }
-    }]
-  }*/
-/*  {
-    path: '/documentation',
-    component: Layout,
-    redirect: '/documentation/index',
-    children: [{
-      path: 'index',
-      component: _import('documentation/index'),
-      name: 'documentation',
-      meta: { title: 'documentation', icon: 'documentation', noCache: true }
-    }]
-  }*/
 ]
 
 export default new Router({
@@ -92,11 +59,30 @@ export default new Router({
 export const asyncRouterMap = [
 
   { path: '*', redirect: '/404', hidden: true },
+  {
+    path: '/projectManage',
+    component: MainPage,
+    children: [{ path: '', component: _import('projectManage/index'), name: 'project_manage', meta: { title: '项目管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
+    path: '/knowledgeBase',
+    component: MainPage,
+    children: [{ path: '', component: _import('knowledgeBase/index'), name: 'knowledge', meta: { title: '知识库管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
+    path: '/audit_task',
+    component: MainPage,
+    children: [{ path: '', component: _import('auditTask/index'),name: 'auditTask', meta: { title: '我的审核', icon: 'audit' },}],
+    hidden: true
+  },
   { path: '/user_manage',
     component: Layout,
     children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'user' }}],
     meta: {
-      roles: ['ROLE_ADMIN']
+      roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
+      // roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
     }
   },
   { path: '/task_manage',
@@ -114,7 +100,12 @@ export const asyncRouterMap = [
   {
     path: '/taskFiles',
     component: Layout,
-    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '功能模块1', icon: 'example' }}]
+    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '任务文件', icon: 'documentation' }}]
+  },
+  {
+    path: '/audit_tasks',
+    component: Layout,
+    children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: '我的审核', icon: 'audit' }}]
   },
   {
     path: '/components',

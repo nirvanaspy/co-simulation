@@ -115,3 +115,22 @@ export function arrangePro(id, data) {
     data
   })
 }
+
+// 启动项目
+export function startPro(id) {
+  return request({
+    url: '/projects/' + id + '/startProject',
+    method: 'patch'
+  })
+}
+
+// 判断是否具备查看项目的权限
+export function getProjectAuth(ProId, uId) {
+  return request({
+    url: 'projects/' + ProId + '/projectDetails',
+    method: 'get',
+    params: {
+      userId: uId
+    }
+  })
+}

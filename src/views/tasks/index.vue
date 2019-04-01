@@ -32,16 +32,17 @@
         </el-dropdown>
       </div>
     </el-header>
-    <div style="float:right; text-align: right;margin: 20px 20px 0 0;">
-      <el-button type="primary" @click="handleSelectTemplate" size="mini">选择模版</el-button>
+    <div style="padding: 10px 0 0 40px;">
+      <el-button type="success" @click="handleSelectTemplate" size="mini">选择模版</el-button>
+      <el-button type="primary" @click="handleBackToPro" size="mini">返回项目</el-button>
     </div>
     <div class="board">
       <Kanban :key="1" :list="list" :options="options" :taskType="undo" class="kanban todo" header-text="待处理" @onNewTask="refreshList"/>
-      <Kanban :key="2" :list="list2" :options="options" class="kanban working" header-text="进行中"/>
-      <Kanban :key="3" :list="list3" :options="options" class="kanban done" header-text="已完成"/>
+      <Kanban :key="2" :list="listWorking" :options="options" class="kanban working" header-text="进行中"/>
+      <Kanban :key="3" :list="listDone" :options="options" class="kanban done" header-text="已完成"/>
     </div>
     <el-dialog :visible.sync="templateDialog" width="80%" class="visio-dialog">
-      <visio :proId="proId" @refreshList="getLinkList"></visio>
+      <visio :proId="proId" @refreshList="getLinkList" :processNodes="processNodeList"></visio>
     </el-dialog>
   </div>
 </template>
@@ -51,7 +52,7 @@
   import PanThumb from '@/components/PanThumb'
   import Kanban from '@/components/kanban'
   import visio from '@/views/visio/index'
-  import { getLinks } from '@/api/pro-design-link'
+  import { getLinks, getProcessNodes } from '@/api/pro-design-link'
   export default {
     name: 'task_manage',
     components: {
@@ -69,9 +70,9 @@
         selectedId: '',
         tableKey: 0,
         list: [],
-        list1: [],
-        list2: [],
-        list3: [],
+        listWorking: [],
+        listDone: [],
+        processNodeList: [],
         taskInfo: {
           name: '',
           info: ''
@@ -100,12 +101,20 @@
       this.proId = this.$route.query.id
       this.proName = this.$route.query.name
       this.getLinkList()
+      this.getProcessList()
     },
     methods: {
       getLinkList() {
         getLinks(this.proId).then((res) => {
           if(res.data.code === 0) {
             this.list = res.data.data
+          }
+        })
+      },
+      getProcessList() {
+        getProcessNodes(this.proId).then((res) => {
+          if(res.data.code === 0) {
+            this.processNodeList = res.data.data
           }
         })
       },
@@ -119,6 +128,9 @@
       },
       handleSelectTemplate() {
         this.templateDialog = true
+      },
+      handleBackToPro() {
+        this.$router.push({ path: '/projectManage' })
       }
     },
     computed: {
@@ -208,6 +220,6 @@
     justify-content: space-around;
     flex-direction: row;
     align-items: flex-start;
-    margin-top: 20px;
+    margin-top: 10px;
   }
 </style>

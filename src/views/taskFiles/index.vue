@@ -4,26 +4,103 @@
       <el-button type="primary" @click="handleCommit">提交审核</el-button>
     </span>
     <div style="height: 100%;overflow: auto;width: 100%;padding:5px 0 10px 10px;">
-      <comFileManage :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
+      <comFileManage :selectCompId="selectedId" :selectCompName="selectdName" :proClass="proSecretClass"></comFileManage>
     </div>
-    <el-dialog title="新建任务" :visible.sync="commitDialog" append-to-body width="60%" class="limit-width-dialog">
-      <el-table
-        ref="multipleTable"
-        :data="userList"
-        tooltip-effect="dark"
-        style="width: 100%"
-        @selection-change="handleSelectionChange">
-        <el-table-column
-          type="selection"
-          width="55">
-        </el-table-column>
-        <el-table-column
-          label="用户名"
-          min-width="120">
-          <template slot-scope="scope">{{ scope.row.username }}</template>
-        </el-table-column>
-      </el-table>
-      <el-button type="primary" @click="commitToAuditor">确定</el-button>
+    <el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="60%" class="limit-width-dialog audit-dialog">
+      <el-radio-group v-model="signType">
+        <el-radio :label="1">无会签</el-radio>
+        <el-radio :label="2">一人会签通过</el-radio>
+        <el-radio :label="3">多人会签通过</el-radio>
+      </el-radio-group>
+      <el-collapse v-model="activeNames" class="audit-collapse">
+        <el-collapse-item title="选择核对人" name="1">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="userList"
+              tooltip-effect="dark"
+              style="width: 100%"
+              @selection-change="handleVerifySelectionChange">
+              <el-table-column
+                type="selection"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+        <el-collapse-item title="选择审核人" name="2">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="userList"
+              tooltip-effect="dark"
+              style="width: 100%"
+              @selection-change="handleAuditSelectionChange">
+              <el-table-column
+                type="selection"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+        <el-collapse-item title="选择会签人" name="3" v-if="signType === 2 || signType === 3">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="userList"
+              tooltip-effect="dark"
+              style="width: 100%"
+              @selection-change="handleSignSelectionChange">
+              <el-table-column
+                type="selection"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+        <el-collapse-item title="选择批准人" name="4">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="userList"
+              tooltip-effect="dark"
+              style="width: 100%"
+              @selection-change="handleApproveSelectionChange">
+              <el-table-column
+                type="selection"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+      <div style="text-align: right" slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="commitToAuditor" style="margin-top: 10px;">确定</el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -38,13 +115,19 @@
     name: 'taskFiles',
     data() {
       return {
+        signType: 0,
         selectedId: '',
         userId: '',
         selectdName: '',
         commitDialog: false,
         getMaLoading: false,
         userList: [],
-        auditors: []
+        verifyMembers: [],
+        auditMembers: [],
+        signMembers: [],
+        approveMembers: [],
+        activeNames: '',
+        proSecretClass: null
       }
     },
     components: {
@@ -54,6 +137,7 @@
       this.userId = this.getCookie('userId')
       this.selectedId = this.$route.params.id
       this.selectedName = this.$route.query.name
+      this.proSecretClass = this.$route.query.proClass
     },
     methods: {
       getAbleUser() {
@@ -69,22 +153,55 @@
           this.getMaLoading = false
         })
       },
-      handleSelectionChange(val) {
-        this.auditors = val
+      handleVerifySelectionChange(val) {
+        this.verifyMembers = val
+      },
+      handleAuditSelectionChange(val) {
+        this.auditMembers = val
+      },
+      handleSignSelectionChange(val) {
+        this.signMembers = val
+      },
+      handleApproveSelectionChange(val) {
+        this.approveMembers = val
       },
       handleCommit() {
         this.commitDialog = true
+        this.signType = 0
         this.getAbleUser()
       },
       commitToAuditor() {
-        let ids = []
-        this.auditors.forEach((item) => {
-          ids.push(item.id)
+        let myCollatorIds = [] //核对
+        let myAuditIds = [] //审核
+        let myCountersignIds = [] //会签
+        let myApproveIds = [] //批准
+        this.verifyMembers.forEach((item) => {
+          myCollatorIds.push(item.id)
         })
-        let auditorIds = (ids + '').replace(/\[|]/g, '')
+        this.auditMembers.forEach((item) => {
+          myAuditIds.push(item.id)
+        })
+        this.signMembers.forEach((item) => {
+          myCountersignIds.push(item.id)
+        })
+        this.approveMembers.forEach((item) => {
+          myApproveIds.push(item.id)
+        })
+        let collatorIds = (myCollatorIds + '').replace(/\[|]/g, '')
+        let auditIds = (myAuditIds + '').replace(/\[|]/g, '')
+        let countersignIds = (myCountersignIds + '').replace(/\[|]/g, '')
+        let approveIds = (myApproveIds + '').replace(/\[|]/g, '')
         var qs = require('qs')
         let data = {
-          'ids': auditorIds,
+          'collatorIds': collatorIds,
+          'auditIds': auditIds,
+          'countersignIds': this.signType === 1 ? '' : countersignIds, // 1:无会签 2:一人会签 3:多人会签
+          'approverIds': approveIds,
+          /*'collatorIds': myCollatorIds,
+          'auditIds': myAuditIds,
+          'countersignIds': this.signType === 1 ? '' : myCountersignIds,
+          'approverIds': myApproveIds,*/
+          'countersignState': this.signType,
           'userId': this.userId
         }
         let datapost = qs.stringify(data)
@@ -96,6 +213,7 @@
               type: 'success',
               duration: 2000
             })
+            this.commitDialog = false
           } else {
             this.$notify({
               title: '失败',
