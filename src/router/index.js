@@ -43,7 +43,7 @@ export const constantRouterMap = [
       {
         path: 'dashboard',
         component: () => import('@/views/dashboard/index'),
-        name: 'Dashboard',
+        name: 'dashboard',
         meta: { title: 'dashboard', icon: 'dashboard', noCache: true, affix: true }
       }
     ]
@@ -82,7 +82,6 @@ export const asyncRouterMap = [
     children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'user' }}],
     meta: {
       roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
-      // roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
     }
   },
   { path: '/task_manage',
@@ -106,106 +105,5 @@ export const asyncRouterMap = [
     path: '/audit_tasks',
     component: Layout,
     children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: '我的审核', icon: 'audit' }}]
-  },
-  {
-    path: '/components',
-    component: Layout,
-    // children: [{ path: 'index', component: _import('components/index'), name: 'components', meta: { title: 'components', icon: 'components1' }}]
-    children: [{ path: 'index', component: _import('components/index'), name: 'components', meta: { title: '功能模块1', icon: 'example' }}]
-  },
-  {
-    path: '/componentTypes',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'index', component: _import('componentTypes/index'), name: 'componentTypes', meta: { title: 'componentTypes', icon: 'components1' }}]
-  },
-  {
-    path: '/device',
-    component: Layout,
-    // children: [{ path: 'device', component: _import('device/device'), name: 'device', meta: { title: 'device', icon: 'computer' }}]
-    children: [{ path: 'device', component: _import('device/device'), name: 'device', meta: { title: '功能模块2', icon: 'example' }}]
-  },
-  /* {
-    path: '/scan',
-    component: Layout,
-    children: [{ path: 'index', component: _import('scan/index'), name: 'scan', meta: { title: 'scan', icon: 'scan2' }}]
-  },*/
-  {
-    path: '/softPackage',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'index', component: _import('softPackage/index'), name: 'softPackage', meta: { title: 'softPackage', icon: 'package' }}]
-  },
-  {
-    path: '/deployPlan',
-    component: Layout,
-    // children: [{ path: 'deployPlan', component: _import('deployPlan/deployPlan'), name: 'deployPlan', meta: { title: 'deployPlan', icon: 'example' }}]
-    children: [{ path: 'deployPlan', component: _import('deployPlan/deployPlan'), name: 'deployPlan', meta: { title: '功能模块3', icon: 'example' }}]
-  },
-  {
-    path: '/log',
-    component: Layout,
-    // children: [{ path: 'index', component: _import('log/index'), name: 'log', meta: { title: 'log', icon: 'log' }}]
-    children: [{ path: 'index', component: _import('log/index'), name: 'log', meta: { title: '功能模块4', icon: 'example' }}]
-  },
-  {
-    path: '/deployPlanDetail',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'deployPlanDetail/:id', component: _import('deployPlanDetail/deployPlanDetail'), name: 'deployPlanDetail', meta: { title: 'deployPlanDetail', icon: 'example' }}]
-  },
-  {
-    path: '/deployBind',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'deployBind/:id', component: _import('deployBind/deployBind'), name: 'deployBind', meta: { title: 'deployBind', icon: 'example' }}]
-  },
-  {
-    path: '/deployDesignNode',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'deployDesignNode/:id', component: _import('deployDesignNode/designNode'), name: 'designNode', meta: { title: 'designNode', icon: 'example' }}]
-  },
-  {
-    path: '/project',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'project', component: _import('project/project'), name: 'project', meta: { title: 'project', icon: '工程' }}]
-  },
-  {
-    path: '/deploy',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'deploy/:id', component: _import('deploy/deploy'), name: 'deploy', meta: { title: 'deploy', icon: 'excel', noCache: true }}]
-  },
-  {
-    path: '/baseline',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'baseline', component: _import('baseline/baseline'), name: 'baseline', meta: { title: 'baseline', icon: 'example' }}]
-  },
-  {
-    path: '/comps',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'comps', component: _import('fileManager/comps'), name: 'compd', meta: { title: 'files', icon: 'table', noCache: true }}]
-  },
-  {
-    path: '/newfiles',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'newfiles/:id', component: _import('fileManager/index'), name: 'files', meta: { title: 'files', icon: 'table' }}]
-  },
-  {
-    path: '/monitor1',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'monitor/:id', component: _import('monitor/monitor'), name: 'monitor', meta: { title: 'monitor', icon: 'table' }}]
-  },
-  {
-    path: '/componentHistory',
-    component: Layout,
-    hidden: true,
-    children: [{ path: 'componentHistory/:id', component: _import('componentHistory/index'), name: 'componentHistory', meta: { title: 'componentHistory', icon: 'table', noCache: true }}]
   }
 ]
