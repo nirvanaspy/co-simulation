@@ -24,13 +24,13 @@ export function mergeFile(data) {
   })
 }
 
-export function uploadFiles(compId, parentId, data) {
+export function uploadFiles(compId, proId, data) {
   return request({
     url: '/subtasks/' + compId + '/uploadfiles',
     method: 'post',
     headers: {
       'content-type': 'application/json;charset=utf-8',
-      'parentNodeId': parentId
+      'projectId': proId
     },
     data
   })
