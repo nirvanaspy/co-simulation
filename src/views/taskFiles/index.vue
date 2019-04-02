@@ -137,7 +137,7 @@
       this.userId = this.getCookie('userId')
       this.selectedId = this.$route.params.id
       this.selectedName = this.$route.query.name
-      this.proSecretClass = this.$route.query.proClass
+      this.proSecretClass = parseInt(this.$route.query.proClass)
     },
     methods: {
       getAbleUser() {

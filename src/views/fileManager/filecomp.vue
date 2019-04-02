@@ -159,21 +159,21 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <!--<el-form-item label="代号">
-          <el-select v-model="fileUpInfo.codeName" placeholder="请选择密级" style="width: 100%">
-            <el-option
-              v-for="item in codeNameOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>-->
         <el-form-item label="产品型号">
           <el-input v-model="fileUpInfo.productNo" placeholder="请输入产品型号"></el-input>
         </el-form-item>
         <el-form-item label="文件图号">
           <el-input v-model="fileUpInfo.fileNo" placeholder="请输入文件图号"></el-input>
+        </el-form-item>
+        <el-form-item label="目标库">
+          <el-cascader
+            style="width: 100%"
+            :options="libOptions"
+            @focus="getLib"
+            @active-item-change="handleItemChange"
+            @change="onSubLibChange"
+          ></el-cascader>
+          <!--:props="libProps"-->
         </el-form-item>
       </el-form>
       <uploader :options="options"
@@ -192,7 +192,7 @@
         <uploader-unsupport></uploader-unsupport>
           <uploader-drop>
             <p>在此处进行操作</p>
-            <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== ''">选择文件</uploader-btn>
+            <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.subLibraryId !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== '' && fileUpInfo.subLibraryId !== ''">选择文件</uploader-btn>
             <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
           </uploader-drop>
           <!--<uploader-btn>选择文件</uploader-btn>-->
@@ -302,16 +302,6 @@
         <el-form-item label="文件图号">
           <el-input v-model="fileEditInfo.fileNo" placeholder="请输入文件图号"></el-input>
         </el-form-item>
-        <!--<el-form-item label="代号">
-          <el-select v-model="fileEditInfo.codeName" placeholder="请选择代号" style="width: 100%">
-            <el-option
-              v-for="item in codeNameOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>-->
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="editInfoDialog = false">取 消</el-button>
@@ -326,6 +316,7 @@
   import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder, previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
   import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo } from '@/api/pro-design-link'
+  import { libraryList, subLibraryList } from "@/api/library"
   import service from '@/utils/request'
   import maniFile from '@/views/fileManager/maniFile'
   import SparkMD5 from 'spark-md5'
@@ -346,7 +337,7 @@
         default: 'normal'
       },
       proClass: {
-        type: String
+        type: Number
       }
     },
     components: {
@@ -504,7 +495,14 @@
         fileCompleteLength: 0,
         folderfileCompleteLength: 0,
         stopResolveMD5: false,
-        hiddenClose: false
+        hiddenClose: false,
+        libOptions: [],
+        libProps: {
+          label: 'type',
+          value: 'id',
+          children: 'children'
+        },
+        selectedLib: null
       }
     },
     created() {
@@ -708,7 +706,8 @@
                   secretClass: that.fileUpInfo.secretClass,
                   type: that.fileUpInfo.type,
                   productNo: that.fileUpInfo.productNo,
-                  fileNo: that.fileUpInfo.fileNo
+                  fileNo: that.fileUpInfo.fileNo,
+                  sublibraryId: that.fileUpInfo.subLibraryId
                   // codeName: that.fileUpInfo.codeName
                 }
                 that.fileInfoList.push(infoList)
@@ -834,7 +833,8 @@
               secretClass: this.fileUpInfo.secretClass,
               type: this.fileUpInfo.type,
               productNo: this.fileUpInfo.productNo,
-              fileNo: this.fileUpInfo.fileNo
+              fileNo: this.fileUpInfo.fileNo,
+              sublibraryId: this.fileUpInfo.subLibraryId
               // codeName: this.fileUpInfo.codeName
             }
             this.fileInfoList.push(infoList)
@@ -1269,6 +1269,48 @@
             })
           }
         })
+      },
+
+      // 查询所有文件库
+      getLib() {
+        if(this.libOptions.length === 0) {
+          libraryList().then((res) => {
+            if(res.data.code === 0) {
+              let resData = res.data.data
+              this.libOptions = []
+              resData.forEach((item) => {
+                this.libOptions.push({
+                  label: item.type,
+                  value: item.id,
+                  children: []
+                })
+              })
+            }
+          })
+        }
+      },
+
+      // 选择一级库
+      handleItemChange(val) {
+        let libId = val[0]
+        subLibraryList(libId).then((res) => {
+          for(let i = 0; i < this.libOptions.length; i++) {
+            if(libId === this.libOptions[i].value) {
+              if(this.libOptions[i].children.length == 0) {
+                res.data.data.forEach((item) => {
+                  this.libOptions[i].children.push({
+                    label: item.type,
+                    value: item.id
+                  })
+                })
+                break
+              }
+            }
+          }
+        })
+      },
+      onSubLibChange(val) {
+        this.fileUpInfo.subLibraryId = val[1]
       }
     },
     computed: {
@@ -1347,7 +1389,7 @@
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
           let datapost = JSON.stringify(this.fileInfoList)
           this.statusText.success = '正在合并文件'
-          uploadFiles(this.componentId, this.parentNodeId, datapost).then((res) => {
+          uploadFiles(this.componentId, this.projectId, datapost).then((res) => {
             if(res.data.code === 0) {
               this.$notify({
                 title: '成功',
@@ -1386,7 +1428,7 @@
         if(this.folderfileCompleteLength === this.folderFileInfo.length && this.folderFileInfo.length !== 0) {
           let datapost = JSON.stringify(this.folderFileInfo)
           this.statusText.success = '正在合并文件'
-          uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
+          uploadFiles(this.componentId, this.projectId, datapost).then(() => {
             this.listLoading = false
             this.hiddenClose = false
             this.$notify({

@@ -14,14 +14,14 @@
                   <span class="icon-box">
                     <svg-icon icon-class="knowledge"></svg-icon>
                   </span>
-                <span class="icon-text">知识库</span>
+                <span class="icon-text">我的库</span>
               </div>
-              <div class="flex-menu-item" @click="jumpToConfig()">
+              <!--<div class="flex-menu-item" @click="jumpToConfig()">
                   <span class="icon-box">
                     <svg-icon icon-class="config"></svg-icon>
                   </span>
                 <span class="icon-text">参数库</span>
-              </div>
+              </div>-->
               <div class="flex-menu-item" @click="jumpToAudit()">
                   <span class="icon-box" style="color: #3f9fe1;">
                     <svg-icon icon-class="audit"></svg-icon>
@@ -46,6 +46,9 @@
                 <router-link to="/user_manage/index">用户管理</router-link>
               </span>
               <span v-else @click="handleModifyPassword" style="display:block;">修改密码</span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
+              <span @click="routerToPro" style="display:block;">项目管理</span>
             </el-dropdown-item>
             <el-dropdown-item divided>
               <span @click="logout" style="display:block;">{{$t('navbar.logOut')}}</span>
@@ -153,7 +156,7 @@
       },
       jumpToKonwledge() {
         this.$router.push({
-          path: '/knowledgeBase'
+          path: '/library'
         })
       },
       jumpToConfig() {
@@ -226,6 +229,9 @@
           }
         })
       },
+      routerToPro() {
+        this.$router.push({ path: '/projectManage' })
+      }
     }
   }
 </script>

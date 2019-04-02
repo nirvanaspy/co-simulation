@@ -20,7 +20,7 @@
                   </div>
                 </div>
               </div>
-              <div v-for="item in userList" class="user-item" v-if="item.username !== 'admin'">
+              <div v-for="item in userList" class="user-item" v-if="item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor'">
                 <div class="editor-box">
                   <!--<span class="editor-item editor-edit" @click="handleEnableSelect(item)">
                     <el-tooltip content="修改角色" placement="top">
@@ -579,14 +579,16 @@
         })
       },
       addUsers() {
+        var qs = require('qs')
         let data = {
           'username': this.createUserInfo.username,
           'password': this.createUserInfo.password,
           // 'secretClass': this.createUserInfo.secretClass,
           'roleName': this.createUserInfo.roleName
         }
+        let postData = qs.stringify(data)
         let roleName = this.createUserInfo.roleName
-        addUser(data, roleName).then((res) => {
+        addUser(postData, roleName).then((res) => {
           if(res.data.code === 0) {
             this.$notify({
               title: '成功',
