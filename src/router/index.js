@@ -66,9 +66,15 @@ export const asyncRouterMap = [
     hidden: true
   },
   {
-    path: '/knowledgeBase',
+    path: '/library',
     component: MainPage,
-    children: [{ path: '', component: _import('knowledgeBase/index'), name: 'knowledge', meta: { title: '知识库管理', icon: 'user' }}],
+    children: [{ path: '', component: _import('library/index'), name: 'knowledge', meta: { title: '库管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
+    path: '/sublibrary',
+    component: MainPage,
+    children: [{ path: 'sublibrary/:id', component: _import('subLibrary/index'), name: 'subLibrary', meta: { title: '子库管理', icon: 'user' }}],
     hidden: true
   },
   {
