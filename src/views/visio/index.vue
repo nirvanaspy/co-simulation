@@ -437,6 +437,7 @@
         let nodeArr = this.myDiagram.model.Gc
         let linkArr = this.myDiagram.model.Pc
 
+
         if(nodeArr.length < 2 || linkArr.length < 1) {
           this.$notify({
             title: '提示',
@@ -488,6 +489,17 @@
               })
               return
             }
+            // 判断是否至少有一个建模和仿真
+            if((nodeArr.findIndex(target => target.text.indexOf('建模') >= 0) == -1) && (nodeArr.findIndex(target => target.text.indexOf('仿真') >= 0) == -1)) {
+              this.$notify({
+                title: '提示',
+                message: '必须至少包含一个建模和仿真流程',
+                type: 'error',
+                duration: 2000
+              })
+              return
+            }
+
             for(let k = 1; k < linkArr.length; k++) {
               // 判断节点间的引用错误
               // 两个节点间的循环引用 || 两个节点间存在重复引用关系
