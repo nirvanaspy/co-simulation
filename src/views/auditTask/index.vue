@@ -32,7 +32,7 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state > 2">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state > 2||scope.row.state==1">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -130,7 +130,7 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2||scope.row.state > 4">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -180,6 +180,7 @@
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 5">
+<!--                    scope.row.userEntity.id==userId?true:scope.row.state !== 5-->
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -280,10 +281,13 @@
         },
         rules: {
           text: [
-            { required: true, message: '请输入活动审批意见', trigger: 'blur' }
+            { required: false, message: '请输入活动审批意见', trigger: 'blur' }
           ],
 
-        }
+        },
+        maps: [],
+        currenttaskid: 0
+        // assessState: 0
       }
     },
     components: {
@@ -302,6 +306,11 @@
             this.auditorList = res.data.data.auditorList
             this.approverList = res.data.data.apporverList
             this.countersignList = res.data.data.countersignList
+            // 对状态进行处理
+            if(res.data.data.maps){
+              this.maps=res.data.data.maps.subtaskEntityList
+              // console.log("maps"+this.maps)
+            }
           }
         })
       },
@@ -311,6 +320,9 @@
         this.fileDialog = true
       },
       handlePassApply(row, state) {
+        // 当用户是当前子任务的创建者，则直接忽略通过
+        if(row.userEntity.id==this.userId)
+          this.currenttaskid=row.userEntity.id
         this.dialogStatus = 'pass'
         this.opinionDialog = true
         this.opinionForm.text = ''
@@ -331,6 +343,18 @@
         })
       },
       passApply() {
+        // 对于自己通过自己则直接返回
+        if(this.currenttaskid==this.userId)
+        {
+          this.$notify({
+            title: '失败',
+            message: '无法审核通过自己',
+            type: 'error',
+            duration: 2000
+          })
+          this.opinionDialog = false
+          return
+        }
         this.$refs['opinionForm'].validate((valid) => {
           if (valid) {
             this.$confirm('确认通过吗？', '提示', {
@@ -449,23 +473,29 @@
       computedCurrentState() {
         return function(state) {
           if(state === 0) {
-            return '未进行'
-          }
-          if(state === 1) {
-            return '进行中'
-          }
-          if(state === 2) {
             return '核对'
           }
-          if(state === 3) {
+          if(state === 1) {
             return '审核'
           }
-          if(state === 4) {
+          if(state === 2) {
             return '会签'
           }
-          if(state === 5) {
+          if(state === 3) {
             return '批准'
           }
+        }
+      },
+      computedAssessState(){
+        return function(row) {
+          let assessState=0
+          for(let i=0;i<this.maps.length;i++){
+            // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
+            if(this.maps[i].userEntity.id==this.userId&&this.maps[i].subtaskEntity.id==row.id){
+              assessState=this.maps[i].assessState
+            }
+          }
+          return assessState
         }
       }
     }
@@ -475,5 +505,9 @@
 <style scoped>
   .taskContainer {
     padding: 20px;
+  }
+  #testscop{
+    position:fixed;
+    color:red;
   }
 </style>

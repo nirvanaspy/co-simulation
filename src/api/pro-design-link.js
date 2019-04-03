@@ -22,8 +22,7 @@ export function setProLinks(proId, data) {
 // 更新子任务信息
 export function updateProDesignLink(uid, pid, data) {
   return request({
-    // url: '/subtasks/' + uid + '/byProject/' + pid,
-    url: '/subtasks/' + uid + '/updateDesignLink',
+    url: '/subtasks/' + uid + '/byProject/' + pid,
     method: 'patch',
     data
   })
