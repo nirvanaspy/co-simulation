@@ -60,7 +60,7 @@
             <el-table
               v-loading="getMaLoading"
               ref="multipleTable"
-              :data="userList"
+              :data="countersignList"
               tooltip-effect="dark"
               style="width: 100%"
               @selection-change="handleSignSelectionChange">
@@ -127,7 +127,8 @@
         signMembers: [],
         approveMembers: [],
         activeNames: '',
-        proSecretClass: null
+        proSecretClass: null,
+        countersignList: []
       }
     },
     components: {
@@ -145,6 +146,13 @@
         allUser().then((res) => {
           if(res.data.code === 0) {
             this.userList = res.data.data
+            // 筛选会签用户
+            for(let i=0;i<this.userList.length;i++){
+              if(this.userList[i].id!=this.userId){
+                this.countersignList[this.countersignList.length]=this.userList[i]
+              }
+            }
+            // this.countersignList
             this.getMaLoading = false
           } else {
             this.getMaLoading = false
