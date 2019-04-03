@@ -33,7 +33,8 @@
       </div>
     </el-header>
     <div style="padding: 10px 0 0 40px;">
-      <el-button type="success" @click="handleSelectTemplate" size="mini">选择模版</el-button>
+      <el-button type="success" @click="handleSelectTemplate" size="mini" v-if="roles.includes('ROLE_PROJECT_MANAGER') || editable === true">选择模版</el-button>
+      <el-button type="success" @click="handleCheckTemplate" size="mini" v-else>查看流程</el-button>
       <el-button type="primary" @click="handleBackToPro" size="mini">返回项目</el-button>
     </div>
     <div class="board">
@@ -42,7 +43,7 @@
       <Kanban :key="3" :list="listDone" :options="options" class="kanban done" header-text="已完成"/>
     </div>
     <el-dialog :visible.sync="templateDialog" width="80%" class="visio-dialog">
-      <visio :proId="proId" @refreshList="getLinkList" :processNodes="processNodeList"></visio>
+      <visio :proId="proId" @refreshList="getLinkList" :processNodes="processNodeList" :editable="editable"></visio>
     </el-dialog>
   </div>
 </template>
@@ -53,6 +54,8 @@
   import Kanban from '@/components/kanban'
   import visio from '@/views/visio/index'
   import { getLinks, getProcessNodes } from '@/api/pro-design-link'
+  import { getProjectById } from '@/api/project'
+
   export default {
     name: 'task_manage',
     components: {
@@ -64,6 +67,7 @@
       return {
         undo: 'undo',
         userId: '',
+        roles: '',
         proId: '',
         proName: '',
         userName: '',
@@ -94,16 +98,28 @@
           finishTime: '',
           designLink: null
         },
-        templateDialog: false
+        templateDialog: false,
+        editable: false,
       }
     },
     created() {
+      this.roles = this.$store.getters.roles
       this.proId = this.$route.query.id
       this.proName = this.$route.query.name
+      this.getProDetail()
       this.getLinkList()
       this.getProcessList()
     },
     methods: {
+      getProDetail() {
+        getProjectById(this.proId).then((res) => {
+          if(res.code === 0) {
+            if(res.data.data.pic.id === this.getCookie('userId')) {
+              this.editable = true
+            }
+          }
+        })
+      },
       getLinkList() {
         getLinks(this.proId).then((res) => {
           if(res.data.code === 0) {
@@ -128,6 +144,11 @@
       },
       handleSelectTemplate() {
         this.templateDialog = true
+        this.editable = true
+      },
+      handleCheckTemplate() {
+        this.templateDialog = true
+        this.editable = false
       },
       handleBackToPro() {
         this.$router.push({ path: '/projectManage' })

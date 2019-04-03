@@ -42,7 +42,7 @@
           </div>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item>
-              <span v-if="role === 'ROLE_ADMIN' || role == 'ROLE_SECURITY_GUARD'" style="display:block;">
+              <span v-if="role.includes('ROLE_ADMIN') || role.includes('ROLE_SECURITY_GUARD')" style="display:block;">
                 <router-link to="/user_manage/index">用户管理</router-link>
               </span>
               <span v-else @click="handleModifyPassword" style="display:block;">修改密码</span>
@@ -145,7 +145,8 @@
       }
     },
     created() {
-      this.role = this.$store.getters.roles[0]
+      // this.role = this.$store.getters.roles[0]
+      this.role = this.$store.getters.roles
       this.userName = this.getCookie('username')
     },
     methods: {
