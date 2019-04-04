@@ -130,7 +130,7 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2||scope.row.state > 4">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -285,8 +285,8 @@
           ],
 
         },
-        maps: [],
-        currenttaskid: 0
+        maps: [], //存取当前回传maps中的用户操作状态数组
+        currenttaskid: 0 //当前子任务创建者的id
         // assessState: 0
       }
     },
@@ -488,14 +488,16 @@
       },
       computedAssessState(){
         return function(row) {
-          let assessState=0
+          // let assessState=0
           for(let i=0;i<this.maps.length;i++){
             // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
-            if(this.maps[i].userEntity.id==this.userId&&this.maps[i].subtaskEntity.id==row.id){
-              assessState=this.maps[i].assessState
+            if(this.maps[i].userEntity.id==this.userId&&this.maps[i].subtaskEntity.id==row.id&&row.state>=3){
+              //assessState=this.maps[i].assessState
+              // return assessState
+              return 2
             }
           }
-          return assessState
+          return 0
         }
       }
     }
