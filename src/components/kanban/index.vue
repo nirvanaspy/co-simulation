@@ -194,6 +194,7 @@
           if(res.data.code === 0) {
             this.taskPicOptions = []
             res.data.data.forEach((item) => {
+
               this.taskPicOptions.push(item)
             })
             this.getMaLoading = false

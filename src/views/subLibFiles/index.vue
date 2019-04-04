@@ -1,7 +1,7 @@
 <template>
   <div class="subLibFileCont">
     <div class="subLibFileManage">
-      <subFile></subFile>
+      <subFile :selectCompId="subLibId"></subFile>
     </div>
   </div>
 </template>
@@ -12,13 +12,15 @@
   export default {
     name: 'subLibFiles',
     data() {
-      return {}
+      return {
+        subLibId: ''
+      }
     },
     components: {
       subFile
     },
     created() {
-      console.log(this.$route.query.name)
+      this.subLibId  = this.$route.params.id
     }
   }
 </script>

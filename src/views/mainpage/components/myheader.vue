@@ -4,29 +4,35 @@
       <div class="proTitle">
         <span><svg-icon icon-class="co-simulation"></svg-icon></span>
         <span>CO-Simulation</span>
-        <el-dropdown style="position:absolute;top:-1px;right: 6px;" trigger="click" placement="bottom-start">
+        <el-dropdown style="position:absolute;top:-1px;right: 6px;" placement="bottom-start">
             <span class="el-dropdown-link my-menu-icon">
               <svg-icon icon-class="menu"></svg-icon>
             </span>
           <el-dropdown-menu slot="dropdown" class="my-menu-dropdown">
             <div class="flex-menu-box">
+              <div class="flex-menu-item" @click="jumpToPro()">
+                  <span class="icon-box">
+                    <svg-icon icon-class="project"></svg-icon>
+                  </span>
+                <span class="icon-text">项目管理</span>
+              </div>
               <div class="flex-menu-item" @click="jumpToKonwledge()">
                   <span class="icon-box">
                     <svg-icon icon-class="knowledge"></svg-icon>
                   </span>
                 <span class="icon-text">我的库</span>
               </div>
-              <!--<div class="flex-menu-item" @click="jumpToConfig()">
-                  <span class="icon-box">
-                    <svg-icon icon-class="config"></svg-icon>
-                  </span>
-                <span class="icon-text">参数库</span>
-              </div>-->
               <div class="flex-menu-item" @click="jumpToAudit()">
                   <span class="icon-box" style="color: #3f9fe1;">
                     <svg-icon icon-class="audit"></svg-icon>
                   </span>
-                <span class="icon-text">我的审查</span>
+                <span class="icon-text">任务审查</span>
+              </div>
+              <div class="flex-menu-item" @click="jumpToAuditSubLibFile()">
+                  <span class="icon-box" style="color: #3f9fe1;">
+                    <svg-icon icon-class="audit1"></svg-icon>
+                  </span>
+                <span class="icon-text">文件审查</span>
               </div>
             </div>
           </el-dropdown-menu>
@@ -155,13 +161,20 @@
           path: '/audit_task'
         })
       },
+      jumpToAuditSubLibFile() {
+        this.$router.push({
+          path: '/auditSubLibFiles'
+        })
+      },
       jumpToKonwledge() {
         this.$router.push({
           path: '/library'
         })
       },
-      jumpToConfig() {
-
+      jumpToPro() {
+        this.$router.push({
+          path: '/projectManage'
+        })
       },
       logout() {
         this.$store.dispatch('FedLogOut').then(() => {
@@ -246,6 +259,14 @@
     background: linear-gradient(120deg, #00e4d0, #5983e8);
     line-height: 63px;
     height: 63px;
+  }
+  .show-pwd {
+    position: absolute;
+    right: 10px;
+    top: 2px;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
   }
   .proTitle {
     position: absolute;

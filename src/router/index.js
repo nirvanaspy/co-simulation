@@ -86,7 +86,13 @@ export const asyncRouterMap = [
   {
     path: '/audit_task',
     component: MainPage,
-    children: [{ path: '', component: _import('auditTask/index'),name: 'auditTask', meta: { title: '我的审核', icon: 'audit' },}],
+    children: [{ path: '', component: _import('auditTask/index'), name: 'auditTask', meta: { title: '我的审核', icon: 'audit' },}],
+    hidden: true
+  },
+  {
+    path: '/auditSubLibFiles',
+    component: MainPage,
+    children: [{ path: '', component: _import('subLibFileAudit/index'), name: 'subLibFileAudit', meta: { title: '我的审核', icon: 'audit' }}],
     hidden: true
   },
   { path: '/user_manage',
@@ -97,9 +103,8 @@ export const asyncRouterMap = [
     }
   },
   { path: '/task_manage',
-    component: _import('tasks/index'),
-    name: 'task_manage',
-    meta: { title: '任务管理', icon: 'components1' },
+    component: MainPage,
+    children: [{ path: '', component: _import('tasks/index'), name: 'task_manage', meta: { title: '任务管理', icon: 'components1' },}],
     hidden: true
   },
   { path: '/visio',

@@ -1,6 +1,6 @@
 <template>
   <div class="tasks-container">
-    <el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
+    <!--<el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
       <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
         <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
         <el-input style="width: 160px;" class="filter-item" placeholder="任务名" v-model="searchQuery">
@@ -31,10 +31,12 @@
           </el-dropdown-menu>
         </el-dropdown>
       </div>
-    </el-header>
+    </el-header>-->
     <div style="padding: 10px 0 0 40px;">
-      <el-button type="success" @click="handleSelectTemplate" size="mini" v-if="roles.includes('ROLE_PROJECT_MANAGER') || editable === true">选择模版</el-button>
-      <el-button type="success" @click="handleCheckTemplate" size="mini" v-else>查看流程</el-button>
+      <span>
+        <el-button type="success" @click="handleSelectTemplate" size="mini" v-if="roles.includes('ROLE_PROJECT_MANAGER') || editable === true">选择模版</el-button>
+        <el-button type="success" @click="handleCheckTemplate" size="mini" v-else>查看流程</el-button>
+      </span>
       <el-button type="primary" @click="handleBackToPro" size="mini">返回项目</el-button>
     </div>
     <div class="board">
@@ -100,9 +102,11 @@
         },
         templateDialog: false,
         editable: false,
+        completeFlag: false
       }
     },
     created() {
+      this.completeFlag = false
       this.roles = this.$store.getters.roles
       this.proId = this.$route.query.id
       this.proName = this.$route.query.name
@@ -113,9 +117,10 @@
     methods: {
       getProDetail() {
         getProjectById(this.proId).then((res) => {
-          if(res.code === 0) {
+          if(res.data.code === 0) {
             if(res.data.data.pic.id === this.getCookie('userId')) {
               this.editable = true
+              this.completeFlag = true
             }
           }
         })
