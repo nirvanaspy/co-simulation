@@ -1002,15 +1002,6 @@
         this.$store.commit('SET_PROJECTID', row.id)
         // let proName = URLEncoder.encode(row.name, 'utf-8')
         this.$store.commit('SET_PROJECTNAME', row.name)
-        // this.$router.push({path: '/dashboard/dashboard'})
-        this.$router.push({
-          path: '/task_manage',
-          name: 'task_manage',
-          query: {
-            name: row.name,
-            id: row.id
-          }
-        })
         // 验证用户密级是否足够
         getProjectAuth(row.id, this.userId).then((res) => {
           if(res.data.code === 0) {

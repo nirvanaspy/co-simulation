@@ -134,3 +134,11 @@ export function getProjectAuth(ProId, uId) {
     }
   })
 }
+
+// 查询项目详情
+export function getProjectById(ProId) {
+  return request({
+    url: 'projects/' + ProId,
+    method: 'get'
+  })
+}

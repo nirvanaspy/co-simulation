@@ -7,28 +7,9 @@
         </el-breadcrumb>
       </div>
       <div style="float: right;color:rgb(0, 171, 235);cursor: pointer;padding-right: 20px;">
-        <span style="margin-right: 18px" @click="addFolder">
-          <svg-icon icon-class="add"></svg-icon>
-          <span style="font-size: 14px;margin-left: 6px;">新建文件夹</span>
-        </span>
         <span @click="handleuploadFile">
           <svg-icon icon-class="upload1"></svg-icon>
           <span style="font-size: 14px;margin-left: 6px;">上传文件</span>
-        </span>
-        <span>
-          <el-dropdown trigger="click">
-            <el-tooltip class="item" effect="dark" content="更多操作" placement="top">
-              <span class="el-dropdown-link">
-                <i class="el-icon-arrow-down el-icon--right" style="color:rgb(0, 171, 235);"></i>
-                <!--<svg-icon icon-class="ellipsis"></svg-icon>-->
-              </span>
-            </el-tooltip>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
-                <span style="display:inline-block;padding:0 10px;" @click="handleUploadFolder()">上传文件夹</span>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
         </span>
       </div>
     </div>
@@ -48,15 +29,6 @@
                 {{scope.row.name}}
               </span>
             </el-tooltip>
-            <span v-if="scope.row.newFolder">
-              <el-input @keyup.enter.native="newFoler"
-                        ref="newFolderInput"
-                        autofocus="autofocus"
-                        v-model="newFolderName"
-                        placeholder="按enter确定"
-                        style="width: 70%;display: inline-block;position: relative;top:-2px;">
-              </el-input>
-            </span>
           </span>
         </template>
       </el-table-column>
@@ -112,15 +84,6 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleEditInfo(scope.row)">修改文件信息</span>
               </el-dropdown-item>
-              <!--<el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleCopy(scope.row)">复制到</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleMove(scope.row)">移动到</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleRenameFile(scope.row)">重命名</span>
-              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -190,65 +153,17 @@
                 element-loading-text="正在校验文件身份，请勿关闭"
       >
         <uploader-unsupport></uploader-unsupport>
-          <uploader-drop>
-            <p>在此处进行操作</p>
-            <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.subLibraryId !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== '' && fileUpInfo.subLibraryId !== ''">选择文件</uploader-btn>
-            <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
-          </uploader-drop>
-          <!--<uploader-btn>选择文件</uploader-btn>-->
-          <uploader-list ref="uploaderList"></uploader-list>
-        </uploader>
+        <uploader-drop>
+          <p>在此处进行操作</p>
+          <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.subLibraryId !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== '' && fileUpInfo.subLibraryId !== ''">选择文件</uploader-btn>
+          <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
+        </uploader-drop>
+        <!--<uploader-btn>选择文件</uploader-btn>-->
+        <uploader-list ref="uploaderList"></uploader-list>
+      </uploader>
       <span slot="footer" class="dialog-footer">
         <el-button v-if="!hiddenClose" @click="uploadDialog = false">关 闭</el-button>
         <!--<el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>-->
-      </span>
-    </el-dialog>
-    <!--上传文件夹弹框-->
-    <el-dialog
-      class="uploadDialog"
-      title="上传文件夹"
-      :visible.sync="uploadFolderDialog"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      :show-close="false"
-      append-to-body
-      width="50%">
-      <uploader :options="options"
-                :autoStart="autoStart"
-                :file-status-text="statusText"
-                :started="started"
-                ref="uploaderFolder"
-                @files-added="folderAdded"
-                @file-success="folderFileSuccess"
-                v-loading="md5Loading"
-                element-loading-text="正在校验文件夹身份，请勿关闭"
-                class="manage-uploaderFolder">
-        <uploader-unsupport></uploader-unsupport>
-        <uploader-drop>
-          <p>拖拽文件到此处或</p>
-          <uploader-btn :directory="true">选择文件夹</uploader-btn>
-        </uploader-drop>
-        <uploader-list ref="uploaderFolderList"></uploader-list>
-      </uploader>
-      <span slot="footer" class="dialog-footer">
-        <el-button v-if="!hiddenClose" @click="uploadFolderDialog = false">关 闭</el-button>
-        <!--<el-button type="primary" @click="upload_Folder" :loading="upFolderLoading">确 定</el-button>-->
-      </span>
-    </el-dialog>
-    <!--文件夹移动、复制操作-->
-    <el-dialog
-      class="maniFileDialog"
-      title="文件管理"
-      :visible.sync="maniFileDialog"
-      append-to-body
-      v-loading="maniFileLoading"
-      width="30%">
-      <div>
-        <maniFile ref="maniFile" :selectCompId="selectCompId" :selectCompName="selectCompName" :maniType="maniType" :selectFileId="selectFileId"></maniFile>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="maniFileDialog = false">取 消</el-button>
-        <el-button type="primary" @click="maniFile">确 定</el-button>
       </span>
     </el-dialog>
     <!--文件重命名-->
@@ -584,73 +499,6 @@
           return
         }
       },
-      // 取消文件上传的操作
-      /*fileClose() {
-        this.$confirm('关闭后上传将被终止，确认关闭吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.fileReader.abort()
-          this.$refs.uploader.uploader.cancel()
-          this.uploadDialog = false
-          this.md5Loading = false
-        })
-      },
-      folderClose() {
-        this.$confirm('关闭后上传将被终止，确认关闭吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.fileReader.abort()
-          this.$refs.uploaderFolder.uploader.cancel()
-          this.uploadFolderDialog = false
-          this.md5Loading = false
-        })
-      },*/
-      addFolder() {
-        if(this.list.length === 0) {
-          let newFolder = {
-            name: '',
-            newFolder: true,
-            folder: true
-          }
-          this.list.splice(0, 0, newFolder);
-        } else if(this.list[0].name != ''){
-          let newFolder = {
-            name: '',
-            newFolder: true,
-            folder: true
-          }
-          this.list.splice(0, 0, newFolder);
-        }
-      },
-      newFoler() {
-        if(this.newFolderName) {
-          this.list.splice(0, 1);
-          let formData = new FormData();
-          formData.append('name',this.newFolderName)
-          saveFolder(this.componentId, this.parentNodeId, formData).then(() => {
-            this.newFolderName = ''
-            this.getList()
-          }).catch(() => {
-            this.newFolderName = ''
-            this.$notify({
-              title: '失败',
-              message: '新建失败',
-              type: 'error',
-              duration: 2000
-            })
-          })
-        }
-      },
-      cancelNewFolder() {
-        if(!this.list[0].id) {
-          this.list.splice(0,1)  // 删除新建行
-          this.newFolderName = '' // 清空输入框
-        }
-      },
       handleuploadFile() {
         this.uploadDialog = true
         this.hiddenClose = false
@@ -663,18 +511,6 @@
           this.fileCompleteLength = 0
           this.fileInfoList = []
           $('.manage-uploader .uploader-btn').css('display','inline-block')
-        })
-      },
-      handleUploadFolder() {
-        this.hiddenClose = false
-        this.uploadFolderDialog = true
-        this.$nextTick(() => {
-          this.fileReader = new FileReader()
-          this.$refs.uploaderFolder.uploader.cancel() //清空文件上传列表
-          this.$refs.uploaderFolder.uploader.opts.target = this.target
-          this.$refs.uploaderFolder.uploader.opts.headers.Authorization = this.token
-          this.folderFileInfo = []
-          $('.manage-uploaderFolder .uploader-btn').css('display','inline-block')
         })
       },
 
@@ -854,87 +690,6 @@
       },
       complete () {
       },
-      folderAdded(fileAdded, fileList) {
-        $('.manage-uploaderFolder .uploader-btn').css('display','none')
-        let listLength = fileAdded.length
-        this.folderfileCompleteLength = fileAdded.length
-        // alert(listLength)
-        this.md5Loading = true
-        this.hiddenClose = true
-        let chunkSize = this.$refs.uploaderFolder.uploader.opts.chunkSize
-        let completeFlag = 0
-        let that = this
-        for(var i = 0; i < fileAdded.length; i++) {
-          let fileA = fileAdded[i]
-          this.resolveMd5(fileA, chunkSize).then(function (result) {
-            fileA.md5 = result
-            // fileA.status = 'computeMD5'
-            fileA.uniqueIdentifier = result
-            hasMd5(fileA.md5).then((res) => {
-              if (res.data.data.id) {
-                completeFlag++
-                let infoList = {
-                  fileId: res.data.data.id,
-                  MD5: fileA.md5,
-                  name: fileA.name,
-                  relativePath: '/' + fileA.relativePath
-                }
-                that.listLoading = false
-                that.folderFileInfo.push(infoList)
-                that.$refs.uploaderFolder.uploader.removeFile(fileA)
-                console.log(fileAdded.length);
-                if(completeFlag === listLength) {
-                  that.md5Loading = false
-                  that.$refs.uploaderFolder.uploader.upload()
-                }
-              } else if (res.data.data === false) {
-                completeFlag++
-                if(completeFlag === listLength) {
-                  that.md5Loading = false
-                  console.log(fileAdded.length)
-                  that.$refs.uploaderFolder.uploader.upload()
-                }
-              }
-            })
-          })
-        }
-      },
-      folderFileSuccess() {
-        // console.log(arguments)
-        let data = {
-          'identifier': arguments[1].uniqueIdentifier,
-          'totalChunks': arguments[1].chunks.length,
-          'totalSize': arguments[1].size,
-          'filename': arguments[1].name,
-          'relativePath': arguments[1].relativePath
-        }
-        let datapost = qs.stringify(data)
-        this.listLoading = true
-        mergeFile(datapost).then((res)=> {
-          let infoList = {
-            fileId: res.data.data.id,
-            MD5: arguments[1].md5,
-            name: arguments[1].name,
-            relativePath: '/' + arguments[1].relativePath
-          }
-          this.folderFileInfo.push(infoList)
-        })
-      },
-      folderComplete() {
-        console.log(arguments)
-        let datapost = JSON.stringify(this.folderFileInfo)
-        let notiMes = '文件' + arguments[1].name + '上传成功！'
-        uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
-          this.listLoading = false
-          this.$notify({
-            title: '成功',
-            message: notiMes,
-            type: 'success',
-            duration: 2000
-          })
-          this.getList()
-        })
-      },
       uploadFile() {
         this.listLoading = true
         this.uploading = true
@@ -957,37 +712,6 @@
           this.listLoading = false
           this.uploading = false
           this.upFileLoading = false
-          this.$notify({
-            title: '失败',
-            message: '上传失败',
-            type: 'error',
-            duration: 2000
-          })
-        })
-      },
-      upload_Folder(){
-        this.listLoading = true
-        this.uploading = true
-        this.upFolderLoading = true
-        let formData = new FormData()
-        formData.append('parentnodeid', this.parentNodeId)
-        this.fileAll = this.$refs.uploaderFolder.uploader.files
-        for (var i = 0; i < this.fileAll.length; i++) {
-          //判断数组里是文件夹还是文件
-          formData.append('files', this.fileAll[i].file)
-        }
-        uploadFolder(this.componentId, formData).then(() => {
-          this.$refs.uploaderFolder.uploader.cancel()
-          this.upFolderLoading = false
-          this.getList()
-          this.listLoading = false
-          this.uploading = false
-          this.uploadFolderDialog = false
-        }).catch((error) => {
-          this.listLoading = false
-          this.uploading = false
-          this.upFolderLoading = false
-          this.uploadFolderDialog = false
           this.$notify({
             title: '失败',
             message: '上传失败',
@@ -1373,14 +1097,14 @@
     watch: {
       selectCompId(newValue, oldValue) {
         this.componentId = this.selectCompId,
-        this.parentNodeId = ''
+          this.parentNodeId = ''
         if(this.componentId) {
           this.initData()
         }
       },
       selectCompName(newValue, oldValue) {
         this.componentId = this.selectCompId,
-        this.parentNodeId = ''
+          this.parentNodeId = ''
         if(this.componentId) {
           this.initData()
         }
@@ -1424,35 +1148,6 @@
           })
         }
       },
-      folderFileLength(newValue, oldValue) {
-        if(this.folderfileCompleteLength === this.folderFileInfo.length && this.folderFileInfo.length !== 0) {
-          let datapost = JSON.stringify(this.folderFileInfo)
-          this.statusText.success = '正在合并文件'
-          uploadFiles(this.componentId, this.projectId, datapost).then(() => {
-            this.listLoading = false
-            this.hiddenClose = false
-            this.$notify({
-              title: '成功',
-              message: '上传成功',
-              type: 'success',
-              duration: 2000
-            })
-            this.statusText.success = '文件合并成功'
-            this.getList()
-          }).catch(() => {
-            this.listLoading = false
-            this.hiddenClose = false
-            this.$notify({
-              title: '失败',
-              message: '文件上传时出错',
-              type: 'error',
-              duration: 2000
-            })
-            this.statusText.success = '文件合并失败'
-            this.getList()
-          })
-        }
-      }
     }
   }
 </script>

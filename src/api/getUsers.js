@@ -42,7 +42,7 @@ export function addUser(data, roleName) {
     url: '/users',
     method: 'post',
     headers: {
-      'Content-Type': 'application/json',
+      // 'Content-Type': 'application/json',
       'roleName': roleName
     },
     data

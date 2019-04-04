@@ -1,13 +1,13 @@
 <template>
   <div id="sample" style="height: 100%">
-    <div class="operationBar" style="margin-bottom: 10px">
+    <div class="operationBar" style="margin-bottom: 10px" v-if="editable">
       <span class="operation-btn" @click="saveMyDiagram">保存</span>
       <span class="operation-btn" @click="undoMyDiagram">撤销</span>
       <span class="operation-btn" @click="redoMyDiagram">恢复</span>
       <el-button @click="createFromTemp" type="primary" size="mini">保存</el-button>
     </div>
     <div style="width: 100%; display: flex; justify-content: space-between;height:calc(100% - 40px);">
-      <div id="myPaletteDiv" style="width: 200px; margin-right: 2px; background-color: whitesmoke; border: solid 1px black"></div>
+      <div id="myPaletteDiv" style="width: 200px; margin-right: 2px; background-color: whitesmoke; border: solid 1px black" :class="{'hide': editable === false}"></div>
       <div id="myDiagramDiv" style="flex-grow: 1; height: 100%; border: solid 1px black"></div>
     </div>
     <div id="myOverviewDIV"></div>
@@ -50,6 +50,10 @@
       processNodes: {
         type: Array,
         default: []
+      },
+      editable: {
+        type: Boolean,
+        default: false
       }
     },
     data() {
@@ -81,7 +85,7 @@
         let myCanvas = go.GraphObject.make
         this.myDiagram = myCanvas(go.Diagram, "myDiagramDiv",  // must name or refer to the DIV HTML element
           {
-            // isReadOnly: true,
+            isReadOnly: !this.editable,
             grid: myCanvas(go.Panel, "Grid",
               myCanvas(go.Shape, "LineH", {stroke: "lightgray", strokeWidth: 0.5}),
               myCanvas(go.Shape, "LineH", {stroke: "gray", strokeWidth: 0.5, interval: 10}),
@@ -433,6 +437,7 @@
         let nodeArr = this.myDiagram.model.Gc
         let linkArr = this.myDiagram.model.Pc
 
+
         if(nodeArr.length < 2 || linkArr.length < 1) {
           this.$notify({
             title: '提示',
@@ -484,6 +489,17 @@
               })
               return
             }
+            // 判断是否至少有一个建模和仿真
+            if((nodeArr.findIndex(target => target.text.indexOf('建模') >= 0) == -1) || (nodeArr.findIndex(target => target.text.indexOf('仿真') >= 0) == -1)) {
+              this.$notify({
+                title: '提示',
+                message: '必须至少包含一个建模和仿真流程',
+                type: 'error',
+                duration: 2000
+              })
+              return
+            }
+
             for(let k = 1; k < linkArr.length; k++) {
               // 判断节点间的引用错误
               // 两个节点间的循环引用 || 两个节点间存在重复引用关系
@@ -620,5 +636,7 @@
 </script>
 
 <style scoped>
-
+.hide {
+  display: none;
+}
 </style>
