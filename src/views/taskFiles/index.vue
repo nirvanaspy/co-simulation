@@ -60,7 +60,7 @@
             <el-table
               v-loading="getMaLoading"
               ref="multipleTable"
-              :data="countersignList"
+              :data="computeList"
               tooltip-effect="dark"
               style="width: 100%"
               @selection-change="handleSignSelectionChange">
@@ -146,13 +146,19 @@
         allUser().then((res) => {
           if(res.data.code === 0) {
             this.userList = res.data.data
+            this.countersignList = this.userList.slice(0)
             // 筛选会签用户
-            for(let i=0;i<this.userList.length;i++){
-              if(this.userList[i].id!=this.userId){
+            /*for(let i=0;i<this.userList.length;i++){
+              if(this.userList[i].id !== this.userId){
                 this.countersignList[this.countersignList.length]=this.userList[i]
               }
+            }*/
+            for(let i=0;i<this.countersignList.length;i++){
+              if(this.countersignList[i].id === this.userId){
+                this.countersignList.splice(i,1)
+                break
+              }
             }
-            // this.countersignList
             this.getMaLoading = false
           } else {
             this.getMaLoading = false
@@ -205,10 +211,6 @@
           'auditIds': auditIds,
           'countersignIds': this.signType === 1 ? '' : countersignIds, // 1:无会签 2:一人会签 3:多人会签
           'approverIds': approveIds,
-          /*'collatorIds': myCollatorIds,
-          'auditIds': myAuditIds,
-          'countersignIds': this.signType === 1 ? '' : myCountersignIds,
-          'approverIds': myApproveIds,*/
           'countersignState': this.signType,
           'userId': this.userId
         }
@@ -230,7 +232,18 @@
               duration: 2000
             })
           }
-         })
+        })
+      }
+    },
+    computed: {
+      computeList() {
+        let list = []
+        if(this.signType === 3) {
+          list = this.countersignList
+        } else {
+          list = this.userList
+        }
+        return list
       }
     }
   }

@@ -14,10 +14,18 @@
               <span>{{scope.row.projectEntity.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="是否通过">
+          <el-table-column align="center" min-width="200px" label="我的结果">
             <template slot-scope="scope">
-              <el-tag type="success" v-if="scope.row.state > 2">已通过</el-tag>
-              <el-tag type="warning" v-else>待处理</el-tag>
+              <span>
+                <el-tag type="info">{{computeMyPassState(scope.row, 0)}}</el-tag>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" min-width="200px" label="最终结果">
+            <template slot-scope="scope">
+              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
             </template>
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="审批意见">
@@ -63,12 +71,27 @@
               <span>{{scope.row.projectEntity.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="是否通过">
+          <el-table-column align="center" min-width="200px" label="我的结果">
             <template slot-scope="scope">
-              <el-tag type="success" v-if="scope.row.state > 3">已通过</el-tag>
-              <el-tag type="warning" v-else>待处理</el-tag>
+              <span>
+                <el-tag type="info">{{computeMyPassState(scope.row, 1)}}</el-tag>
+              </span>
             </template>
           </el-table-column>
+          <el-table-column align="center" min-width="200px" label="最终结果">
+            <template slot-scope="scope">
+              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
+            </template>
+          </el-table-column>
+          <!--<el-table-column align="center" min-width="200px" label="是否通过">
+            <template slot-scope="scope">
+              <el-tag type="success" v-if="scope.row.passState > 3">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
+              <el-tag type="warning" v-else>待处理</el-tag>
+            </template>
+          </el-table-column>-->
           <el-table-column align="center" min-width="200px" label="审批意见">
             <template slot-scope="scope">
               <span>
@@ -112,10 +135,25 @@
               <span>{{scope.row.projectEntity.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="是否通过">
+          <!--<el-table-column align="center" min-width="200px" label="是否通过">
             <template slot-scope="scope">
               <el-tag type="success" v-if="scope.row.state > 4">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
               <el-tag type="warning" v-else>待处理</el-tag>
+            </template>
+          </el-table-column>-->
+          <el-table-column align="center" min-width="200px" label="我的结果">
+            <template slot-scope="scope">
+              <span>
+                <el-tag type="info">{{computeMyPassState(scope.row, 2)}}</el-tag>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" min-width="200px" label="最终结果">
+            <template slot-scope="scope">
+              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
             </template>
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="审批意见">
@@ -161,12 +199,27 @@
               <span>{{scope.row.projectEntity.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="是否通过">
+          <el-table-column align="center" min-width="200px" label="我的结果">
             <template slot-scope="scope">
-              <el-tag type="success" v-if="scope.row.state > 5">已通过</el-tag>
-              <el-tag type="warning" v-else>待处理</el-tag>
+              <span>
+                <el-tag type="info">{{computeMyPassState(scope.row, 3)}}</el-tag>
+              </span>
             </template>
           </el-table-column>
+          <el-table-column align="center" min-width="200px" label="最终结果">
+            <template slot-scope="scope">
+              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
+            </template>
+          </el-table-column>
+          <!--<el-table-column align="center" min-width="200px" label="是否通过">
+            <template slot-scope="scope">
+              <el-tag type="success" v-if="scope.row.state > 5">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
+              <el-tag type="warning" v-else>待处理</el-tag>
+            </template>
+          </el-table-column>-->
           <el-table-column align="center" min-width="200px" label="审批意见">
             <template slot-scope="scope">
               <span>
@@ -180,7 +233,7 @@
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 5">
-<!--                    scope.row.userEntity.id==userId?true:scope.row.state !== 5-->
+                  <!--scope.row.userEntity.id==userId?true:scope.row.state !== 5-->
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -229,7 +282,7 @@
         </el-table-column>
         <el-table-column align="center" width="120px" label="审批结果">
           <template slot-scope="scope">
-            <el-tag type="success" v-if="!scope.row.reject">已通过</el-tag>
+            <el-tag type="success" v-if="scope.row.pass">已通过</el-tag>
             <el-tag type="danger" v-else>未通过</el-tag>
           </template>
         </el-table-column>
@@ -240,7 +293,7 @@
         </el-table-column>
         <el-table-column align="center" min-width="200px" label="审批意见">
           <template slot-scope="scope">
-            {{scope.row.illustration}}
+            {{scope.row.illustration !== null ? scope.row.illustration : '无'}}
           </template>
         </el-table-column>
       </el-table>
@@ -323,6 +376,7 @@
         // 当用户是当前子任务的创建者，则直接忽略通过
         if(row.userEntity.id==this.userId)
           this.currenttaskid=row.userEntity.id
+
         this.dialogStatus = 'pass'
         this.opinionDialog = true
         this.opinionForm.text = ''
@@ -344,8 +398,7 @@
       },
       passApply() {
         // 对于自己通过自己则直接返回
-        if(this.currenttaskid==this.userId)
-        {
+        if(this.currenttaskid==this.userId) {
           this.$notify({
             title: '失败',
             message: '无法审核通过自己',
@@ -491,11 +544,26 @@
           let assessState=0
           for(let i=0;i<this.maps.length;i++){
             // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
-            if(this.maps[i].userEntity.id==this.userId&&this.maps[i].subtaskEntity.id==row.id){
+            if(this.maps[i].userEntity.id==this.userId && this.maps[i].subtaskEntity.id==row.id){
               assessState=this.maps[i].assessState
+              break
             }
           }
           return assessState
+        }
+      },
+      computeMyPassState() {
+        return function (row, assessState) {
+          for (let i = 0; i < this.maps.length; i++) {
+            if(this.maps[i].userEntity.id==this.userId && this.maps[i].subtaskEntity.id==row.id && this.maps[i].assessState == assessState) {
+              if(this.maps[i].pass === true) {
+                return '已通过'
+              } else {
+                return '已驳回'
+              }
+            }
+          }
+          return '未处理'
         }
       }
     }

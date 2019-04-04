@@ -490,7 +490,7 @@
               return
             }
             // 判断是否至少有一个建模和仿真
-            if((nodeArr.findIndex(target => target.text.indexOf('建模') >= 0) == -1) && (nodeArr.findIndex(target => target.text.indexOf('仿真') >= 0) == -1)) {
+            if((nodeArr.findIndex(target => target.text.indexOf('建模') >= 0) == -1) || (nodeArr.findIndex(target => target.text.indexOf('仿真') >= 0) == -1)) {
               this.$notify({
                 title: '提示',
                 message: '必须至少包含一个建模和仿真流程',

@@ -15,7 +15,7 @@
       </span>
     </div>
     <div class="sub-container">
-      <div v-for="item in subLibrariesList" class="sub-item" @click="handleSelectItem(item)" :class="computedActive(item.id)">
+      <div v-for="item in subLibrariesList" class="sub-item" @click="handleSelectItem(item)" :class="computedActive(item.id)" @dblclick="routerToSubLibFiles(item)">
         <span class="active-flag">
           <svg-icon v-if="item.id === selectedId" icon-class="correct"></svg-icon>
           <svg-icon v-else icon-class="correct-dark"></svg-icon>
@@ -238,6 +238,18 @@
             type: 'info',
             message: '已取消清除'
           })
+        })
+      },
+      routerToSubLibFiles(item) {
+        this.$router.push({
+          path: '/sublibFiles',
+          name: 'subLibFiles',
+          params: {
+            id: item.id
+          },
+          query: {
+            name: item.type
+          }
         })
       }
     },

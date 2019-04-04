@@ -78,6 +78,12 @@ export const asyncRouterMap = [
     hidden: true
   },
   {
+    path: '/sublibFiles',
+    component: MainPage,
+    children: [{ path: 'sublibFiles/:id', component: _import('subLibFiles/index'), name: 'subLibFiles', meta: { title: '子库文件管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
     path: '/audit_task',
     component: MainPage,
     children: [{ path: '', component: _import('auditTask/index'),name: 'auditTask', meta: { title: '我的审核', icon: 'audit' },}],
