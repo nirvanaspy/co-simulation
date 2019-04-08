@@ -129,6 +129,7 @@
         getLinks(this.proId).then((res) => {
           if(res.data.code === 0) {
             this.list = res.data.data
+            console.log(this.list)
           }
         })
       },

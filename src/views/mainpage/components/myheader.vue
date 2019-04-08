@@ -252,8 +252,8 @@
 
 <style rel="stylesheet/scss" lang="scss" scoped>
   .my-header-container {
-    position: relative;
-    z-index: 999;
+    // position: relative;
+    // z-index: 999;
   }
   .my-header {
     background: linear-gradient(120deg, #00e4d0, #5983e8);

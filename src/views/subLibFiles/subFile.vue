@@ -19,6 +19,7 @@
     >
       <el-table-column
         type="selection"
+        :selectable="fileAuditSelection"
         width="55">
       </el-table-column>
       <el-table-column label="文件名" min-width="200">
@@ -488,14 +489,15 @@
         this.getMaLoading = true
         allUser().then((res) => {
           if(res.data.code === 0) {
-            this.userList = res.data.data
-            this.countersignList = this.userList.slice(0)
-            // 筛选会签用户
-            /*for(let i=0;i<this.userList.length;i++){
-              if(this.userList[i].id !== this.userId){
-                this.countersignList[this.countersignList.length]=this.userList[i]
+            this.userList = []
+            res.data.data.forEach((item) => {
+              if(item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor') {
+                this.userList.push(item)
               }
-            }*/
+            })
+            // this.userList = res.data.data
+            this.countersignList = this.userList.slice(0)
+            // 筛选多人会签用户，不能选择自己作为会签人
             for(let i=0;i<this.countersignList.length;i++){
               if(this.countersignList[i].id === this.userId){
                 this.countersignList.splice(i,1)
@@ -905,6 +907,13 @@
             })
           }
         })
+      },
+      fileAuditSelection(row) {
+        if (row.auditMode !== 0) {
+          return 0
+        } else {
+          return 1
+        }
       }
     },
     computed: {

@@ -57,7 +57,7 @@
             <svg-icon icon-class="people"></svg-icon>
             执行者
           </label>
-          <el-select v-model="taskInfo.userEntity" value-key="id" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
+          <el-select v-model="taskInfo.userEntity" value-key="id" :loading="getMaLoading" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
             <el-option
               v-for="item in taskPicOptions"
               :key="item.id"
@@ -164,6 +164,7 @@
           finishTime: [{required: true, message: '请选择结束时间！', trigger: 'change'}],
           userEntity: [{required: true, message: '请选择任务负责人！', trigger: 'change'}],
         },
+        getMaLoading: true
       }
     },
     created() {
@@ -194,8 +195,15 @@
           if(res.data.code === 0) {
             this.taskPicOptions = []
             res.data.data.forEach((item) => {
-
-              this.taskPicOptions.push(item)
+              if(item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor') {
+                if(this.list.length > 0) {
+                  if(item.secretClass >= this.list[0].projectEntity.secretClass) {
+                    this.taskPicOptions.push(item)
+                  }
+                } else {
+                  this.taskPicOptions.push(item)
+                }
+              }
             })
             this.getMaLoading = false
           } else {

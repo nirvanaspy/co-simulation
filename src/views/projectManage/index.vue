@@ -108,11 +108,11 @@
         <el-tabs tab-position="top" style="height: calc(100% - 200px);" @tab-click="handleTabClick">
           <el-tab-pane label="所有项目">
             <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document" style="padding-left: 10px;"></i></span>
-            <div class="project-list">
+            <div class="project-list" v-loading="listLoading">
               <div v-if="listA.length === 0" class="no-project-container">
-            <span class="no-project-icon">
-              <svg-icon icon-class="工程"></svg-icon>
-            </span>
+              <span class="no-project-icon">
+                <svg-icon icon-class="工程"></svg-icon>
+              </span>
                 <div class="no-project-desc">
                   暂无项目
                 </div>
@@ -625,7 +625,11 @@
             })
             this.listLoading = false
             this.total = response.data.data.totalElements
+          } else {
+            this.listLoading = false
           }
+        }).catch(() => {
+          this.listLoading = false
         })
         /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
