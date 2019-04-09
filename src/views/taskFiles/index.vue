@@ -148,11 +148,6 @@
             this.userList = res.data.data
             this.countersignList = this.userList.slice(0)
             // 筛选会签用户
-            /*for(let i=0;i<this.userList.length;i++){
-              if(this.userList[i].id !== this.userId){
-                this.countersignList[this.countersignList.length]=this.userList[i]
-              }
-            }*/
             for(let i=0;i<this.countersignList.length;i++){
               if(this.countersignList[i].id === this.userId){
                 this.countersignList.splice(i,1)
