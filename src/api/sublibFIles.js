@@ -71,3 +71,37 @@ export function getFileAudits(fileId) {
     method: 'get'
   })
 }
+
+// 申请二次修改
+export function applyForModify(fileId) {
+  return request({
+    url: '/sublibraryFiles/' + fileId + '/applyForModify',
+    method: 'post'
+  })
+}
+
+// 管理员查询用户的二次修改申请
+export function getEditApply(fileId) {
+  return request({
+    url: '/sublibraryFiles/findModifyToBeAudit',
+    method: 'get'
+  })
+}
+
+// 管理员通过或者驳回二次修改申请
+export function handleApply(fileId, data) {
+  return request({
+    url: '/sublibraryFiles/' + fileId + '/handleModifyApply',
+    method: 'post',
+    data
+  })
+}
+
+// 二次修改文件
+export function modifySubLibFile(fileId, data) {
+  return request({
+    url: '/sublibraryFiles/' + fileId + '/modifySublibraryFile',
+    method: 'post',
+    data
+  })
+}

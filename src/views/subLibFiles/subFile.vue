@@ -64,9 +64,21 @@
           <span>{{scope.row.version}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="150px" label="创建时间">
+      <el-table-column width="180" label="创建时间">
         <template slot-scope="scope">
           <span>{{scope.row.createTime}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="审核状态" width="100"
+                       align="center"
+                       :filters="filiterStateList"
+                       :filter-method="filterState"
+                       prop="state"
+      >
+        <template slot-scope="scope">
+          <span :class="computeStateClass(scope.row)">
+            {{computeAuditState(scope.row)}}
+          </span>
         </template>
       </el-table-column>
       <el-table-column width="40px">
@@ -91,6 +103,15 @@
               </el-dropdown-item>
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleEditInfo(scope.row)">修改文件信息</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'edit')">修改文件</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'secondEdit')">二次修改文件</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="applyToEdit(scope.row)">申请二次修改</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -137,6 +158,35 @@
           <el-input v-model="fileUpInfo.fileNo" placeholder="请输入文件图号"></el-input>
         </el-form-item>
       </el-form>
+
+      <!--二次修改文件的一些选项-->
+      <el-form label-position="left" label-width="70px" v-if="uploadType === 'secondEdit'">
+        <el-form-item label="版本号">
+          <el-select v-model="fileModify.version" placeholder="请选择版本号" style="width: 50%">
+            <el-option
+              v-for="item in versionOptions"
+              :key="item.value"
+              :label="item.value"
+              :value="item.value">
+            </el-option>
+          </el-select>
+          <el-input-number v-model="fileModify.versionNum" :step="1" :min="1" style="width: 49%"></el-input-number>
+        </el-form-item>
+      </el-form>
+      <!--直接修改文件的一些选项-->
+      <el-form label-position="left" label-width="70px" v-if="uploadType === 'edit'">
+        <el-form-item label="审批流程">
+          <!--<el-input v-model="fileUpInfo.secretClass"></el-input>-->
+          <el-select v-model="fileUpInfo.secretClass" placeholder="请选择提交的目标审批流程" style="width: 100%">
+            <el-option
+              v-for="item in secretClassOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
       <uploader :options="options"
                 :autoStart="autoStart"
                 :file-status-text="statusText"
@@ -156,16 +206,17 @@
           <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
         </uploader-drop>
         <!--<uploader-btn>选择文件</uploader-btn>-->
-        <div class="repeatFiles">
-          <el-table :key='tableKey' :data="repeatFiles">
-            <el-table-column label="密级">
+        <uploader-list ref="uploaderList"></uploader-list>
+        <!--重复文件列表-->
+        <div class="repeatFiles" v-if="repeatFiles.length > 0">
+          <el-table :key='tableKey' :data="repeatFiles" max-height="300">
+            <el-table-column label="重复文件列表">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span style="color: #e6a23c;">{{scope.row.name}}</span>
               </template>
             </el-table-column>
           </el-table>
         </div>
-        <uploader-list ref="uploaderList"></uploader-list>
       </uploader>
       <span slot="footer" class="dialog-footer">
         <el-button v-if="!hiddenClose" @click="uploadDialog = false">关 闭</el-button>
@@ -316,7 +367,7 @@
   /*eslint-disable*/
   import {  previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
-  import { getSubLibFiles, uploadSubLibFiles, deleteSubLibFile, editSubLibFileInfo, setLibFileAuditors } from '@/api/sublibFIles'
+  import { getSubLibFiles, uploadSubLibFiles, deleteSubLibFile, editSubLibFileInfo, setLibFileAuditors, applyForModify, modifySubLibFile } from '@/api/sublibFIles'
   import { allUser } from '@/api/getUsers'
   import service from '@/utils/request'
   import SparkMD5 from 'spark-md5'
@@ -443,7 +494,8 @@
           chunkSize: 80* 1024 * 1024,
           simultaneousUploads: 20,
           autoStart: false,
-          testChunks: true
+          testChunks: true,
+          singleFile: false // 单文件上传模式配置项
         },
         attrs: {
           accept: 'image/*'
@@ -481,7 +533,25 @@
         auditMembers: [],
         signMembers: [],
         approveMembers: [],
-        repeatFiles: []
+        repeatFiles: [],
+        filiterStateList: [
+          { text: '未提交', value: 'notCommit' },
+          { text: '审核中', value: 'auditing' },
+          { text: '审核通过', value: 'pass' },
+          { text: '审核驳回', value: 'deny' }
+        ],
+        uploadType: 'normal', // 上传文件状态：一般上传；直接修改上传；二次修改上传；
+        selectedFileId: '', // 选中的文件id
+        versionOptions: [
+          {value: 'M'},
+          {value: 'C'},
+          {value: 'S'},
+          {value: 'D'},
+        ],
+        fileModify: {
+          version: '',
+          versionNum: 1
+        }
       }
     },
     created() {
@@ -558,6 +628,7 @@
         })
       },
       handleuploadFile() {
+        this.uploadType = 'normal'
         this.uploadDialog = true
         this.hiddenClose = false
         this.$nextTick(() => {
@@ -565,6 +636,24 @@
           this.$refs.uploader.uploader.cancel() //清空文件上传列表
           this.$refs.uploader.uploader.opts.target = this.target
           this.$refs.uploader.uploader.opts.headers.Authorization = this.token
+          this.$refs.uploader.uploader.opts.singleFile = false
+          $('.uploader-list ul').html('')
+          this.fileCompleteLength = 0
+          this.fileInfoList = []
+          $('.manage-uploader .uploader-btn').css('display','inline-block')
+        })
+      },
+      handleEditFile(row, editType) {
+        this.selectedFileId = row.id
+        this.uploadType = editType
+        this.uploadDialog = true
+        this.hiddenClose = false
+        this.$nextTick(() => {
+          this.fileReader = new FileReader()
+          this.$refs.uploader.uploader.cancel() //清空文件上传列表
+          this.$refs.uploader.uploader.opts.target = this.target
+          this.$refs.uploader.uploader.opts.headers.Authorization = this.token
+          this.$refs.uploader.uploader.opts.singleFile = true
           $('.uploader-list ul').html('')
           this.fileCompleteLength = 0
           this.fileInfoList = []
@@ -577,29 +666,38 @@
       checkMd5 (fileAdded, fileList) {
         // console.log(this.$refs.uploader.uploader.files)
 
-        // 防止用户上传文件名称相同的文件，在上传前就去除名称重复的文件
-        this.repeatFiles = []
-        for(let j = fileAdded.length - 1; j >= 0; j--) {
-          for(let k = 0; k < this.list.length; k++) {
-            if(fileAdded[j] !== undefined) {
-              if(fileAdded[j].name === this.list[k].name + '.' + this.list[k].postfix) {
-                let fileRepeat = fileAdded[j]
-                this.repeatFiles.push(fileRepeat)
-                this.$refs.uploader.uploader.removeFile(fileRepeat)
-                fileAdded.splice(j, 1);
-                continue;
+        // 只有在普通的上传文件模式下，才需要对所选文件进行去重>>>
+        if(this.uploadType === 'normal') {
+          // 防止用户上传文件名称相同的文件，在上传前就去除名称重复的文件
+          this.repeatFiles = []
+          for(let j = fileAdded.length - 1; j >= 0; j--) {
+            for(let k = 0; k < this.list.length; k++) {
+              if(fileAdded[j] !== undefined) {
+                if(fileAdded[j].name === this.list[k].name + '.' + this.list[k].postfix) {
+                  let fileRepeat = fileAdded[j]
+                  this.repeatFiles.push(fileRepeat)
+                  this.$refs.uploader.uploader.removeFile(fileRepeat)
+                  // 中和文件被删除的-1
+                  this.fileCompleteLength += 1
+                  fileAdded.splice(j, 1);
+                  continue;
+                }
               }
             }
           }
         }
+
         if(this.repeatFiles.length > 0) {
           this.$message({
             showClose: true,
-            message: '请注意，此次上传的文件中有文件在库中已存在！',
+            message: '请注意，此次上传的文件中有' + this.repeatFiles.length + '个文件在库中已存在！',
             type: 'warning',
             //duration: 0
           });
         }
+        // <<<去重的代码
+
+
         if(fileAdded.length > 0) {
           this.hiddenClose = true
           this.md5Loading = true
@@ -859,7 +957,6 @@
       },
       handleSelectionChange(val) {
         this.selectedFiles = val
-        console.log(this.selectedFiles)
       },
       handleVerifySelectionChange(val) {
         this.verifyMembers = val
@@ -935,6 +1032,7 @@
               duration: 2000
             })
             this.commitDialog = false
+            this.getList()
           } else {
             this.$notify({
               title: '失败',
@@ -951,6 +1049,52 @@
         } else {
           return 1
         }
+      },
+      // 根据文件审核状态进行筛选
+      filterState(value, row) {
+        if(value == 'notCommit') {
+          return row.auditMode === 0 && row.state === 0
+        }
+        if(value == 'auditing') {
+          return row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false
+        }
+        if(value == 'pass') {
+          return row.ifApprove === true
+        }
+        if(value == 'deny') {
+          return row.ifReject === true
+        }
+      },
+      // 申请二次修改
+      applyToEdit(row) {
+        this.$confirm('确认申请修改吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          applyForModify(row.id).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '申请成功！',
+                type: 'success',
+                duration: '2000'
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: '2000'
+              })
+            }
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消操作'
+          })
+        })
       }
     },
     computed: {
@@ -1014,6 +1158,44 @@
           list = this.userList
         }
         return list
+      },
+      computeAuditState() {
+        return function (row) {
+          if(row.auditMode === 0 && row.state === 0) {
+            return '未提交'
+          }
+          if(row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) {
+            return '审核中'
+          }
+          if(row.ifApprove === true && row.state === 5) {
+            return '已通过'
+          }
+          if(row.ifReject === true && row.state === 5) {
+            return '已驳回'
+          }
+          if(row.state === 6) {
+            return '修改申请中'
+          }
+          if(row.state === 7) {
+            return '二次修改中'
+          }
+        }
+      },
+      computeStateClass() {
+        return function (row) {
+          if(row.auditMode === 0 && row.state === 0) {
+            return 'notCommit'
+          }
+          if(row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) {
+            return 'auditing'
+          }
+          if(row.ifApprove === true) {
+            return 'approve'
+          }
+          if(row.ifReject === true) {
+            return 'reject'
+          }
+        }
       }
     },
     watch: {
@@ -1033,11 +1215,7 @@
       },
       fileInfoListLength(newValue, oldValue) {
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
-          let repeatFile = []
-          this.fileInfoList.forEach((item, index) => {
-
-          })
-          // for(let j = 0; j < this.fileInfoList.length; j++) {
+          /*let repeatFile = []
           for(let j = this.fileInfoList.length - 1; j >= 0; j--) {
             for(let i = 0; i < this.list.length; i++) {
               if(this.fileInfoList[j] !== undefined) {
@@ -1057,48 +1235,88 @@
               type: 'warning',
               //duration: 0
             });
-            /*this.$notify({
-              title: '提示',
-              message: '请主意，当前有' + repeatFile.length + '个文件库中已存在！',
-              type: 'success',
-              duration: '2000'
-            })*/
-          }
+          }*/
           let datapost = JSON.stringify(this.fileInfoList)
           this.statusText.success = '正在合并文件'
-          uploadSubLibFiles(this.componentId, this.userId, datapost).then((res) => {
-            if(res.data.code === 0) {
+
+          // 普通上传
+          if(this.uploadType === 'normal') {
+            uploadSubLibFiles(this.componentId, this.userId, datapost).then((res) => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '上传成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.statusText.success = '文件合并成功'
+              } else {
+                this.$notify({
+                  title: '成功',
+                  message: '上传失败',
+                  type: 'error',
+                  duration: 2000
+                })
+                this.statusText.success = '文件合并失败'
+              }
+              this.listLoading = false
+              this.hiddenClose = false
+              this.getList()
+            }).catch(() => {
+              this.listLoading = false
+              this.hiddenClose = false
               this.$notify({
-                title: '成功',
-                message: '上传成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.statusText.success = '文件合并成功'
-            } else {
-              this.$notify({
-                title: '成功',
-                message: '上传失败',
+                title: '失败',
+                message: '文件上传时出错',
                 type: 'error',
                 duration: 2000
               })
               this.statusText.success = '文件合并失败'
-            }
-            this.listLoading = false
-            this.hiddenClose = false
-            this.getList()
-          }).catch(() => {
-            this.listLoading = false
-            this.hiddenClose = false
-            this.$notify({
-              title: '失败',
-              message: '文件上传时出错',
-              type: 'error',
-              duration: 2000
+              this.getList()
             })
-            this.statusText.success = '文件合并失败'
-            this.getList()
-          })
+          } else if(this.uploadType === 'secondEdit') {
+            // 二次修改上传
+            this.fileInfoList.forEach((item) => {
+              item.modifyWay = false
+              item.ifBackToStart = true
+              item.version = this.fileModify.version + this.fileModify.versionNum
+            })
+            let editData = JSON.stringify(this.fileInfoList)
+            modifySubLibFile(this.selectedFileId, editData).then((res) => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '修改成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.statusText.success = '文件修改成功'
+              } else {
+                this.$notify({
+                  title: '成功',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: 2000
+                })
+                this.statusText.success = '文件修改失败'
+              }
+              this.listLoading = false
+              this.hiddenClose = false
+              this.getList()
+            }).catch(() => {
+              this.listLoading = false
+              this.hiddenClose = false
+              this.$notify({
+                title: '失败',
+                message: '文件修改时出错',
+                type: 'error',
+                duration: 2000
+              })
+              this.statusText.success = '文件修改失败'
+              this.getList()
+            })
+          }
+
         }
       },
     }
@@ -1106,5 +1324,20 @@
 </script>
 
 <style scoped>
-
+  .repeatFiles {
+    border: 1px solid #eee;
+    margin-top: 20px;
+  }
+  .notCommit {
+    color: #909399;
+  }
+  .auditing {
+    color: #409eff;
+  }
+  .pass {
+    color: #67c23a;
+  }
+  .reject {
+    color: #f56c6c;
+  }
 </style>

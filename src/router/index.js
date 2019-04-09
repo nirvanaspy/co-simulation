@@ -86,7 +86,7 @@ export const asyncRouterMap = [
   {
     path: '/audit_task',
     component: MainPage,
-    children: [{ path: '', component: _import('auditTask/index'), name: 'auditTask', meta: { title: '我的审核', icon: 'audit' },}],
+    children: [{ path: '', component: _import('auditTask/index'), name: 'auditTask', meta: { title: '我的审核', icon: 'audit' }}],
     hidden: true
   },
   {
@@ -104,7 +104,7 @@ export const asyncRouterMap = [
   },
   { path: '/task_manage',
     component: MainPage,
-    children: [{ path: '', component: _import('tasks/index'), name: 'task_manage', meta: { title: '任务管理', icon: 'components1' },}],
+    children: [{ path: '', component: _import('tasks/index'), name: 'task_manage', meta: { title: '任务管理', icon: 'components1' }}],
     hidden: true
   },
   { path: '/visio',
@@ -122,5 +122,13 @@ export const asyncRouterMap = [
     path: '/audit_tasks',
     component: Layout,
     children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: '我的审核', icon: 'audit' }}]
+  },
+  {
+    path: '/audit_apply',
+    component: Layout,
+    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '申请', icon: 'audit' }}],
+    meta: {
+      roles: ['ROLE_ADMIN']
+    }
   }
 ]
