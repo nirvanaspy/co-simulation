@@ -236,8 +236,8 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="opinionDialog = false">取 消</el-button>
-        <el-button type="primary" v-if="dialogStatus === 'pass'" @click="passApply()">确 定</el-button>
-        <el-button type="primary" v-if="dialogStatus === 'deny'" @click="denyApply()">确 定</el-button>
+        <el-button type="primary" v-if="dialogStatus === 'pass'" @click="passApply()" :loading="commitLoading">确 定</el-button>
+        <el-button type="primary" v-if="dialogStatus === 'deny'" @click="denyApply()" :loading="commitLoading">确 定</el-button>
       </span>
     </el-dialog>
     <el-dialog title="查看审批意见" :visible.sync="opinionTextDialog" append-to-body width="80%">
@@ -292,6 +292,7 @@
         assessState: '',
         listLoading: true,
         opinionLoading: false,
+        commitLoading: false,
         fileDialog: false,
         opinionDialog: false,
         opinionTextDialog: false,
@@ -397,6 +398,7 @@
               cancelButtonText: '取消',
               type: 'warning'
             }).then(() => {
+              // this.commitLoading = true
               var qs = require('qs')
               let data = {
                 userId: this.userId,

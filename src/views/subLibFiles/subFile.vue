@@ -27,7 +27,7 @@
           <span>
             <svg-icon :icon-class="classifyIcon(scope.row)" style="font-size: 30px;margin-right: 10px;cursor: pointer;color:  #26bada;"></svg-icon>
             <el-tooltip class="item" effect="dark" :content="scope.row.name" placement="top">
-              <span v-if="!scope.row.newFolder" class="link-type"
+              <span v-if="!scope.row.newFolder" class="link-type" :class="{'repeatFile': scope.row.repeat}"
                     style="position:relative;top:2px;display:inline-block;width:70%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis">
                 {{scope.row.name}}
               </span>
@@ -156,6 +156,15 @@
           <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
         </uploader-drop>
         <!--<uploader-btn>选择文件</uploader-btn>-->
+        <div class="repeatFiles">
+          <el-table :key='tableKey' :data="repeatFiles">
+            <el-table-column label="密级">
+              <template slot-scope="scope">
+                <span>{{scope.row.name}}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
         <uploader-list ref="uploaderList"></uploader-list>
       </uploader>
       <span slot="footer" class="dialog-footer">
@@ -472,6 +481,7 @@
         auditMembers: [],
         signMembers: [],
         approveMembers: [],
+        repeatFiles: []
       }
     },
     created() {
@@ -566,9 +576,36 @@
       // 添加文件时触发
       checkMd5 (fileAdded, fileList) {
         // console.log(this.$refs.uploader.uploader.files)
-        this.hiddenClose = true
-        this.md5Loading = true
-        $('.manage-uploader .uploader-btn').css('display','none')
+
+        // 防止用户上传文件名称相同的文件，在上传前就去除名称重复的文件
+        this.repeatFiles = []
+        for(let j = fileAdded.length - 1; j >= 0; j--) {
+          for(let k = 0; k < this.list.length; k++) {
+            if(fileAdded[j] !== undefined) {
+              if(fileAdded[j].name === this.list[k].name + '.' + this.list[k].postfix) {
+                let fileRepeat = fileAdded[j]
+                this.repeatFiles.push(fileRepeat)
+                this.$refs.uploader.uploader.removeFile(fileRepeat)
+                fileAdded.splice(j, 1);
+                continue;
+              }
+            }
+          }
+        }
+        if(this.repeatFiles.length > 0) {
+          this.$message({
+            showClose: true,
+            message: '请注意，此次上传的文件中有文件在库中已存在！',
+            type: 'warning',
+            //duration: 0
+          });
+        }
+        if(fileAdded.length > 0) {
+          this.hiddenClose = true
+          this.md5Loading = true
+          $('.manage-uploader .uploader-btn').css('display','none')
+        }
+
         this.fileCompleteLength += fileAdded.length
         let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
         let completeFlag = 0
@@ -996,6 +1033,37 @@
       },
       fileInfoListLength(newValue, oldValue) {
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
+          let repeatFile = []
+          this.fileInfoList.forEach((item, index) => {
+
+          })
+          // for(let j = 0; j < this.fileInfoList.length; j++) {
+          for(let j = this.fileInfoList.length - 1; j >= 0; j--) {
+            for(let i = 0; i < this.list.length; i++) {
+              if(this.fileInfoList[j] !== undefined) {
+                if(this.fileInfoList[j].name === this.list[i].name + '.' + this.list[i].postfix) {
+                  this.fileInfoList.splice(j, 1);
+                  repeatFile.push(this.fileInfoList[j]);
+                  this.list[i].repeat === true
+                  continue;
+                }
+              }
+            }
+          }
+          if(repeatFile.length > 0) {
+            this.$message({
+              showClose: true,
+              message: '请注意，此次上传的文件中有' + repeatFile.length + '个文件在库中已存在！',
+              type: 'warning',
+              //duration: 0
+            });
+            /*this.$notify({
+              title: '提示',
+              message: '请主意，当前有' + repeatFile.length + '个文件库中已存在！',
+              type: 'success',
+              duration: '2000'
+            })*/
+          }
           let datapost = JSON.stringify(this.fileInfoList)
           this.statusText.success = '正在合并文件'
           uploadSubLibFiles(this.componentId, this.userId, datapost).then((res) => {
