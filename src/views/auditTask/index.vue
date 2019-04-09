@@ -1,7 +1,7 @@
 <template>
   <div class="taskContainer">
     <el-tabs type="border-card">
-      <el-tab-pane label="我的核对">
+      <el-tab-pane label="我的校对">
         <el-table :data="collatorList" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
                   style="width: 100%">
           <el-table-column align="center" min-width="200px" label="任务名称">
@@ -46,10 +46,10 @@
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state > 2||scope.row.state==1">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 2)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state > 2||scope.row.state==1">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 2)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -110,10 +110,10 @@
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state !== 3">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 3)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state !== 3">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 3)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -168,16 +168,16 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2||scope.row.state > 4">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 4)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 4)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -239,10 +239,10 @@
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state !== 5">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 5)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item>
+                  <el-dropdown-item :disabled="scope.row.state !== 5">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 5)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -338,9 +338,7 @@
           ],
 
         },
-        maps: [],
-        currenttaskid: 0
-        // assessState: 0
+        maps: [],  //存取当前回传maps中的用户操作状态数组(maps废弃，当前存储的是userEntityList)
       }
     },
     components: {
@@ -359,11 +357,8 @@
             this.auditorList = res.data.data.auditorList
             this.approverList = res.data.data.apporverList
             this.countersignList = res.data.data.countersignList
-            // 对状态进行处理
-            if(res.data.data.maps){
-              this.maps=res.data.data.maps.subtaskEntityList
-              // console.log("maps"+this.maps)
-            }
+            // 多人会签操作状态获取
+              this.maps=res.data.data.userEntityList
           }
         })
       },
@@ -374,9 +369,15 @@
       },
       handlePassApply(row, state) {
         // 当用户是当前子任务的创建者，则直接忽略通过
-        if(row.userEntity.id==this.userId)
-          this.currenttaskid=row.userEntity.id
-
+          if(row.userEntity.id==this.userId) {
+          this.$notify({
+            title: '失败',
+            message: '无法审核通过自己',
+            type: 'error',
+            duration: 2000
+          })
+          return
+        }
         this.dialogStatus = 'pass'
         this.opinionDialog = true
         this.opinionForm.text = ''
@@ -397,17 +398,6 @@
         })
       },
       passApply() {
-        // 对于自己通过自己则直接返回
-        if(this.currenttaskid==this.userId) {
-          this.$notify({
-            title: '失败',
-            message: '无法审核通过自己',
-            type: 'error',
-            duration: 2000
-          })
-          this.opinionDialog = false
-          return
-        }
         this.$refs['opinionForm'].validate((valid) => {
           if (valid) {
             this.$confirm('确认通过吗？', '提示', {
@@ -526,7 +516,7 @@
       computedCurrentState() {
         return function(state) {
           if(state === 0) {
-            return '核对'
+            return '校对'
           }
           if(state === 1) {
             return '审核'
@@ -544,9 +534,9 @@
           let assessState=0
           for(let i=0;i<this.maps.length;i++){
             // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
-            if(this.maps[i].userEntity.id==this.userId && this.maps[i].subtaskEntity.id==row.id){
+            if(this.maps[i].userEntity.id==this.userId&&this.maps[i].subtaskEntity.id==row.id){
+              if(assessState<this.maps[i].assessState)
               assessState=this.maps[i].assessState
-              break
             }
           }
           return assessState
