@@ -4,6 +4,7 @@ import { Message } from 'element-ui'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css'// progress bar style
 import { getToken } from '@/utils/auth' // getToken from cookie
+import { libraryList } from '@/api/library'
 
 NProgress.configure({ showSpinner: false })// NProgress Configuration
 
@@ -14,8 +15,11 @@ function hasPermission(roles, permissionRoles) {
   return roles.some(role => permissionRoles.indexOf(role) >= 0)
 }
 
-const whiteList = ['/login', '/authredirect', '/register']// no redirect whitelist
+const whiteList = ['/login', '/authredirect', '/register', '/visio']// no redirect whitelist
 router.beforeEach((to, from, next) => {
+  if (store.state.app.ifSearch === true) {
+    store.dispatch('setIfSearch')
+  }
   NProgress.start() // start progress bar
   if (getToken()) { // determine if there has token
     if (to.path === '/login') {
@@ -27,6 +31,14 @@ router.beforeEach((to, from, next) => {
           const roles = store.getters.roles// note: roles must be a array! such as: ['editor','develop']
           store.dispatch('GenerateRoutes', { roles }).then(() => { // 根据roles权限生成可访问的路由表
             router.addRoutes(store.getters.addRouters) // 动态添加可访问路由表
+            /* libraryList().then((res) => {
+              let libRoutes = []
+              if (res.data.code === 0) {
+                res.data.data.forEach((item) => {
+
+                })
+              }
+            })*/
             next({ ...to, replace: true })
           })
         }).catch(() => {

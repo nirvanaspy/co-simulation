@@ -36,6 +36,14 @@ export function deleteSubtask(id) {
   })
 }
 
+// 查询子任务详情
+export function getSubtaskDetail(id) {
+  return request({
+    url: '/subtasks/' + id,
+    method: 'get'
+  })
+}
+
 // 获取子任务文件
 export function getTaskFiles(id, parent) {
   return request({
@@ -88,23 +96,33 @@ export function deleteTaskFile(id, data) {
 // 根据模版创建子任务
 export function createProcessNodes(id, data) {
   return request({
-    url: '/processNodes',
+    url: '/processNode1',
     headers: {
       projectId: id,
       'Content-Type': 'application/json'
     },
     method: 'post',
     data
-    /* data: {
-      processNodeEntities: JSON.stringify([{ a: 'a' }, { b: 'c' }, { d: 'd' }])
-    }*/
+  })
+}
+
+// 根据模版创建子任务流程关系
+export function createProcessLinks(id, data) {
+  return request({
+    url: '/links',
+    headers: {
+      projectId: id,
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    data
   })
 }
 
 // 根据项目查询流程
 export function getProcessNodes(id) {
   return request({
-    url: '/processNodes/byProjectId/' + id,
+    url: '/processNode1/byProjectId/' + id,
     method: 'get'
   })
 }
@@ -120,7 +138,7 @@ export function getAuditTasks(id) {
 // 审核
 export function assessSubtask(id, data) {
   return request({
-    url: '/subtasks/' + id + '/assessSubtask',
+    url: '/subtasks/' + id + '/subtaskAudit',
     method: 'patch',
     data
   })
@@ -145,5 +163,53 @@ export function getAllOpinion(id, state) {
     params: {
       state: state
     }
+  })
+}
+
+// 申请二次修改子任务
+export function applyForTaskAudit(id) {
+  return request({
+    url: '/subtasks/' + id + '/applyForModify',
+    method: 'post'
+  })
+}
+
+// 查询用户的二次修改申请
+export function getTaskEditApply(id) {
+  return request({
+    url: '/subtasks/findModifyToBeAudit',
+    method: 'get',
+    params: {
+      userId: id
+    }
+  })
+}
+
+// 通过或者驳回二次修改申请
+export function handleTaskEditApply(id, data) {
+  return request({
+    url: '/subtasks/' + id + '/handleModifyApply',
+    method: 'post',
+    data
+  })
+}
+
+// 修改子任务文件
+export function modifyTaskFile(fileId, data) {
+  return request({
+    url: '/subtaskFiles/' + fileId + '/modifySubtaskFiles',
+    headers: {
+      'content-type': 'application/json;charset=utf-8'
+    },
+    method: 'post',
+    data
+  })
+}
+
+// 根据用户查询项目
+export function getProjectsByUser(id) {
+  return request({
+    url: '/subtasks/findProjectsByUserId/' + id,
+    method: 'get'
   })
 }

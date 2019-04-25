@@ -39,7 +39,7 @@
 
 <script>
   /*eslint-disable*/
-  import { createProcessNodes, getSubtaskDetail } from '@/api/pro-design-link'
+  import { createProcessNodes, createProcessLinks, getSubtaskDetail, getProcessNodes } from '@/api/pro-design-link'
   export default {
     name: "visio",
     props: {
@@ -68,18 +68,17 @@
             {figure: "subtask", key: -2, loc: "-60 440", size: "150 70", text: "装配仿真"},
             {figure: "subtask", key: -3, loc: "-60 240", size: "150 70", text: "结构仿真"},
             {figure: "subtask", key: -4, loc: "-60 340", size: "150 70", text: "力学仿真"},
-            {figure: "subtask", key: -5, loc: "-60 540", size: "150 70", text: "电路仿真"},
-            // {figure: "subtask", key: 'aaaa', loc: "-60 700", size: "150 70", text: "ceshi"},
+            {figure: "subtask", key: -5, loc: "-60 540", size: "150 70", text: "电路仿真"}
           ],
           "linkDataArray": [
             {"from":-1, "to":-3, "fromPort":"B", "toPort":"T", "points":[]},
             {"from":-3, "to":-4, "fromPort":"B", "toPort":"T", "points":[]},
             {"from":-4, "to":-2, "fromPort":"B", "toPort":"T", "points":[]},
-            {"from":-2, "to":-5, "fromPort":"B", "toPort":"T", "points":[]},
-            // {"from":-5, "to":'aaaa', "fromPort":"B", "toPort":"T", "points":[]},
+            {"from":-2, "to":-5, "fromPort":"B", "toPort":"T", "points":[]}
           ]
         },
-        originLink: []
+        originLink: [],
+        processNodeList: []
       }
     },
     methods: {
@@ -427,13 +426,19 @@
       redoMyDiagram() {
         this.myDiagram.commandHandler.redo()
       },
+      getProcessList() {
+        getProcessNodes(this.proId).then((res) => {
+          if(res.data.code === 0) {
+            this.processNodeList = res.data.data
+          }
+        })
+      },
       createFromTemp() {
-        let arrRes = []
+        let nodeRes = []
+        let linkRes = []
         let nodeArr = this.myDiagram.model.Gc
         let linkArr = this.myDiagram.model.Pc
-        /*console.log(nodeArr)
-        console.log(linkArr)
-        return*/
+        // 判断流程是否合法
         if(nodeArr.length < 2 || linkArr.length < 1) {
           this.$notify({
             title: '提示',
@@ -443,21 +448,30 @@
           })
           return
         }
-        /*debugger
+        // 判断是否至少有一个建模和仿真
+        if((nodeArr.findIndex(target => target.text.indexOf('建模') >= 0) == -1) || (nodeArr.findIndex(target => target.text.indexOf('仿真') >= 0) == -1)) {
+          this.$notify({
+            title: '提示',
+            message: '必须至少包含一个建模和仿真流程',
+            type: 'error',
+            duration: 2000
+          })
+          return
+        }
+
+        // 判断节点间的引用是否正确
         for(let i = 0; i < linkArr.length; i++) {
-          // 判断节点是否闭合
-          if(!linkArr[i].to || !linkArr[i].from) {
+
+          if(linkArr[i].from == null || linkArr[i].to == null) {
             this.$notify({
               title: '提示',
-              message: '节点未闭合，请检查！',
+              message: '流程未闭合',
               type: 'error',
               duration: 2000
             })
             return
           }
-          for(let j = 1; j < linkArr.length; j++) {
-            // 判断节点间的引用错误
-            // 两个节点间的循环引用 || 两个节点间存在重复引用关系
+          for(let j = 0; j < linkArr.length; j++) {
             if(i !== j) {
               if((linkArr[i].to === linkArr[j].from && linkArr[i].from === linkArr[j].to) || (linkArr[i].to === linkArr[j].to && linkArr[i].from === linkArr[j].from)) {
                 this.$notify({
@@ -470,183 +484,60 @@
               }
             }
           }
-        }*/
+        }
 
         for(let i = 0; i < nodeArr.length; i++) {
-          let ifHasTo = false
-          // let ifHasFrom = false
-          for(let j = 0; j < linkArr.length; j++) {
-            // 判断节点是否闭合
-            if(!linkArr[j].to || !linkArr[j].from) {
+          // 判断是否以建模开始
+          if(linkArr.findIndex(target => target.to == nodeArr[i].key) == -1) { //先找到起点
+            if(nodeArr[i].text.substring(nodeArr[i].text.length - 2) !== '建模') {
               this.$notify({
                 title: '提示',
-                message: '节点未闭合，请检查！',
+                message: '起点必须为建模！',
                 type: 'error',
                 duration: 2000
               })
               return
             }
-            // 判断是否至少有一个建模和仿真
-            if((nodeArr.findIndex(target => target.text.indexOf('建模') >= 0) == -1) || (nodeArr.findIndex(target => target.text.indexOf('仿真') >= 0) == -1)) {
-              this.$notify({
-                title: '提示',
-                message: '必须至少包含一个建模和仿真流程',
-                type: 'error',
-                duration: 2000
-              })
-              return
-            }
-
-            for(let k = 1; k < linkArr.length; k++) {
-              // 判断节点间的引用错误
-              // 两个节点间的循环引用 || 两个节点间存在重复引用关系
-              if(j !== k) {
-                if((linkArr[j].to === linkArr[k].from && linkArr[j].from === linkArr[k].to) || (linkArr[j].to === linkArr[k].to && linkArr[j].from === linkArr[k].from)) {
-                  this.$notify({
-                    title: '提示',
-                    message: '节点间引用错误，请检查！',
-                    type: 'error',
-                    duration: 2000
-                  })
-                  return
-                }
-              }
-            }
-
-            // 判断关系是不是新增的
-            linkArr[j].origin = false
-            for(let m = 0; m < this.originLink.length; m++) {
-              if(linkArr[j].to == this.originLink[m].to && linkArr[j].from == this.originLink[m].from) {
-                linkArr[j].origin = true
-                break
-              }
-            }
-            // 存入节点及父节点到此节点到指向信息
-            if(nodeArr[i].key === linkArr[j].to) {
-              ifHasTo = true
-              if(linkArr[j].origin === false) {
-                /*arrRes.push({
-                  nodeName: nodeArr[i].text,
-                  location: nodeArr[i].loc,
-                  selfSign: nodeArr[i].key,
-                  figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
-                  nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-                  subtaskId: null,
-                  parentSign: linkArr[j].from,
-                  toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
-                  fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL'
-                })*/
-                // if(nodeArr.findIndex(target => target.key == linkArr[j].to) > -1) {
-                if(nodeArr[i].subtaskEntity) {
-                  arrRes.push({
-                    nodeName: nodeArr[i].text,
-                    location: nodeArr[i].loc,
-                    selfSign: nodeArr[i].key,
-                    figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
-                    nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-                    subtaskId: nodeArr[i].subtaskEntity ? nodeArr[i].subtaskEntity.id : null,
-                    parentSign: linkArr[j].from,
-                    toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
-                    fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
-                    ifNew: true
-                  })
-                } else {
-                  arrRes.push({
-                    nodeName: nodeArr[i].text,
-                    location: nodeArr[i].loc,
-                    selfSign: nodeArr[i].key,
-                    figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
-                    nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-                    subtaskId: null,
-                    parentSign: linkArr[j].from,
-                    toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
-                    fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
-                    ifNew: true
-                  })
-                }
-
-              } else if(linkArr[j].origin === true){
-                arrRes.push({
-                  nodeName: nodeArr[i].text,
-                  location: nodeArr[i].loc,
-                  selfSign: nodeArr[i].key,
-                  figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
-                  nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-                  subtaskId: nodeArr[i].subtaskEntity ? nodeArr[i].subtaskEntity.id : null,
-                  parentSign: linkArr[j].from,
-                  toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
-                  fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
-                  ifNew: false
-                })
-              }
-            }
-
-            // 判断是否有节点未连线
-            /*if(nodeArr[i].key == linkArr[j].from) {
-              ifHasFrom === true
-            }
-            if(ifHasFrom === false && ifHasTo === false) {
-              console.log(nodeArr[i])
-              this.$notify({
-                title: '提示',
-                message: '节点未闭合，请检查！',
-                type: 'error',
-                duration: 2000
-              })
-              return
-            }*/
-
           }
-
-          // 存入起点信息
-          if(!ifHasTo){
-            // 初始节点必须为建模
-            if(nodeArr[i].text.indexOf('建模') < 0) {
-              this.$notify({
-                title: '提示',
-                message: '初始流程必须为建模！',
-                type: 'error',
-                duration: 2000
-              })
-              return
-            }
-            arrRes.push({
-              nodeName: nodeArr[i].text,
-              location: nodeArr[i].loc,
-              selfSign: nodeArr[i].key,
-              figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
-              nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-              subtaskId: nodeArr[i].subtaskEntity ? nodeArr[i].subtaskEntity.id : null,
-              parentSign: 'NULL',
-              toPort: 'NULL',
-              fromPort: 'NULL',
-              ifNew: nodeArr[i].subtaskEntity ? false : true
-              /*parentSign: null,
-              toPort: null,
-              fromPort: null*/
-            })
+          let nodeItem = {
+            nodeName: nodeArr[i].text, // 名称
+            location: nodeArr[i].loc,  // 位置
+            selfSign: nodeArr[i].key,  // 标识
+            figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL', // 类型
+            nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70', // 大小
+            id: nodeArr[i].id ? nodeArr[i].id : null,
           }
+          nodeRes.push(nodeItem)
         }
-        console.log(arrRes)
-        let dataPost = JSON.stringify(arrRes)
+        let dataPost = JSON.stringify(nodeRes)
+        // 首先建立节点
         createProcessNodes(this.proId, dataPost).then((res) => {
+          // 拿到节点id后，开始建立连接
           if(res.data.code === 0) {
-            this.$notify({
-              title: '成功',
-              message: '流程创建成功',
-              type: 'success',
-              duration: 2000
-            })
-            this.$emit('refreshList')
-          } else {
-            this.$notify({
-              title: '失败',
-              message: res.data.msg,
-              type: 'error',
-              duration: 2000
+            let nodeData = res.data.data
+            console.log(linkArr)
+            /*return*/
+            for(let j = 0; j < linkArr.length; j++) {
+              let pId = nodeData.find(item => item.selfSign == linkArr[j].from).id  // 父节点id
+              let sId = nodeData.find(item => item.selfSign == linkArr[j].to).id    // 子节点id
+              let linkItem = {
+                parentId: pId ? pId : null ,
+                fromPort: linkArr[j].fromPort == '' ? 'B' : linkArr[j].fromPort,
+                toPort: linkArr[j].toPort == '' ? 'T' : linkArr[j].toPort,
+                selfId: sId ? sId : null
+              }
+              linkRes.push(linkItem)
+            }
+            // console.log(linkRes)
+            let linkPost = JSON.stringify(linkRes)
+            // 根据节点和已有的连线关系建立流程图
+            createProcessLinks(this.proId, linkPost).then((res) => {
+              if(res.data.code === 0) {
+                this.$emit('refreshList')
+                this.$emit('hideVisio')
+              }
             })
           }
-          this.$emit('hideVisio')
         }).catch(() => {
           this.$notify({
             title: '失败',
@@ -659,7 +550,6 @@
       }
     },
     mounted() {
-
       // 实例化之后再进行传值刷新列表
       if(this.processNodes.length === 0) {
         this.init()
@@ -668,38 +558,30 @@
       } else {
         let nodeArr = []
         let linkArr = []
-        let myObj = {}
         for(let i = 0; i < this.processNodes.length; i++) {
-          if(!myObj[this.processNodes[i].selfSign]) {
-            let arrItem = {
-              figure: this.processNodes[i].figure,
-              key: this.processNodes[i].selfSign,
-              loc: this.processNodes[i].location,
-              size: this.processNodes[i].nodeSize,
-              text: this.processNodes[i].nodeName,
-              subtaskEntity: this.processNodes[i].subtaskEntity
-            }
-            if(this.processNodes[i].subtaskEntity.ifApprove === true) {
-              arrItem.fill = '#2ac06d'
-              arrItem.pass = true
-            }
-            // 需要对节点信息进行去重
-            nodeArr.push(arrItem)
-            myObj[this.processNodes[i].selfSign] = true
+          let nodeItem = {
+            id: this.processNodes[i].id,
+            figure: this.processNodes[i].figure,
+            key: this.processNodes[i].selfSign,
+            loc: this.processNodes[i].location,
+            size: this.processNodes[i].nodeSize,
+            text: this.processNodes[i].nodeName,
+            subtaskEntity: this.processNodes[i].subtaskEntity
           }
-          if(this.processNodes[i].parentSign) {
-            let linkItem = {
-              from: this.processNodes[i].parentSign,
-              to: this.processNodes[i].selfSign,
-              toPort: this.processNodes[i].toPort,
-              fromPort: this.processNodes[i].fromPort,
-              points: []
-            }
-            // 判断已完成的子任务的连接关系
-            if(this.processNodes[i].subtaskEntity.ifApprove === true) {
-              linkItem.pass = true
-            }
-            linkArr.push(linkItem)
+          nodeArr.push(nodeItem)
+          if(this.processNodes[i].linkEntityList !== null) {
+            this.processNodes[i].linkEntityList.forEach((link) => {
+              let fromNode = this.processNodes.find(item => item.id == link.parentId)
+              if(fromNode !== undefined) {
+                let linkItem = {
+                  from: this.processNodes.find(item => item.id == link.parentId).selfSign,
+                  to: this.processNodes[i].selfSign,
+                  fromPort: link.fromPort,
+                  toPort: link.toPort
+                }
+                linkArr.push(linkItem)
+              }
+            })
           }
         }
         this.originValue.nodeDataArray = nodeArr.slice()
@@ -719,7 +601,7 @@
 </script>
 
 <style scoped>
-.hide {
-  display: none;
-}
+  .hide {
+    display: none;
+  }
 </style>

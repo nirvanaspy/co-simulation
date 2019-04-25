@@ -18,9 +18,9 @@
         <!--<span style="float: right">
           <svg-icon icon-class="enter"></svg-icon>
         </span>-->
-        <span style="float: right;font-size: 16px;margin-right: 4px;" @click.stop="handleDeleteTask(element)">
+        <!--<span style="float: right;font-size: 16px;margin-right: 4px;" @click.stop="handleDeleteTask(element)">
           <svg-icon icon-class="delete"></svg-icon>
-        </span>
+        </span>-->
         <div class="tag-box-mine" v-if="element.finishTime">
           <span class="status-box">
             {{copmutedDate(element.finishTime)}}
@@ -170,7 +170,6 @@
     created() {
       this.proId = this.$route.query.id
       this.userId = this.getCookie('userId')
-      console.log(this.list)
     },
     methods: {
       resetCreat() {
@@ -276,6 +275,7 @@
             let data = {
               finishTime: this.taskInfo.finishTime.toString(),
               userId: this.taskInfo.userEntity.id,
+              loginUserId: this.userId
               // designLinkEntityId: this.taskInfo.designLinkEntity.id
             }
             let dataPost = qs.stringify(data)
@@ -345,6 +345,15 @@
           }
         })
         this.setCookie('taskSelectedName')*/
+        if(row.state === 0) {
+          this.$notify({
+            title: '失败',
+            message: '该子任务尚未开始！',
+            type: 'error',
+            duration: '2000'
+          })
+          return
+        }
         if(row.userEntity !== null) {
           this.$router.push({
             path: '/taskFiles',
@@ -353,8 +362,8 @@
               id: row.id
             },
             query: {
-              name: row.designLinkEntity ? row.designLinkEntity.name : '',
-              proClass: row.projectEntity.secretClass
+              proClass: row.projectEntity.secretClass,
+              name: row.name
             }
           })
           console.log(row.projectEntity.secretClass)
@@ -445,7 +454,8 @@
         color: #fff;
         border-radius: 3px;
         margin-top: 10px;
-        margin-right: -14px;
+        // margin-right: -14px;
+        margin-right: 0;
       }
       .taskPic {
         // float: right;

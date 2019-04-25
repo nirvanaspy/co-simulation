@@ -1,5 +1,6 @@
 <template>
   <div class="my-header-container">
+    <!--<div class="mask" v-if="ifShowSearch"></div>-->
     <el-header class="my-header">
       <div class="proTitle">
         <span><svg-icon icon-class="co-simulation"></svg-icon></span>
@@ -39,7 +40,17 @@
         </el-dropdown>
       </div>
       <div class="right-menu">
-        <span calss="userName" style="position: relative;top: -12px;color: #fff;">{{userName}}</span>
+        <span class="myBage" @click="handleCheckNotice">
+          <el-badge :value="unReadMesCount" class="item">
+            <span style="color: #fff">
+              <svg-icon icon-class="bell"></svg-icon>
+            </span>
+          </el-badge>
+        </span>
+        <span @click="toogleSearch" class="searchBox">
+          <svg-icon icon-class="search"/>
+        </span>
+        <span calss="userName" style="position: relative;top: -12px;color: #fff;font-size: 14px;">{{userName}}</span>
         <el-dropdown class="avatar-container right-menu-item" trigger="click">
           <div class="avatar-wrapper">
             <pan-thumb class="proImg" width="40px" height="40px" image="./2/png">
@@ -55,6 +66,9 @@
             </el-dropdown-item>
             <el-dropdown-item divided>
               <span @click="routerToPro" style="display:block;">项目管理</span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
+              <span @click="routerToMyPro" style="display:block;">我的项目</span>
             </el-dropdown-item>
             <el-dropdown-item divided>
               <span @click="logout" style="display:block;">{{$t('navbar.logOut')}}</span>
@@ -84,7 +98,74 @@
         <el-button :disabled="this.btnConfirm" type="primary" @click="modifyPassword" :loading="modPasLoading">确 定
         </el-button>
       </div>
-
+    </el-dialog>
+    <!--消息弹框-->
+    <el-dialog title="" :visible.sync="noticeDialogVisible" append-to-body width="100%" class="message-dialog">
+      <el-row :gutter="20" style="height: 100%;position: relative;">
+        <div class="drop-box">
+          <el-dropdown>
+            <span class="el-dropdown-link">
+              更多操作<i class="el-icon-arrow-down el-icon--right"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <span @click="markAllRead">全部标记为已读</span>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <span @click="clearAllReadMes">清除所有已读</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+        <el-col style="height: 100%;" :span="6">
+          <div class="notice-list-box">
+            <div v-for="item in mesList" class="notice-item" @dblclick="checkMes(item)" :class="{'selectedMes': selectedMesObj !== null && selectedMesObj.id === item.id}">
+              <span class="mes-des-box">{{operateBodyMap[item.messageOperate]}}</span>
+              <span class="mes-des-box">{{operateTypeMap[item.mainBody]}}</span>
+              <span class="mes-des-box operator">操作人：{{item.mainOperator.username}}</span>
+              <span class="mes-des-box time">{{item.createTime}}</span>
+              <span class="unRead-icon" v-if="item.ifRead === false">
+                <svg-icon icon-class="unRead"></svg-icon>
+              </span>
+            </div>
+          </div>
+        </el-col>
+        <el-col style="height: 100%;" :span="18">
+          <div class="notice-detail">
+            <div v-if="selectedMesObj !== null">
+              <div class="detail-header">
+                <div style="height: 70px;line-height: 50px;padding: 10px;border-bottom: 1px solid #ccc">
+                  <span style="display: inline-block;padding: 2px 10px;background:rgb(241,249,254);height: 30px;line-height: 25px;border-radius: 4px;">
+                    <span style="font-size: 20px;color: rgb(119,194,248);"><svg-icon icon-class="mark"></svg-icon></span>
+                    <span style="color: rgb(122,196,245);font-weight: 500;font-size: 16px;">{{operateBodyMap[selectedMesObj.messageOperate]}}</span>
+                  </span>
+                </div>
+              </div>
+              <div class="detail-body" style="min-height: 200px;background: #fff;">
+                {{selectedMesObj.description}}
+              </div>
+              <div class="detail-footer" style="min-height: 100px;padding: 10px 20px">
+                <div style="height: 40px;line-height: 40px;">
+                  <span><svg-icon icon-class="user-1" style="font-size: 20px;margin-right: 4px;"></svg-icon>被操作人：</span>
+                  <span>{{selectedMesObj.arrangedPerson.username}}</span>
+                </div>
+                <div style="height: 40px;line-height: 40px;">
+                  <span><svg-icon icon-class="user-1" style="font-size: 20px;margin-right: 4px;"></svg-icon>操作人：</span>
+                  <span>{{selectedMesObj.mainOperator.username}}</span>
+                </div>
+                <div style="height: 40px;line-height: 40px;">
+                  <span><svg-icon icon-class="components3" style="font-size: 20px;margin-right: 4px;"></svg-icon>操作类型：</span>
+                  <span>{{operateTypeMap[selectedMesObj.mainBody]}}</span>
+                </div>
+                <div style="height: 40px;line-height: 40px;">
+                  <span><svg-icon icon-class="time" style="font-size: 20px;margin-right: 4px;color: #333;"></svg-icon>操作时间：</span>
+                  <span>{{selectedMesObj.createTime}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-col>
+      </el-row>
     </el-dialog>
   </div>
 </template>
@@ -94,6 +175,10 @@
   import PanThumb from '@/components/PanThumb'
   import { isvalidPwd } from '@/utils/validate'
   import { updatePassword } from '@/api/getUsers'
+  import { getMesByUser, readAllMes, readMes, clearAllRead } from '@/api/message'
+  import service from '@/utils/request'
+  import Stomp from 'stompjs'
+  import SockJS from 'sockjs-client'
   export default {
     name: 'myheader',
     components: {
@@ -132,7 +217,8 @@
         }
       }
       return {
-        userName: '',
+        userName: '你好 ',
+        userId: '',
         role: '',
         modifyPasswordVisible: false,
         modPasLoading: false,
@@ -148,12 +234,37 @@
           passwordNew: [{required: true, trigger: 'blur', validator: validatePassword}],
           passwordAgain: [{required: true, trigger: 'blur', validator: validatePasswordAgain}]
         },
+        noticeDialogVisible: false,
+        mesList: [],
+        unReadMesCount: 0,
+        operateTypeMap: {
+          0: '无操作',
+          1: '赋予新角色',
+          2: '指定为项目负责人',
+          3: '指定为子任务负责人',
+          4: '指定为审核员',
+          5: '删除',
+          6: '恢复',
+          7: '修改'
+        },
+        operateBodyMap: {
+          0: '无操作主体',
+          1: '用户',
+          2: '项目',
+          3: '子任务',
+          4: '子库文件'
+        },
+        selectedMesObj: null,
+        readingMes: false,
       }
     },
     created() {
       // this.role = this.$store.getters.roles[0]
       this.role = this.$store.getters.roles
-      this.userName = this.getCookie('username')
+      this.userName += this.getCookie('username')
+      this.userId = this.getCookie('userId')
+      this.subscribeNotice()
+      this.getAllMes()
     },
     methods: {
       jumpToAudit() {
@@ -245,6 +356,157 @@
       },
       routerToPro() {
         this.$router.push({ path: '/projectManage' })
+      },
+      routerToMyPro() {
+        this.$router.push({ path: '/myProject' })
+      },
+      toogleSearch() {
+        this.$store.dispatch('setIfSearch')
+      },
+      // 订阅通知
+      subscribeNotice() {
+        let url = service.defaults.baseURL + '/COSIMULATION';
+        let socket = new SockJS(url);
+        let stompClient = Stomp.over(socket);
+        // stompClient.debug=null
+        let that = this;
+        let username = this.getCookie('username')
+        stompClient.connect({}, function (frame) {
+          stompClient.subscribe('/personalInfo/' + username, function (response) {
+            let resBody = response.body;
+            let resBody2 = resBody.replace(/[\\]/g, '');
+            that.webResBody = JSON.parse(resBody2);
+            // that.unReadMesCount = that.webResBody.data
+            if(that.unReadMesCount <  that.webResBody.data) {
+              that.unReadMesCount = that.webResBody.data
+              getMesByUser(that.userId).then((res) => {
+                if(res.data.code === 0) {
+                  // this.mesList = res.data.data
+                  let unReadList = []
+                  let newArr = [];
+                  for(let i = 0; i < res.data.data.length; i++){
+                    if(res.data.data[i].ifRead == false) {
+                      unReadList.push(res.data.data[i])
+                    }
+                    let newCreateTime = (res.data.data[i].createTime).replace(new RegExp("-", "gm"), "/");
+                    let newCreateSecond = (new Date(newCreateTime)).getTime(); //得到毫秒数
+                    newArr.push(res.data.data[i])
+                    newArr[i].timeStartApp = newCreateSecond;
+                  }
+                  that.mesList = newArr.sort(that.sortDate);
+                  let latestMes = that.mesList[0]
+                  console.log(latestMes)
+                  let operatorPerson = latestMes.mainOperator.username
+                  /*let operateType = that.operateTypeMap[latestMes.messageOperate]
+                  let operateBody = that.operateBodyMap[latestMes.mainBody]*/
+                  let operateType = that.operateTypeMap[latestMes.mainBody]
+                  let operateBody = that.operateBodyMap[latestMes.messageOperate]
+                  let arrangedPerson = latestMes.arrangedPerson.username
+                  let mes = operateBody + '被' + operateType
+                  that.$notify.info({
+                    title: '你有一条新消息',
+                    message: latestMes.description,
+                    duration: 2000
+                  })
+                }
+              })
+            }
+          })
+        })
+      },
+      // 显示消息弹框
+      handleCheckNotice() {
+        this.noticeDialogVisible = true
+        /*getMesByUser(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            this.mesList = res.data.data
+          }
+        })*/
+      },
+      // 根据日期排序
+      sortDate(a,b){
+        return b.timeStartApp-a.timeStartApp
+      },
+      // 查询所有消息
+      getAllMes() {
+        getMesByUser(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            // this.mesList = res.data.data
+            let unReadList = []
+            let newArr = [];
+            for(let i = 0; i < res.data.data.length; i++){
+              if(res.data.data[i].ifRead == false) {
+                unReadList.push(res.data.data[i])
+              }
+              let newCreateTime = (res.data.data[i].createTime).replace(new RegExp("-", "gm"), "/");
+              let newCreateSecond = (new Date(newCreateTime)).getTime(); //得到毫秒数
+              newArr.push(res.data.data[i])
+              newArr[i].timeStartApp = newCreateSecond;
+            }
+            this.unReadMesCount = unReadList.length
+            this.mesList = newArr.sort(this.sortDate);
+          }
+        })
+      },
+      // 将所有消息标记为已读
+      markAllRead() {
+        let qs = require('qs')
+        let data = {
+          userId: this.userId
+        }
+        let dataPost = qs.stringify(data)
+        readAllMes(dataPost).then((res) => {
+          if(res.data.code === 0 ) {
+            this.getAllMes()
+          }
+        })
+      },
+      // 清除所有已读消息
+      clearAllReadMes() {
+        let qs = require('qs')
+        let data = {
+          userId: this.userId
+        }
+        let dataPost = qs.stringify(data)
+        clearAllRead(dataPost).then((res) => {
+          if(res.data.code === 0 ) {
+            this.selectedMesObj = null
+            this.getAllMes()
+          }
+        })
+      },
+      // 查看消息并且标记为已读
+      checkMes(item) {
+        if(this.readingMes) {
+          return
+        }
+        if(item.ifRead === false) {
+          let qs = require('qs')
+          let data = {
+            messageId: item.id
+          }
+          let dataPost = qs.stringify(data)
+          this.readingMes = true
+          readMes(dataPost).then((res) => {
+            if(res.data.code === 0) {
+              this.selectedMesObj = item
+              console.log(this.selectedMesObj)
+              item.ifRead = true
+              this.unReadMesCount -= 1
+            }
+            this.readingMes = false
+          }).catch(() => {
+            this.readingMes = false
+          })
+        } else {
+          this.selectedMesObj = item
+          console.log(this.selectedMesObj)
+        }
+      }
+    },
+    computed: {
+      ifShowSearch() {
+        return this.$store.state.app.ifSearch
       }
     }
   }
@@ -353,4 +615,70 @@
       }
     }
   }
+  .myBage {
+    position: relative;
+    top: -12px;
+    right: 40px;
+    cursor: pointer;
+  }
+  .searchBox {
+    position: relative;
+    top: -10px;
+    right: 20px;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .notice-list-box, .notice-detail {
+    height: 100%;
+    background: #efefef;
+    opacity: 1;
+  }
+  .notice-list-box {
+    overflow-y: scroll;
+    position: relative;
+   }
+  .drop-box {
+    position: absolute;
+    right: 75%;
+    margin-right: 10px;
+    top: -40px;
+  }
+  .notice-item {
+    width: 100%;
+    // height: 100px;
+    color: #999;
+    border-bottom: 1px solid #ccc;
+    padding:10px 20px;
+    cursor: pointer;
+    position: relative;
+    background: #fff;
+    .operator {
+      display: block;
+    }
+    .time {
+      display: block;
+    }
+    .unRead-icon {
+      position: absolute;
+      right: 10px;
+      top: 0;
+      font-size: 20px;
+    }
+  }
+  .notice-item:hover {
+    background: rgb(240, 240, 240);
+  }
+  .notice-item.selectedMes {
+    background: rgb(240, 240, 240);
+  }
+  /*// 蒙层
+  .mask {
+    background: #ebf1f6;
+    position: absolute;
+    z-index: 100;
+    height: 60px;
+    width: 100%;
+  }*/
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="library-container">
+  <div class="library-container" v-loading="listLoading">
     <div v-for="item in librariesList" class="library-item" @dblclick.prevent.stop="selectLibrary(item)">
       <span class="library-icon">
         <svg-icon :icon-class="item.type"></svg-icon>
@@ -16,15 +16,18 @@
     name: 'library',
     data() {
       return {
-        librariesList: []
+        librariesList: [],
+        listLoading: false
       }
     },
     methods: {
       getLibraryList() {
+        this.listLoading = true
         libraryList().then((res) => {
           if(res.data.code === 0) {
             this.librariesList = res.data.data
           }
+          this.listLoading = false
         })
       },
       selectLibrary(item) {
@@ -48,6 +51,11 @@
   .library-container {
     padding: 20px;
     text-align: center;
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    margin-top: -100px;
+    margin-left: -380px;
     // 禁止选中文字
     -moz-user-select:none; /*火狐*/
     -webkit-user-select:none; /*webkit浏览器*/
@@ -55,7 +63,7 @@
     user-select:none;
     .library-item {
       display: inline-block;
-      width: 140px;
+      width: 180px;
       padding: 20px;
       text-align: center;
       cursor: pointer;
@@ -67,7 +75,7 @@
         -ms-transform: scale(1.3);
       }
       .library-icon {
-        font-size: 70px;
+        font-size: 100px;
       }
       .library-name {
         display: block;

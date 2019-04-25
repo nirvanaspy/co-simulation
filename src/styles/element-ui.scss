@@ -138,6 +138,26 @@
      max-width: 540px;
    }
  }
+ .message-dialog {
+   .el-dialog {
+     margin-top: 60px !important;
+     height: calc(100% - 60px);
+     // opacity: 0.6;
+     background: rgba(255,255,255,0.7);
+     .el-dialog__header {
+       background: none !important;
+       height: 50px;
+       border: 1px solid #ccc;
+     }
+     .el-dialog__body {
+       height: calc(100% - 51px);
+       padding: 10px 60px 30px;
+     }
+     .el-dialog__close {
+       color: #333;
+     }
+   }
+ }
 
 
  .scanResDialog .el-tabs__content {
@@ -367,5 +387,12 @@
      .cell {
        color: #f56c6c;
      }
+   }
+ }
+
+ .myBage {
+   .el-badge__content {
+     top: 16px;
+     right: 6px;
    }
  }

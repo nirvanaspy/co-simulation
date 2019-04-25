@@ -66,6 +66,12 @@ export const asyncRouterMap = [
     hidden: true
   },
   {
+    path: '/myProject',
+    component: MainPage,
+    children: [{ path: '', component: _import('projectManage/myProject'), name: 'project_manage', meta: { title: '项目管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
     path: '/library',
     component: MainPage,
     children: [{ path: '', component: _import('library/index'), name: 'knowledge', meta: { title: '库管理', icon: 'user' }}],
@@ -108,7 +114,7 @@ export const asyncRouterMap = [
     hidden: true
   },
   { path: '/visio',
-    component: _import('visio/index-back'),
+    component: _import('visio/index-new'),
     name: 'visio',
     meta: { title: 'template', icon: 'components1' },
     hidden: true
@@ -119,6 +125,11 @@ export const asyncRouterMap = [
     children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '任务文件', icon: 'documentation' }}]
   },
   {
+    path: '/device',
+    component: Layout,
+    children: [{ path: 'device', component: _import('device/index'), name: 'device', meta: { title: 'device', icon: 'computer' }}]
+  },
+  {
     path: '/audit_tasks',
     component: Layout,
     children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: '我的审核', icon: 'audit' }}]
@@ -126,9 +137,15 @@ export const asyncRouterMap = [
   {
     path: '/audit_apply',
     component: Layout,
-    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '申请', icon: 'audit' }}],
-    meta: {
+    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '申请', icon: 'audit' }}]
+    /* meta: {
       roles: ['ROLE_ADMIN']
-    }
+    }*/
+  },
+  {
+    path: '/preview',
+    component: Layout,
+    children: [{ path: 'index', component: _import('auditTask/preview'), name: 'preview', meta: { title: '申请', icon: 'audit' }}],
+    hidden: true
   }
 ]

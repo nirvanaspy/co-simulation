@@ -11,7 +11,7 @@
         </span>
       </div>
     </div>
-    <el-table :key='tableKey' :data="list" v-loading="listLoading" element-loading-text="正在加载组件文件" fit
+    <el-table :key='tableKey' :data="list" v-loading="listLoading" element-loading-text="正在加载库文件" fit
               highlight-current-row
               style="width: 100%"
               class="fileList"
@@ -113,6 +113,12 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="applyToEdit(scope.row)">申请二次修改</span>
               </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="handleRevokeSecond(scope.row)">更换版本</span>
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -164,22 +170,22 @@
         <el-form-item label="版本号">
           <el-select v-model="fileModify.version" placeholder="请选择版本号" style="width: 50%">
             <el-option
-              v-for="item in versionOptions"
+              v-for="item in computeVersionOption"
               :key="item.value"
               :label="item.value"
               :value="item.value">
             </el-option>
           </el-select>
-          <el-input-number v-model="fileModify.versionNum" :step="1" :min="1" style="width: 49%"></el-input-number>
+          <el-input-number v-model="fileModify.versionNum" :step="1" :min="computeVersionNum" style="width: 49%"></el-input-number>
         </el-form-item>
       </el-form>
       <!--直接修改文件的一些选项-->
       <el-form label-position="left" label-width="70px" v-if="uploadType === 'edit'">
         <el-form-item label="审批流程">
           <!--<el-input v-model="fileUpInfo.secretClass"></el-input>-->
-          <el-select v-model="fileUpInfo.secretClass" placeholder="请选择提交的目标审批流程" style="width: 100%">
+          <el-select v-model="fileModify.ifToStart" placeholder="请选择提交的目标审批流程" style="width: 100%">
             <el-option
-              v-for="item in secretClassOptions"
+              v-for="item in ifToStartOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -203,9 +209,7 @@
         <uploader-drop>
           <p>在此处进行操作</p>
           <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.subLibraryId !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== '' && fileUpInfo.subLibraryId !== ''">选择文件</uploader-btn>
-          <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
         </uploader-drop>
-        <!--<uploader-btn>选择文件</uploader-btn>-->
         <uploader-list ref="uploaderList"></uploader-list>
         <!--重复文件列表-->
         <div class="repeatFiles" v-if="repeatFiles.length > 0">
@@ -357,8 +361,33 @@
         </el-collapse-item>
       </el-collapse>
       <div style="text-align: right" slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="commitToAuditor" style="margin-top: 10px;">确定</el-button>
+        <el-button type="primary" @click="commitToAuditor" style="margin-top: 10px;" :loading="commitLoading">确定</el-button>
       </div>
+    </el-dialog>
+    <!--二次修改撤销选择版本-->
+    <el-dialog
+      class="selectVersion"
+      title="选择需要回退的版本"
+      :visible.sync="versionSelectDialog"
+      append-to-body
+      width="30%">
+      <el-form label-position="left" label-width="70px">
+        <el-form-item label="选择版本">
+          <el-select v-model="switchVersion" placeholder="请选择回退的版本" style="width: 100%">
+            <el-option
+              v-for="item in switchVersionOptions"
+              :key="item.id"
+              :label="item.version"
+              :value="item.version">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="versionSelectDialog = false">取 消</el-button>
+        <el-button type="primary" @click="revokeSecondEdit">确 定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -367,7 +396,7 @@
   /*eslint-disable*/
   import {  previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
-  import { getSubLibFiles, uploadSubLibFiles, deleteSubLibFile, editSubLibFileInfo, setLibFileAuditors, applyForModify, modifySubLibFile } from '@/api/sublibFIles'
+  import { getSubLibFiles, uploadSubLibFiles, deleteSubLibFile, editSubLibFileInfo, setLibFileAuditors, applyForModify, modifySubLibFile, revokeModify, getFileHisVersion, versionReplace } from '@/api/sublibFiles'
   import { allUser } from '@/api/getUsers'
   import service from '@/utils/request'
   import SparkMD5 from 'spark-md5'
@@ -548,10 +577,26 @@
           {value: 'S'},
           {value: 'D'},
         ],
+        ifToStartOptions: [
+          {
+            label: '提交到初始审核流程',
+            value: true
+          },
+          {
+            label: '提交到被驳回的审核流程',
+            value: false
+          }
+        ],
         fileModify: {
           version: '',
-          versionNum: 1
-        }
+          versionNum: 1,
+          ifToStart: null
+        },
+        currentVersion: '',
+        versionSelectDialog: false,
+        switchVersion: '',
+        switchVersionOptions: [],
+        commitLoading: false
       }
     },
     created() {
@@ -614,7 +659,7 @@
       },
       getList() {
         this.listLoading = true
-        getSubLibFiles(this.componentId).then((res) => {
+        getSubLibFiles(this.componentId, true).then((res) => {
           this.list = res.data.data
           this.listLoading = false
         }).catch(() => {
@@ -646,6 +691,7 @@
       handleEditFile(row, editType) {
         this.selectedFileId = row.id
         this.uploadType = editType
+        this.currentVersion = row.version
         this.uploadDialog = true
         this.hiddenClose = false
         this.$nextTick(() => {
@@ -696,7 +742,6 @@
           });
         }
         // <<<去重的代码
-
 
         if(fileAdded.length > 0) {
           this.hiddenClose = true
@@ -908,7 +953,7 @@
         })
       },
       exportFile(row) {
-        let url = service.defaults.baseURL + '/sublibraryFiles/sublibraryFile/' + row.id + '/user/' + this.userId + '/export'
+        let url = service.defaults.baseURL + '/sublibraryFiles/' + row.id + '/user/' + this.userId + '/export'
         window.open(url)
       },
       handleEditInfo(row) {
@@ -1023,6 +1068,7 @@
           // 'userId': this.userId
         }
         let datapost = qs.stringify(data)
+        this.commitLoading = true
         setLibFileAuditors(this.selectedId, datapost).then((res) => {
           if(res.data.code === 0) {
             this.$notify({
@@ -1041,6 +1087,15 @@
               duration: 2000
             })
           }
+          this.commitLoading = false
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '提交失败',
+            type: 'error',
+            duration: 2000
+          })
+          this.commitLoading = false
         })
       },
       fileAuditSelection(row) {
@@ -1080,6 +1135,7 @@
                 type: 'success',
                 duration: '2000'
               })
+              this.getList()
             } else {
               this.$notify({
                 title: '失败',
@@ -1093,6 +1149,97 @@
           this.$message({
             type: 'info',
             message: '已取消操作'
+          })
+        })
+      },
+
+      // 撤销修改
+      handleRevoke(row) {
+        this.$confirm('确认撤销上次的修改吗吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          /*let data = {
+            ifDirectModify: true,
+            version: null
+          }
+          let qs = require('qs')
+          let dataPost = qs.stringify(data)*/
+          revokeModify(row.id).then((res) => {
+            if(res.data.code === 0) {
+              this.getList()
+              this.$notify({
+                title: '成功',
+                message: '撤销',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: '删除失败',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消撤销操作'
+          })
+        })
+      },
+      // 撤销二次修改
+      handleRevokeSecond(row) {
+        this.selectFileId = row.id
+        this.switchVersion = ''
+        this.currentVersion = row.version
+        getFileHisVersion(row.id).then((res) => {
+          if(res.data.code === 0) {
+            this.switchVersionOptions = res.data.data
+            this.versionSelectDialog = true
+          }
+        })
+      },
+      revokeSecondEdit() {
+        let data = {
+          // ifDirectModify: false,
+          version: this.switchVersion
+        }
+        let qs = require('qs')
+        let dataPost = qs.stringify(data)
+        versionReplace(this.selectFileId, dataPost).then((res) => {
+          if(res.data.code === 0) {
+            this.getList()
+            this.$notify({
+              title: '成功',
+              message: '版本更新成功',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '删除失败',
+            type: 'error',
+            duration: 2000
           })
         })
       }
@@ -1165,7 +1312,7 @@
             return '未提交'
           }
           if(row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) {
-            return '审核中'
+            return '审批中'
           }
           if(row.ifApprove === true && row.state === 5) {
             return '已通过'
@@ -1196,7 +1343,85 @@
             return 'reject'
           }
         }
-      }
+      },
+      computeVersionOption() {
+        if(this.uploadType === 'secondEdit') {
+          let optionComputed = []
+          if(this.currentVersion.length > 0) {
+            let versionState = this.currentVersion.substring(0, 1)
+            let versionNum =  parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
+            if(versionState === 'M') {
+              optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
+            }
+            if(versionState === 'C') {
+              optionComputed = [{value: 'C' + versionNum},{value: 'S'}]
+            }
+            if(versionState === 'S') {
+              optionComputed = [{value: 'S' + versionNum},{value: 'D'}]
+            }
+            if(versionState === 'D') {
+              optionComputed = [{value: 'D' + versionNum}]
+            }
+            return optionComputed
+          }
+        }
+      },
+      /*computeVersionOption() {
+        if(this.uploadType === 'secondEdit') {
+          let optionComputed = []
+          if(this.currentVersion.length > 0) {
+            let versionState = this.currentVersion.substring(0, 1)
+            if(versionState === 'M') {
+              optionComputed = [{value: 'M'},{value: 'C'}]
+            }
+            if(versionState === 'C') {
+              optionComputed = [{value: 'C'},{value: 'S'}]
+            }
+            if(versionState === 'S') {
+              optionComputed = [{value: 'S'},{value: 'D'}]
+            }
+            if(versionState === 'D') {
+              optionComputed = [{value: 'D'}]
+            }
+            return optionComputed
+          }
+        }
+      },*/
+      computeVersionOption() {
+        if(this.uploadType === 'secondEdit') {
+          let optionComputed = []
+          if(this.currentVersion.length > 0) {
+            let versionState = this.currentVersion.substring(0, 1)
+            let versionNum =  parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
+            if(versionState === 'M') {
+              optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
+            }
+            if(versionState === 'C') {
+              optionComputed = [{value: 'C' + versionNum},{value: 'S'}]
+            }
+            if(versionState === 'S') {
+              optionComputed = [{value: 'S' + versionNum},{value: 'D'}]
+            }
+            if(versionState === 'D') {
+              optionComputed = [{value: 'D' + versionNum}]
+            }
+            return optionComputed
+          }
+        }
+      },
+      /*computeVersionNum() {
+        if(this.uploadType === 'secondEdit') {
+          if(this.currentVersion.length > 0) {
+            let versionNum = this.currentVersion.substring(1, this.currentVersion.length)
+            if(this.fileModify.version === this.currentVersion.substring(0, 1)) {
+              return parseInt(versionNum) + 1
+            } else {
+              return parseInt(versionNum)
+            }
+          }
+        }
+
+      }*/
     },
     watch: {
       selectCompId(newValue, oldValue) {
@@ -1215,27 +1440,6 @@
       },
       fileInfoListLength(newValue, oldValue) {
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
-          /*let repeatFile = []
-          for(let j = this.fileInfoList.length - 1; j >= 0; j--) {
-            for(let i = 0; i < this.list.length; i++) {
-              if(this.fileInfoList[j] !== undefined) {
-                if(this.fileInfoList[j].name === this.list[i].name + '.' + this.list[i].postfix) {
-                  this.fileInfoList.splice(j, 1);
-                  repeatFile.push(this.fileInfoList[j]);
-                  this.list[i].repeat === true
-                  continue;
-                }
-              }
-            }
-          }
-          if(repeatFile.length > 0) {
-            this.$message({
-              showClose: true,
-              message: '请注意，此次上传的文件中有' + repeatFile.length + '个文件在库中已存在！',
-              type: 'warning',
-              //duration: 0
-            });
-          }*/
           let datapost = JSON.stringify(this.fileInfoList)
           this.statusText.success = '正在合并文件'
 
@@ -1277,11 +1481,52 @@
           } else if(this.uploadType === 'secondEdit') {
             // 二次修改上传
             this.fileInfoList.forEach((item) => {
-              item.modifyWay = false
+              item.ifDirectModify = false // 直接修改：true， 二次修改：false
               item.ifBackToStart = true
               item.version = this.fileModify.version + this.fileModify.versionNum
             })
-            let editData = JSON.stringify(this.fileInfoList)
+            let editData = JSON.stringify(this.fileInfoList[0])
+            modifySubLibFile(this.selectedFileId, editData).then((res) => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '修改成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.statusText.success = '文件修改成功'
+              } else {
+                this.$notify({
+                  title: '成功',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: 2000
+                })
+                this.statusText.success = '文件修改失败'
+              }
+              this.listLoading = false
+              this.hiddenClose = false
+              this.getList()
+            }).catch(() => {
+              this.listLoading = false
+              this.hiddenClose = false
+              this.$notify({
+                title: '失败',
+                message: '文件修改时出错',
+                type: 'error',
+                duration: 2000
+              })
+              this.statusText.success = '文件修改失败'
+              this.getList()
+            })
+          } else if(this.uploadType === 'edit') {
+            // 直接修改上传
+            this.fileInfoList.forEach((item) => {
+              item.ifDirectModify = true // 直接修改：true， 二次修改：false
+              item.ifBackToStart = this.fileModify.ifToStart
+              item.version = ''
+            })
+            let editData = JSON.stringify(this.fileInfoList[0])
             modifySubLibFile(this.selectedFileId, editData).then((res) => {
               if(res.data.code === 0) {
                 this.$notify({
@@ -1316,9 +1561,8 @@
               this.getList()
             })
           }
-
         }
-      },
+      }
     }
   }
 </script>

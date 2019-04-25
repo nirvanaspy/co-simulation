@@ -55,7 +55,7 @@
           "linkFromPortIdProperty": "fromPort",
           "linkToPortIdProperty": "toPort",
           "nodeDataArray": [
-            {"key":8, "loc":"30 510", "text":"Cut into rectangular grid", "size":"207.2770233154297 75"},
+            {"key":8, "loc":"30 510", "text":"Cut into rectangular grid", "size":"207.2770233154297 75", 'editable':false},
             {"figure": "subtask","key":-2, "category":"End", "loc":"150 690", "text":"Enjoy!", "size":"118.79598999023438 44"},
             {"figure": "subtask","text":"Step", "key":-3, "loc":"150 780"},
             {"figure": "subtask","text":"Step", "key":-4, "loc":"278.115966796875 509.5622756958008", "size":"154 69"},
@@ -83,6 +83,20 @@
               myCanvas(go.Shape, "LineV", {stroke: "lightgray", strokeWidth: 0.5}),
               myCanvas(go.Shape, "LineV", {stroke: "gray", strokeWidth: 0.5, interval: 10})
             ),
+
+            // 限制已完成节点的修改
+            "InitialLayoutCompleted": function(e) {
+              e.diagram.nodes.each(function(n) {
+                if(n.data.editable === false) {
+                  n.deletable = false;
+                  n.textEditable = false;
+                }
+              });
+              e.diagram.links.each(function(l) {
+                l.deletable = false;
+                l.textEditable = false;
+              });
+            },
             "draggingTool.dragsLink": true,
             "draggingTool.isGridSnapEnabled": true,
             "linkingTool.isUnconnectedLinkValid": true,

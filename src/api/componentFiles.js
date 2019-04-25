@@ -35,3 +35,15 @@ export function uploadFiles(compId, proId, data) {
     data
   })
 }
+
+export function modifyFiles(compId, proId, data) {
+  return request({
+    url: '/subtaskFiles/' + compId + '/modifySubtaskFiles',
+    method: 'post',
+    headers: {
+      'content-type': 'application/json;charset=utf-8',
+      'projectId': proId
+    },
+    data
+  })
+}

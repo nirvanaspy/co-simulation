@@ -14,7 +14,7 @@
         删除库
       </span>
     </div>
-    <div class="sub-container">
+    <div class="sub-container" v-loading="listloading">
       <div v-for="item in subLibrariesList" class="sub-item" @click="handleSelectItem(item)" :class="computedActive(item.id)" @dblclick="routerToSubLibFiles(item)">
         <span class="active-flag">
           <svg-icon v-if="item.id === selectedId" icon-class="correct"></svg-icon>
@@ -57,6 +57,7 @@
     data() {
       return {
         addDiaVis: false,
+        listloading: false,
         subLibrariesList: [],
         selectedId: '',
         selectedSubLib: '',
@@ -81,6 +82,7 @@
     },
     methods: {
       getSublibraries(id) {
+        this.listloading = true
         subLibraryList(id).then((res) => {
           if(res.data.code === 0) {
             this.subLibrariesList = res.data.data
@@ -92,6 +94,7 @@
               duration: 2000
             })
           }
+          this.listloading = false
         })
       },
       handleSelectItem(item) {
@@ -216,6 +219,7 @@
                 type: 'success',
                 duration: 2000
               })
+              this.selectedId = ''
               this.getSublibraries(this.libId)
             } else {
               this.$notify({

@@ -23,9 +23,12 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="最终结果">
             <template slot-scope="scope">
-              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="success" v-if="scope.row.ifApprove === true">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.ifReject === true">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>
+              <!--<el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
-              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>-->
             </template>
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="审批意见">
@@ -40,17 +43,17 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state > 2||scope.row.state==1">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state > 3||scope.row.state==3 || scope.row.ifReject == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state > 2||scope.row.state==1">
-                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 2)">通过</span>
+                  <el-dropdown-item :disabled="scope.row.state > 3||scope.row.state==3 || scope.row.ifReject == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 3)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state > 2||scope.row.state==1">
-                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 2)">不通过</span>
+                  <el-dropdown-item :disabled="scope.row.state > 3||scope.row.state==3 || scope.row.ifReject == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 3)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -80,9 +83,12 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="最终结果">
             <template slot-scope="scope">
-              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="success" v-if="scope.row.ifApprove === true">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.ifReject === true">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>
+              <!--<el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
-              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>-->
             </template>
           </el-table-column>
           <!--<el-table-column align="center" min-width="200px" label="是否通过">
@@ -104,17 +110,17 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 3">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4 || scope.row.ifReject == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state !== 3">
-                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 3)">通过</span>
+                  <el-dropdown-item :disabled="scope.row.state !== 4 || scope.row.ifReject == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 4)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state !== 3">
-                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 3)">不通过</span>
+                  <el-dropdown-item :disabled="scope.row.state !== 4 || scope.row.ifReject == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 4)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -151,9 +157,12 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="最终结果">
             <template slot-scope="scope">
-              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="success" v-if="scope.row.ifApprove === true">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.ifReject === true">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>
+              <!--<el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
-              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>-->
             </template>
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="审批意见">
@@ -168,17 +177,17 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 5||computedAssessState(scope.row) || scope.row.state > 5 || scope.row.ifReject == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2">
-                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 4)">通过</span>
+                  <el-dropdown-item :disabled="scope.row.state !== 5|| computedAssessState(scope.row) || scope.row.state > 5 || scope.row.ifReject == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 5)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state !== 4||computedAssessState(scope.row)==2">
-                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 4)">不通过</span>
+                  <el-dropdown-item :disabled="scope.row.state !== 5|| computedAssessState(scope.row) || scope.row.state > 5 || scope.row.ifReject == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 5)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -208,9 +217,12 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="最终结果">
             <template slot-scope="scope">
-              <el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
+              <el-tag type="success" v-if="scope.row.ifApprove === true">已通过</el-tag>
+              <el-tag type="danger" v-if="scope.row.ifReject === true">已驳回</el-tag>
+              <el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>
+              <!--<el-tag type="success" v-if="scope.row.passState === 1">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.passState === 0">已驳回</el-tag>
-              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.passState === 2">处理中</el-tag>-->
             </template>
           </el-table-column>
           <!--<el-table-column align="center" min-width="200px" label="是否通过">
@@ -232,18 +244,18 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 5">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 6 || scope.row.ifReject == true || scope.row.ifApprove == true">
                   <!--scope.row.userEntity.id==userId?true:scope.row.state !== 5-->
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state !== 5">
-                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 5)">通过</span>
+                  <el-dropdown-item :disabled="scope.row.state !== 6 || scope.row.ifReject == true || scope.row.ifApprove == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 6)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state !== 5">
-                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 5)">不通过</span>
+                  <el-dropdown-item :disabled="scope.row.state !== 6 || scope.row.ifReject == true || scope.row.ifApprove == true">
+                    <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 6)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -263,12 +275,12 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="opinionDialog = false">取 消</el-button>
-        <el-button type="primary" v-if="dialogStatus === 'pass'" @click="passApply()">确 定</el-button>
-        <el-button type="primary" v-if="dialogStatus === 'deny'" @click="denyApply()">确 定</el-button>
+        <el-button type="primary" v-if="dialogStatus === 'pass'" @click="passApply()" :loading="auditLoading">确 定</el-button>
+        <el-button type="primary" v-if="dialogStatus === 'deny'" @click="denyApply()" :loading="auditLoading">确 定</el-button>
       </span>
     </el-dialog>
     <el-dialog title="查看审批意见" :visible.sync="opinionTextDialog" append-to-body width="80%">
-      <el-table :data="opinionList" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
+      <el-table :data="opinionList" v-loading="opinionLoading" element-loading-text="给我一点时间" border fit highlight-current-row
                 style="width: 100%">
         <el-table-column align="center" min-width="80px" label="审批人">
           <template slot-scope="scope">
@@ -277,23 +289,23 @@
         </el-table-column>
         <el-table-column align="center" width="120px" label="所属审核流程">
           <template slot-scope="scope">
-            <span>{{computedCurrentState(scope.row.assessState)}}</span>
+            <span>{{computedCurrentState(scope.row.state)}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" width="120px" label="审批结果">
           <template slot-scope="scope">
-            <el-tag type="success" v-if="scope.row.pass">已通过</el-tag>
+            <el-tag type="success" v-if="scope.row.ifPass">已通过</el-tag>
             <el-tag type="danger" v-else>未通过</el-tag>
           </template>
         </el-table-column>
         <el-table-column align="center" min-width="200px" label="审核时间">
           <template slot-scope="scope">
-            <span>{{scope.row.auditTime}}</span>
+            <span>{{scope.row.createTime}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" min-width="200px" label="审批意见">
           <template slot-scope="scope">
-            {{scope.row.illustration !== null ? scope.row.illustration : '无'}}
+            {{scope.row.auditDescription !== null ? scope.row.auditDescription : '无'}}
           </template>
         </el-table-column>
       </el-table>
@@ -339,6 +351,9 @@
 
         },
         maps: [],  //存取当前回传maps中的用户操作状态数组(maps废弃，当前存储的是userEntityList)
+        auditLoading: false,
+        opinionLoading: false,
+        currentAuditMode: 0
       }
     },
     components: {
@@ -353,12 +368,12 @@
       getAuditTaskList() {
         getAuditTasks(this.userId).then((res) => {
           if(res.data.code === 0) {
-            this.collatorList = res.data.data.collatorList
-            this.auditorList = res.data.data.auditorList
-            this.approverList = res.data.data.apporverList
-            this.countersignList = res.data.data.countersignList
+            this.collatorList = res.data.data.proofreadSubtask
+            this.auditorList = res.data.data.auditSubtask
+            this.approverList = res.data.data.approveSubtask
+            this.countersignList = res.data.data.countersignSubtask
             // 多人会签操作状态获取
-              this.maps=res.data.data.userEntityList
+            this.maps=res.data.data.alreadyAudit
           }
         })
       },
@@ -382,6 +397,7 @@
         this.opinionDialog = true
         this.opinionForm.text = ''
         this.selectedTaskId = row.id
+        this.currentAuditMode = row.auditMode
         this.assessState = state
         this.$nextTick(() => {
           this.$refs['opinionForm'].clearValidate()
@@ -392,6 +408,7 @@
         this.opinionDialog = true
         this.opinionForm.text = ''
         this.selectedTaskId = row.id
+        this.currentAuditMode = row.auditMode
         this.assessState = state
         this.$nextTick(() => {
           this.$refs['opinionForm'].clearValidate()
@@ -405,12 +422,14 @@
               cancelButtonText: '取消',
               type: 'warning'
             }).then(() => {
+              this.auditLoading = true
               var qs = require('qs')
               let data = {
                 userId: this.userId,
                 state: this.assessState,  // 当前流程
-                passState: 1, // 通过或未通过
-                illustration: this.opinionForm.text // 审核说明
+                ifPass: 1, // 通过或未通过
+                auditDescription: this.opinionForm.text, // 审核说明
+                auditMode: this.currentAuditMode // 会签状态
               }
               let datapost = qs.stringify(data)
               assessSubtask(this.selectedTaskId, datapost).then((res) => {
@@ -431,6 +450,7 @@
                     duration: 2000
                   })
                 }
+                this.auditLoading = false
               }).catch(() => {
                 this.$notify({
                   title: '失败',
@@ -438,6 +458,7 @@
                   type: 'error',
                   duration: 2000
                 })
+                this.auditLoading = false
               })
             }).catch(() => {
               this.$message({
@@ -458,12 +479,14 @@
               cancelButtonText: '取消',
               type: 'warning'
             }).then(() => {
+              this.auditLoading = true
               var qs = require('qs')
               let data = {
                 userId: this.userId,
                 state: this.assessState,  // 当前流程
-                passState: 0, // 通过或未通过
-                illustration: this.opinionForm.text // 审核说明
+                ifPass: 0, // 通过或未通过
+                auditDescription: this.opinionForm.text, // 审核说明
+                auditMode: this.currentAuditMode // 会签状态
               }
               let datapost = qs.stringify(data)
               assessSubtask(this.selectedTaskId, datapost).then((res) => {
@@ -484,6 +507,7 @@
                     duration: 2000
                   })
                 }
+                this.auditLoading = false
               }).catch(() => {
                 this.$notify({
                   title: '失败',
@@ -491,6 +515,7 @@
                   type: 'error',
                   duration: 2000
                 })
+                this.auditLoading = false
               })
             }).catch(() => {
               this.$message({
@@ -505,31 +530,65 @@
       },
       checkOpinion(row, state) {
         this.opinionTextDialog = true
+        this.opinionLoading = true
         getAllOpinion(row.id, state).then((res) => {
           if(res.data.code === 0) {
             this.opinionList = res.data.data
           }
+          this.opinionLoading = false
+        }).catch(() => {
+          this.opinionLoading = false
         })
       }
     },
     computed: {
       computedCurrentState() {
         return function(state) {
-          if(state === 0) {
+          if(state === 3) {
             return '校对'
           }
-          if(state === 1) {
+          if(state === 4) {
             return '审核'
           }
-          if(state === 2) {
+          if(state === 5) {
             return '会签'
           }
-          if(state === 3) {
+          if(state === 6) {
             return '批准'
           }
         }
       },
       computedAssessState(){
+        return function(row) {
+          let assessState = false
+          for(let i=0;i<this.maps.length;i++){
+            // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
+            if(this.maps[i].state === 5) {
+              if(this.maps[i].userEntity.id == this.userId && this.maps[i].subtaskEntity.id == row.id){
+                console.log(this.maps[i])
+                assessState = true
+                break
+              }
+            }
+          }
+          return assessState
+        }
+      },
+      computeMyPassState() {
+        return function (row, assessState) {
+          for (let i = 0; i < this.maps.length; i++) {
+            if(this.maps[i].userEntity.id==this.userId && this.maps[i].subtaskEntity.id==row.id && this.maps[i].assessState == assessState) {
+              if(this.maps[i].pass === true) {
+                return '已通过'
+              } else {
+                return '已驳回'
+              }
+            }
+          }
+          return '未处理'
+        }
+      }
+      /*computedAssessState(){
         return function(row) {
           let assessState=0
           for(let i=0;i<this.maps.length;i++){
@@ -555,7 +614,7 @@
           }
           return '未处理'
         }
-      }
+      }*/
     }
   }
 </script>

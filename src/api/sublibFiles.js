@@ -1,10 +1,13 @@
 import request from '@/utils/request'
 
 // 查询子库文件
-export function getSubLibFiles(id) {
+export function getSubLibFiles(id, flag) {
   return request({
     url: '/sublibraryFiles/bySublibraryId/' + id + '/files',
-    method: 'get'
+    method: 'get',
+    params: {
+      ifApprove: true
+    }
   })
 }
 
@@ -65,10 +68,13 @@ export function auditLibFile(id, data) {
 }
 
 // 查看审核详情
-export function getFileAudits(fileId) {
+export function getFileAudits(fileId, time) {
   return request({
     url: '/sublibraryFilesAudits/' + fileId,
-    method: 'get'
+    method: 'get',
+    params: {
+      sublibraryDate: time
+    }
   })
 }
 
@@ -101,6 +107,46 @@ export function handleApply(fileId, data) {
 export function modifySubLibFile(fileId, data) {
   return request({
     url: '/sublibraryFiles/' + fileId + '/modifySublibraryFile',
+    headers: {
+      'content-type': 'application/json;charset=utf-8'
+    },
+    method: 'post',
+    data
+  })
+}
+
+// 撤销修改文件
+export function revokeModify(fileId) {
+  return request({
+    url: '/sublibraryFiles/' + fileId + '/revokeModify',
+    method: 'patch'
+  })
+}
+
+// 修改文件版本
+export function versionReplace(fileId, data) {
+  return request({
+    url: '/sublibraryFiles/' + fileId + '/versionReplace',
+    method: 'patch',
+    data
+  })
+}
+
+// 查询文件历史版本
+export function getFileHisVersion(fileId) {
+  return request({
+    url: '/sublibraryFiles/' + fileId + '/getSublibraryHistoriesFiles',
+    method: 'get'
+  })
+}
+
+// 搜索库文件
+export function searchFiles(data) {
+  return request({
+    url: '/sublibraryFiles/multiInquire',
+    headers: {
+      'content-type': 'application/json;charset=utf-8'
+    },
     method: 'post',
     data
   })

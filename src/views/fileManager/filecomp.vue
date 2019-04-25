@@ -7,28 +7,9 @@
         </el-breadcrumb>
       </div>
       <div style="float: right;color:rgb(0, 171, 235);cursor: pointer;padding-right: 20px;">
-        <span style="margin-right: 18px" @click="addFolder">
-          <svg-icon icon-class="add"></svg-icon>
-          <span style="font-size: 14px;margin-left: 6px;">新建文件夹</span>
-        </span>
-        <span @click="handleuploadFile">
+        <span @click="handleuploadFile" v-if="showUploadFlag">
           <svg-icon icon-class="upload1"></svg-icon>
           <span style="font-size: 14px;margin-left: 6px;">上传文件</span>
-        </span>
-        <span>
-          <el-dropdown trigger="click">
-            <el-tooltip class="item" effect="dark" content="更多操作" placement="top">
-              <span class="el-dropdown-link">
-                <i class="el-icon-arrow-down el-icon--right" style="color:rgb(0, 171, 235);"></i>
-                <!--<svg-icon icon-class="ellipsis"></svg-icon>-->
-              </span>
-            </el-tooltip>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
-                <span style="display:inline-block;padding:0 10px;" @click="handleUploadFolder()">上传文件夹</span>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
         </span>
       </div>
     </div>
@@ -84,6 +65,16 @@
           <span>{{computedSecret(scope.row.secretClass)}}</span>
         </template>
       </el-table-column>
+      <el-table-column width="120" label="版本">
+        <template slot-scope="scope">
+          <span>{{scope.row.version}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column width="120" label="所属库">
+        <template slot-scope="scope">
+          <span :class="{warningText: computeSublibName(scope.row.sublibraryEntitySet).length > 1}" v-for="item in computeSublibName(scope.row.sublibraryEntitySet)" style="display: block;">{{item}}</span>
+        </template>
+      </el-table-column>
       <el-table-column min-width="150px" label="创建时间">
         <template slot-scope="scope">
           <span>{{scope.row.createTime}}</span>
@@ -103,24 +94,21 @@
               </el-dropdown-item>
             </el-dropdown-menu>
             <el-dropdown-menu slot="dropdown" v-else>
-              <el-dropdown-item>
+              <el-dropdown-item :disabled="computeBtnDisable(scope.row, 'delete')">
                 <span style="display:inline-block;padding:0 10px;" @click="deleteFile(scope.row)">删除</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'download')">
                 <span style="display:inline-block;padding:0 10px;" @click="exportFile(scope.row)">下载</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'modifyInfo')">
                 <span style="display:inline-block;padding:0 10px;" @click="handleEditInfo(scope.row)">修改文件信息</span>
               </el-dropdown-item>
-              <!--<el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleCopy(scope.row)">复制到</span>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'edit')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'edit')">修改文件</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleMove(scope.row)">移动到</span>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'secondEdit')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'secondEdit')">二次修改文件</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleRenameFile(scope.row)">重命名</span>
-              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -141,7 +129,7 @@
           <!--<el-input v-model="fileUpInfo.secretClass"></el-input>-->
           <el-select v-model="fileUpInfo.secretClass" placeholder="请选择密级" style="width: 100%">
             <el-option
-              v-for="item in secretClassOptions"
+              v-for="item in computeSecretOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -175,6 +163,34 @@
           ></el-cascader>
           <!--:props="libProps"-->
         </el-form-item>
+        <!--二次修改文件的一些选项-->
+        <el-form label-position="left" label-width="70px" v-if="uploadType === 'secondEdit'">
+          <el-form-item label="版本号">
+            <el-select v-model="fileModify.version" placeholder="请选择版本号" style="width: 100%">
+              <el-option
+                v-for="item in computeVersionOption"
+                :key="item.value"
+                :label="item.value"
+                :value="item.value">
+              </el-option>
+            </el-select>
+            <!--<el-input-number v-model="fileModify.versionNum" :step="1" :min="computeVersionNum" style="width: 49%"></el-input-number>-->
+          </el-form-item>
+        </el-form>
+        <!--直接修改文件的一些选项-->
+        <!--<el-form label-position="left" label-width="70px" v-if="uploadType === 'edit'">
+          <el-form-item label="版本号">
+            <el-select v-model="fileModify.ifToStart" placeholder="请选择版本号" style="width: 100%">
+              <el-option
+                v-for="item in ifToStartOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+            &lt;!&ndash;<el-input-number v-model="fileModify.versionNum" :step="1" :min="computeVersionNum" style="width: 49%"></el-input-number>&ndash;&gt;
+          </el-form-item>
+        </el-form>-->
       </el-form>
       <uploader :options="options"
                 :autoStart="autoStart"
@@ -192,10 +208,9 @@
         <uploader-unsupport></uploader-unsupport>
           <uploader-drop>
             <p>在此处进行操作</p>
-            <uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.subLibraryId !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== '' && fileUpInfo.subLibraryId !== ''">选择文件</uploader-btn>
-            <!--<uploader-btn :directory="true">选择文件夹</uploader-btn>-->
+            <uploader-btn v-if="computedUploadShow">选择文件</uploader-btn>
+            <!--<uploader-btn v-if="fileUpInfo.secretClass !== null && fileInfo.type !== null && fileUpInfo.productNo !== null && fileUpInfo.fileNo !== null && fileUpInfo.subLibraryId !== null && fileUpInfo.secretClass !== '' && fileInfo.type !== '' && fileUpInfo.productNo !== '' && fileUpInfo.fileNo !== '' && fileUpInfo.subLibraryId !== ''">选择文件</uploader-btn>-->
           </uploader-drop>
-          <!--<uploader-btn>选择文件</uploader-btn>-->
           <uploader-list ref="uploaderList"></uploader-list>
         </uploader>
       <span slot="footer" class="dialog-footer">
@@ -279,7 +294,7 @@
         <el-form-item label="密级">
           <el-select v-model="fileEditInfo.secretClass" placeholder="请选择密级" style="width: 100%">
             <el-option
-              v-for="item in secretClassOptions"
+              v-for="item in computeSecretOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -315,12 +330,12 @@
   /*eslint-disable*/
   import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder, previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
-  import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo } from '@/api/pro-design-link'
+  import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo, modifyTaskFile } from '@/api/pro-design-link'
   import { libraryList, subLibraryList } from "@/api/library"
   import service from '@/utils/request'
   import maniFile from '@/views/fileManager/maniFile'
   import SparkMD5 from 'spark-md5'
-  import { hasMd5, mergeFile, uploadFiles } from '@/api/componentFiles'
+  import { hasMd5, mergeFile, uploadFiles, modifyFiles } from '@/api/componentFiles'
   import qs from 'qs'
 
   export default {
@@ -370,7 +385,8 @@
           secretClass: null,
           type: null,
           productNo: null,
-          fileNo: null
+          fileNo: null,
+          subLibraryId: null
           // codeName: null
         },
         secretClassOptions: [
@@ -463,7 +479,8 @@
           chunkSize: 80* 1024 * 1024,
           simultaneousUploads: 20,
           autoStart: false,
-          testChunks: true
+          testChunks: true,
+          singleFile: false // 单文件上传模式配置项
         },
         attrs: {
           accept: 'image/*'
@@ -502,7 +519,26 @@
           value: 'id',
           children: 'children'
         },
-        selectedLib: null
+        selectedLib: null,
+        showUploadFlag: false,
+        uploadType: 'normal', // 上传文件状态：一般上传；直接修改上传；二次修改上传；
+        selectedFileId: '', // 选中的文件id
+        currentVersion: '',
+        fileModify: {
+          version: '',
+          versionNum: 1,
+          ifToStart: null
+        },
+        ifToStartOptions: [
+          {
+            label: '提交到初始审核流程',
+            value: true
+          },
+          {
+            label: '提交到被驳回的审核流程',
+            value: false
+          }
+        ],
       }
     },
     created() {
@@ -652,6 +688,8 @@
         }
       },
       handleuploadFile() {
+        this.uploadType = 'normal'
+        console.log(this.fileUpInfo)
         this.uploadDialog = true
         this.hiddenClose = false
         this.$nextTick(() => {
@@ -659,6 +697,7 @@
           this.$refs.uploader.uploader.cancel() //清空文件上传列表
           this.$refs.uploader.uploader.opts.target = this.target
           this.$refs.uploader.uploader.opts.headers.Authorization = this.token
+          this.$refs.uploader.uploader.opts.singleFile = false
           $('.uploader-list ul').html('')
           this.fileCompleteLength = 0
           this.fileInfoList = []
@@ -709,6 +748,10 @@
                   fileNo: that.fileUpInfo.fileNo,
                   sublibraryId: that.fileUpInfo.subLibraryId
                   // codeName: that.fileUpInfo.codeName
+                }
+                if(that.uploadType == 'normal') {
+                  infoList.ifDirectModify = false
+                  infoList.ifBackToStart = true
                 }
                 that.fileInfoList.push(infoList)
                 let resVal = ''
@@ -797,11 +840,6 @@
           'relativePath': path
         }
         let datapost = qs.stringify(data)
-        /*axios.post('http://192.168.31.13:8080/files/chunks/merge', datapost, {
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded'
-          }
-        })*/
         mergeFile(datapost).then(() => {
         }).catch(() => {
           this.$notify({
@@ -836,6 +874,10 @@
               fileNo: this.fileUpInfo.fileNo,
               sublibraryId: this.fileUpInfo.subLibraryId
               // codeName: this.fileUpInfo.codeName
+            }
+            if(this.uploadType == 'normal') {
+              infoList.ifDirectModify = false
+              infoList.ifBackToStart = true
             }
             this.fileInfoList.push(infoList)
           } else {
@@ -1039,7 +1081,24 @@
       },
       previewFile(row) {
         previewFiles(row.id).then((res) => {
-
+          if(res.data.code === 0) {
+            if(res.data.data.fileType === 'picture') {
+              this.$router.push({
+                path: '/preview/index',
+                query: {
+                  id: res.data.data.pathId,
+                  type: res.data.data.fileType
+                }
+              })
+              /*const {href} = this.$router.resolve({ path: '/preview/index',query: {id: res.data.data.pathId, type: res.data.data.fileType}})
+              window.open(href, '_blank')*/
+            }
+            if(res.data.data.fileType === 'office') {
+              // let href = 'http://192.168.31.69:8080/preview/viewer/document/' + res.data.data.pathId
+              let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
+              window.open(href, '_blank')
+            }
+          }
         })
       },
       switchFolder(row,index){
@@ -1311,6 +1370,25 @@
       },
       onSubLibChange(val) {
         this.fileUpInfo.subLibraryId = val[1]
+      },
+      handleEditFile(row, editType) {
+        this.selectedFileId = row.id
+        this.uploadType = editType
+        this.currentVersion = row.version
+        this.fileModify.version = ''
+        this.uploadDialog = true
+        this.hiddenClose = false
+        this.$nextTick(() => {
+          this.fileReader = new FileReader()
+          this.$refs.uploader.uploader.cancel() //清空文件上传列表
+          this.$refs.uploader.uploader.opts.target = this.target
+          this.$refs.uploader.uploader.opts.headers.Authorization = this.token
+          this.$refs.uploader.uploader.opts.singleFile = true
+          $('.uploader-list ul').html('')
+          this.fileCompleteLength = 0
+          this.fileInfoList = []
+          $('.manage-uploader .uploader-btn').css('display','inline-block')
+        })
       }
     },
     computed: {
@@ -1363,12 +1441,116 @@
           }
         }
       },
+      computeSecretOptions() {
+        let options = this.secretClassOptions
+        let proSecret = this.proClass
+        if(this.proClass !== undefined && typeof(proSecret) === 'number') {
+          return options.filter(function (item) {
+            return item.value <= proSecret;
+          })
+        } else {
+          return options
+        }
+      },
       fileInfoListLength() {
         return this.fileInfoList.length
       },
       folderFileLength() {
         return this.folderFileInfo.length
+      },
+      computeSublibName() {
+        return function (arr) {
+          let sublibName = []
+          arr.forEach((item) => {
+            sublibName.push(item.type)
+          })
+          return sublibName
+        }
+      },
+      computeBtnDisable() {
+        return function (row, opType) {
+          let subState = row.subTaskEntity.state
+          let subApprove = row.subTaskEntity.ifApprove
+          let subReject = row.subTaskEntity.ifReject
+          // 文件删除按钮
+          if(opType === 'delete') {
+            if(subState === 1 || (subState === 7 && subApprove !== true)) {
+              return false
+            } else {
+              return true
+            }
+          }
+          // 文件直接修改按钮
+          if(opType === 'edit') {
+            if(subState === 7 && subReject === true) {
+              return false
+            } else {
+              return true
+            }
+          }
+          // 文件二次修改按钮
+          if(opType === 'secondEdit') {
+            if(subState === 9) {
+              return false
+            } else {
+              return true
+            }
+          }
+        }
+      },
+      // 计算版本号
+      computeVersionOption() {
+        if(this.uploadType === 'secondEdit') {
+          let optionComputed = []
+          if(this.currentVersion.length > 0) {
+            let versionState = this.currentVersion.substring(0, 1)
+            let versionNum =  parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
+            if(versionState === 'M') {
+              optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
+            }
+            if(versionState === 'C') {
+              optionComputed = [{value: 'C' + versionNum},{value: 'S'}]
+            }
+            if(versionState === 'S') {
+              optionComputed = [{value: 'S' + versionNum},{value: 'D'}]
+            }
+            if(versionState === 'D') {
+              optionComputed = [{value: 'D' + versionNum}]
+            }
+            return optionComputed
+          }
+        }
+      },
+      computedUploadShow() {
+        if(this.uploadType === 'normal') { // 普通模式下用户必填参数 密级、类型、产品型号、文件图号、目标库
+          if(this.fileUpInfo.secretClass !== null && this.fileInfo.type !== null && this.fileUpInfo.productNo !== null && this.fileUpInfo.fileNo !== null && this.fileUpInfo.subLibraryId !== null &&
+            this.fileUpInfo.secretClass !== '' && this.fileInfo.type !== '' && this.fileUpInfo.productNo !== '' && this.fileUpInfo.fileNo !== '' && this.fileUpInfo.subLibraryId !== '')
+          {
+            return true
+          }
+        }
+        if(this.uploadType === 'secondEdit') { // 普通模式下用户必填参数 密级、类型、产品型号、文件图号、目标库、新版本
+          if(this.fileUpInfo.secretClass !== null && this.fileInfo.type !== null && this.fileUpInfo.productNo !== null && this.fileUpInfo.fileNo !== null && this.fileUpInfo.subLibraryId !== null && this.fileModify.version !== null &&
+            this.fileUpInfo.secretClass !== '' && this.fileInfo.type !== '' && this.fileUpInfo.productNo !== '' && this.fileUpInfo.fileNo !== '' && this.fileUpInfo.subLibraryId !== '' && this.fileModify.version !== '')
+          {
+            return true
+          }
+        }
+
       }
+      /*computeVersionNum() {
+        if(this.uploadType === 'secondEdit') {
+          if(this.currentVersion.length > 0) {
+            let versionNum = this.currentVersion.substring(1, this.currentVersion.length)
+            if(this.fileModify.version === this.currentVersion.substring(0, 1)) {
+              return parseInt(versionNum) + 1
+            } else {
+              // return parseInt(versionNum)
+              return 1
+            }
+          }
+        }
+      }*/
     },
     watch: {
       selectCompId(newValue, oldValue) {
@@ -1389,39 +1571,95 @@
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
           let datapost = JSON.stringify(this.fileInfoList)
           this.statusText.success = '正在合并文件'
-          uploadFiles(this.componentId, this.projectId, datapost).then((res) => {
-            if(res.data.code === 0) {
+
+          // 普通上传
+          if(this.uploadType === 'normal') {
+            uploadFiles(this.componentId, this.projectId, datapost).then((res) => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '上传成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.statusText.success = '文件合并成功'
+              } else {
+                this.$notify({
+                  title: '成功',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: 2000
+                })
+                this.statusText.success = '文件合并失败'
+              }
+              this.listLoading = false
+              this.hiddenClose = false
+              this.getList()
+            }).catch(() => {
+              this.listLoading = false
+              this.hiddenClose = false
               this.$notify({
-                title: '成功',
-                message: '上传成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.statusText.success = '文件合并成功'
-            } else {
-              this.$notify({
-                title: '成功',
-                message: '上传失败',
+                title: '失败',
+                message: '文件上传时出错',
                 type: 'error',
                 duration: 2000
               })
               this.statusText.success = '文件合并失败'
-            }
-            this.listLoading = false
-            this.hiddenClose = false
-            this.getList()
-          }).catch(() => {
-            this.listLoading = false
-            this.hiddenClose = false
-            this.$notify({
-              title: '失败',
-              message: '文件上传时出错',
-              type: 'error',
-              duration: 2000
+              this.getList()
             })
-            this.statusText.success = '文件合并失败'
-            this.getList()
-          })
+          } else {
+            // 二次修改上传
+            let postData
+            if(this.uploadType === 'secondEdit') {
+              this.fileInfoList.forEach((item) => {
+                item.ifDirectModify = false
+                item.ifBackToStart = true
+                item.version = this.fileModify.version
+              })
+              postData = JSON.stringify(this.fileInfoList[0])
+
+            } else if(this.uploadType === 'edit') {
+              this.fileInfoList.forEach((item) => {
+                item.ifDirectModify = true
+                item.ifBackToStart = true
+              })
+              postData = JSON.stringify(this.fileInfoList[0])
+            }
+            modifyFiles(this.selectedFileId, this.projectId, postData).then((res) => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '上传成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.statusText.success = '文件合并成功'
+              } else {
+                this.$notify({
+                  title: '成功',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: 2000
+                })
+                this.statusText.success = '文件合并失败'
+              }
+              this.listLoading = false
+              this.hiddenClose = false
+              this.getList()
+            }).catch(() => {
+              this.listLoading = false
+              this.hiddenClose = false
+              this.$notify({
+                title: '失败',
+                message: '文件上传时出错',
+                type: 'error',
+                duration: 2000
+              })
+              this.statusText.success = '文件合并失败'
+              this.getList()
+            })
+          }
+
         }
       },
       folderFileLength(newValue, oldValue) {
@@ -1458,5 +1696,7 @@
 </script>
 
 <style scoped>
-
+  .warningText {
+    color: #e6a23c;
+  }
 </style>

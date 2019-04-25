@@ -281,7 +281,7 @@
   /*eslint-disable*/
   import comFileManage from '@/views/fileManager/filecomp'
   import { getAuditTasks, assessSubtask, getOpinion, getAllOpinion} from '@/api/pro-design-link'
-  import { getAuditLibFilesByUser, auditLibFile, getFileAudits } from '@/api/sublibFIles'
+  import { getAuditLibFilesByUser, auditLibFile, getFileAudits } from '@/api/sublibFiles'
   export default {
     name: 'subLibFileAudit',
     data () {
@@ -398,7 +398,7 @@
               cancelButtonText: '取消',
               type: 'warning'
             }).then(() => {
-              // this.commitLoading = true
+              this.commitLoading = true
               var qs = require('qs')
               let data = {
                 userId: this.userId,
@@ -426,6 +426,7 @@
                     duration: 2000
                   })
                 }
+                this.commitLoading = false
               }).catch(() => {
                 this.$notify({
                   title: '失败',
@@ -433,6 +434,7 @@
                   type: 'error',
                   duration: 2000
                 })
+                this.commitLoading = false
               })
             }).catch(() => {
               this.$message({
@@ -453,6 +455,7 @@
               cancelButtonText: '取消',
               type: 'warning'
             }).then(() => {
+              this.commitLoading = true
               var qs = require('qs')
               let data = {
                 userId: this.userId,
@@ -480,6 +483,7 @@
                     duration: 2000
                   })
                 }
+                this.commitLoading = false
               }).catch(() => {
                 this.$notify({
                   title: '失败',
@@ -487,6 +491,7 @@
                   type: 'error',
                   duration: 2000
                 })
+                this.commitLoading = false
               })
             }).catch(() => {
               this.$message({
@@ -501,19 +506,13 @@
       },
       checkOpinion(row, state) {
         this.opinionTextDialog = true
-        /*getAllOpinion(row.id, state).then((res) => {
-          if(res.data.code === 0) {
-            this.opinionList = res.data.data
-          }
-        })*/
         this.opinionLoading = true
-        getFileAudits(row.id).then((res) => {
+        let time = row.createTime
+        getFileAudits(row.id, time).then((res) => {
           if(res.data.code === 0) {
             this.opinionList = res.data.data
-            this.opinionLoading = false
-          } else {
-            this.opinionLoading = false
           }
+          this.opinionLoading = false
         }).catch(() => {
           this.opinionLoading = false
         })

@@ -117,7 +117,7 @@
                   暂无项目
                 </div>
               </div>
-              <div v-for="item in listA" v-if="!item.deleted" class="project-item">
+              <div v-for="item in listA" v-if="!item.deleted" class="project-item" @dblclick="handleSelect(item)" v-loading="item.loading">
                 <div class="project-star project-detail">
                   <span class="star-container" @click="toggleStar(item)">
                     <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
@@ -125,7 +125,7 @@
                   </span>
                 </div>
                 <div class="project-info project-detail">
-                  <div class="info-detail info-name"><span @click="handleSelect(item)">{{item.name}}</span></div>
+                  <div class="info-detail info-name"><span>{{item.name}}</span></div>
                   <div class="info-detail info-secretClass">密级：{{computeSecretClass(item.secretClass)}}</div>
                   <!--<div class="info-detail info-description">{{item.description}}</div>-->
                 </div>
@@ -164,7 +164,7 @@
                 <div class="project-operation project-detail"></div>
               </div>
             </div>
-            <el-pagination
+            <!--<el-pagination
               v-if="listA.length"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -176,7 +176,7 @@
               background
               style="text-align: center;margin-top:20px;width: 100%;"
             >
-            </el-pagination>
+            </el-pagination>-->
           </el-tab-pane>
           <el-tab-pane label="回收站">
             <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete" style="padding-left: 10px;"></i></span>
@@ -214,7 +214,7 @@
                 </div>
               </div>
             </div>
-            <el-pagination
+            <!--<el-pagination
               v-if="listA.length"
               @size-change="handleSizeChange1"
               @current-change="handleCurrentChange1"
@@ -226,7 +226,7 @@
               background
               style="text-align: center;margin-top:20px;width: 100%;"
             >
-            </el-pagination>
+            </el-pagination>-->
           </el-tab-pane>
         </el-tabs>
       </el-col>
@@ -345,8 +345,8 @@
             <div v-for="item in temp.proDesignLinkEntitySet"></div>
           </div>
         </el-tab-pane>-->
-        <el-tab-pane label="日程设置">
-          <span class="tab-name" slot="label"><i class="el-icon-date" style="padding-right: 10px;"></i>日程设置</span>
+        <el-tab-pane label="项目设置">
+          <span class="tab-name" slot="label"><i class="el-icon-date" style="padding-right: 10px;"></i>项目设置</span>
           <div>
             <!--<div>
               <span>项目令号与节点</span>
@@ -1003,10 +1003,21 @@
         })
       },
       handleSelect(row) {
+
+        if(row.finishTime === null || row.orderNum === null) {
+          this.$notify({
+            title: '失败',
+            message: '对不起，该项目还未设置令号和节点时间，请先在项目设置中进行设置！',
+            type: 'error',
+            duration: '2000'
+          })
+          return
+        }
         this.$store.commit('SET_PROJECTID', row.id)
         // let proName = URLEncoder.encode(row.name, 'utf-8')
         this.$store.commit('SET_PROJECTNAME', row.name)
         // 验证用户密级是否足够
+        row.loading = true
         getProjectAuth(row.id, this.userId).then((res) => {
           if(res.data.code === 0) {
             if(res.data.data === true) {
@@ -1023,7 +1034,7 @@
                 title: '失败',
                 message: '对不起，您没有无权限查看此项目！',
                 type: 'error',
-                duration: '2000'
+                duration: '6000'
               })
             }
           } else {
@@ -1034,6 +1045,7 @@
               duration: '2000'
             })
           }
+          row.loading = false
         }).catch(() => {
           this.$notify({
             title: '失败',
@@ -1041,6 +1053,7 @@
             type: 'error',
             duration: '2000'
           })
+          row.loading = false
         })
       },
       handleSizeChange(val) {
@@ -1285,6 +1298,8 @@
             })
             this.temp.finishTime = this.finishTime
             this.temp.orderNum = this.orderNum
+            this.proSettingVisible = false
+            this.getList()
           } else {
             this.$notify({
               title: '失败',
@@ -1352,6 +1367,8 @@
               type: 'success',
               duration: 2000
             })
+            this.proSettingVisible = false
+            this.getList()
           } else {
             this.$notify({
               title: '失败',

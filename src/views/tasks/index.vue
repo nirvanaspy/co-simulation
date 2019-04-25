@@ -1,5 +1,5 @@
 <template>
-  <div class="tasks-container">
+  <div class="tasks-container" v-loading="listLoading">
     <!--<el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
       <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
         <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
@@ -37,15 +37,15 @@
         <el-button type="success" @click="handleSelectTemplate" size="mini" v-if="roles.includes('ROLE_PROJECT_MANAGER') || editable === true">选择模版</el-button>
         <el-button type="success" @click="handleCheckTemplate" size="mini" v-else>查看流程</el-button>
       </span>
-      <el-button type="primary" @click="handleBackToPro" size="mini">返回项目</el-button>
+      <!--<el-button type="primary" @click="handleBackToPro" size="mini">项目管理</el-button>-->
     </div>
     <div class="board">
-      <Kanban :key="1" :list="list" :options="options" :taskType="undo" class="kanban todo" header-text="待处理" @onNewTask="refreshList"/>
-      <Kanban :key="2" :list="listWorking" :options="options" class="kanban working" header-text="进行中"/>
-      <Kanban :key="3" :list="listDone" :options="options" class="kanban done" header-text="已完成"/>
+      <Kanban :key="1" :list="listUndo" :options="options" :taskType="undo" class="kanban todo" header-text="待处理" @onNewTask="refreshList"/>
+      <Kanban :key="2" :list="listWorking" :options="options" class="kanban working" header-text="进行中" @onNewTask="refreshList"/>
+      <Kanban :key="3" :list="listDone" :options="options" class="kanban done" header-text="已完成" @onNewTask="refreshList"/>
     </div>
     <el-dialog :visible.sync="templateDialog" width="80%" class="visio-dialog">
-      <visio :proId="proId" @refreshList="getLinkList" :processNodes="processNodeList" :editable="editable"></visio>
+      <visio :proId="proId" @refreshList="refreshVisio" @hideVisio="hideVisioDialog" :processNodes="processNodeList" :editable="editable" v-if="templateDialog && completeFlag"></visio>
     </el-dialog>
   </div>
 </template>
@@ -54,7 +54,7 @@
   /*eslint-disable*/
   import PanThumb from '@/components/PanThumb'
   import Kanban from '@/components/kanban'
-  import visio from '@/views/visio/index'
+  import visio from '@/views/visio/index-new'
   import { getLinks, getProcessNodes } from '@/api/pro-design-link'
   import { getProjectById } from '@/api/project'
 
@@ -76,8 +76,6 @@
         selectedId: '',
         tableKey: 0,
         list: [],
-        listWorking: [],
-        listDone: [],
         processNodeList: [],
         taskInfo: {
           name: '',
@@ -100,6 +98,7 @@
           finishTime: '',
           designLink: null
         },
+        listLoading: false,
         templateDialog: false,
         editable: false,
         completeFlag: false
@@ -120,23 +119,34 @@
           if(res.data.code === 0) {
             if(res.data.data.pic.id === this.getCookie('userId')) {
               this.editable = true
-              this.completeFlag = true
             }
           }
         })
       },
       getLinkList() {
+        this.listLoading = true
         getLinks(this.proId).then((res) => {
           if(res.data.code === 0) {
             this.list = res.data.data
-            console.log(this.list)
           }
+          this.listLoading = false
+        }).catch(() => {
+          this.listLoading = false
         })
       },
+      hideVisioDialog() {
+        this.templateDialog = false
+      },
+      refreshVisio() {
+        this.getLinkList()
+        this.getProcessList()
+      },
       getProcessList() {
+        this.completeFlag = false
         getProcessNodes(this.proId).then((res) => {
           if(res.data.code === 0) {
             this.processNodeList = res.data.data
+            this.completeFlag = true
           }
         })
       },
@@ -161,24 +171,25 @@
       }
     },
     computed: {
-      /*list1: function() {
+      listUndo: function() {
         let self = this;
         return self.list.filter(function (item) {
           return item.state === 0;
         })
       },
-      list2: function() {
+      listWorking: function() {
         let self = this;
         return self.list.filter(function (item) {
-          return item.state === 1;
+          /*return (item.state > 0 && ;*/
+          return (item.state > 0 && item.ifApprove === false)
         })
       },
-      list3: function() {
+      listDone: function() {
         let self = this;
         return self.list.filter(function (item) {
-          return item.state === 2;
+          return item.ifApprove === true;
         })
-      }*/
+      }
     }
   }
 </script>

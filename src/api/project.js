@@ -142,3 +142,23 @@ export function getProjectById(ProId) {
     method: 'get'
   })
 }
+
+// 搜索项目
+export function searchProject(data) {
+  return request({
+    url: '/projects/multiInquire',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    data
+  })
+}
+
+// 根据用户密级查询项目
+export function getProjectBySecretClass(id) {
+  return request({
+    url: '/projects',
+    method: 'get'
+  })
+}
