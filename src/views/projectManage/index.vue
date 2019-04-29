@@ -95,7 +95,7 @@
       <h3 class="title" style="margin-bottom:30px">
       </h3>
     </div>
-    <el-row :gutter="20">
+    <el-row :gutter="20" style="height: 100%;overflow-y: scroll;margin-right: -14px;">
       <!--结构树-->
       <el-col :span="6">
         <div style="width: 300px;margin: 60px auto;">
@@ -402,6 +402,7 @@
 </template>
 
 <script>
+  /*eslint-disable*/
   import PanThumb from '@/components/PanThumb'
   import { isvalidPwd } from '@/utils/validate'
   import {
@@ -418,13 +419,14 @@
     starPro,
     arrangePro,
     startPro,
-    getProjectAuth
+    getProjectAuth,
+    getProjectBySecretClass
   } from '@/api/project'
-  import { updatePassword, allUser } from '@/api/getUsers'
+  import { updatePassword, allUser, getUserById } from '@/api/getUsers'
   import { getLinks } from '@/api/designLinks'
   import store from '../../store'
   import designLink from '@/views/designLinks/index'
-  /*eslint-disable*/
+  import { getProjectsTree } from '@/api/pro-design-link'
   export default {
     components: {PanThumb,designLink},
     name: 'login',
@@ -467,6 +469,7 @@
         hasPermission: false,
         tableKey: 0,
         list: [],
+        proTreeList: [],
         proManagerOptions: [],
         listQuery: {
           page: 0,
@@ -570,18 +573,54 @@
         },
         finishTime: '',
         orderNum: '',
-        designLinks: []
+        designLinks: [],
+        userSecretClass: 0
       }
     },
     created() {
       this.role = store.getters.roles[0]
       this.userId = this.getCookie('userId')
       this.userName = this.getCookie('username')
+      this.getUserSecretClass()
       this.getList()
+      this.getTrees()
     },
     mounted() {
     },
     methods: {
+      getUserSecretClass() {
+        getUserById(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            this.userSecretClass = res.data.data.secretClass
+          }
+        })
+      },
+      getTrees() {
+        getUserById(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            let secretClass = res.data.data.secretClass
+            getProjectsTree(secretClass).then((res) => {
+              this.proTreeList = res.data.data
+              this.proTreeList.forEach((item) => {
+                item.name = item.project.name
+                item.icon = 'tree-pro'
+                /*item.children = [{
+                  name: '仿真任务1',
+                  icon: 'tree-task'
+                }, {
+                  name: '仿真任务2',
+                  icon: 'tree-task'
+                }]*/
+                item.subtask.forEach((child) => {
+                  child.icon = 'tree-task'
+                })
+                item.children = item.subtask
+              })
+            })
+          }
+        })
+
+      },
       handleTabClick(tab, event) {
         if (tab.label === '回收站') {
           this.showHistory()
@@ -610,10 +649,12 @@
       },
       getList() {
         this.listLoading = true
-        projectList(this.listQuery).then(response => {
+        //projectList(this.listQuery).then(response => {
+        let ifDelete = false
+        getProjectBySecretClass(this.userId, ifDelete).then((response) => {
           if(response.data.code === 0) {
             this.list = response.data.data
-            this.list.forEach((item) => {
+            /*this.list.forEach((item) => {
               item.icon = 'tree-pro'
               item.children = [{
                 name: '仿真任务1',
@@ -622,7 +663,7 @@
                 name: '仿真任务2',
                 icon: 'tree-task'
               }]
-            })
+            })*/
             this.listLoading = false
             this.total = response.data.data.totalElements
           } else {
@@ -1003,7 +1044,6 @@
         })
       },
       handleSelect(row) {
-
         if(row.finishTime === null || row.orderNum === null) {
           this.$notify({
             title: '失败',
@@ -1079,7 +1119,25 @@
       showHistory: function () {
         this.listLoading = true
         this.hisBtnLoading = true
-        if (this.role == 'ROLE_PROJECT_MANAGER') {
+        let ifDelete = true
+        getProjectBySecretClass(this.userId, ifDelete).then((response) => {
+          if(response.data.code === 0) {
+            this.isHistory = true
+            this.list = response.data.data
+          }
+          this.listLoading = false
+          this.hisBtnLoading = false
+        }).catch(() => {
+          this.listLoading = false
+          this.hisBtnLoading = false
+          this.$notify({
+            title: '失败',
+            message: '操作失败！',
+            type: 'error',
+            duration: '2000'
+          })
+        })
+        /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectListHis(this.listQuery).then(response => {
             if(response.data.code === 0) {
               this.isHistory = true
@@ -1115,12 +1173,40 @@
               duration: '2000'
             })
           })
-        }
+        }*/
       },
       showNow: function () {
         this.listLoading = true
         this.hisBtnLoading = true
-        if (this.role == 'ROLE_PROJECT_MANAGER') {
+        let ifDelete = false
+        getProjectBySecretClass(this.userId, ifDelete).then((response) => {
+          if(response.data.code === 0) {
+            this.list = response.data.data
+            this.list.forEach((item) => {
+              item.icon = 'tree-pro'
+              item.children = [{
+                name: '仿真任务1',
+                icon: 'tree-task'
+              }, {
+                name: '仿真任务2',
+                icon: 'tree-task'
+              }]
+            })
+          }
+          this.listLoading = false
+          this.hisBtnLoading = false
+          this.isHistory = false
+        }).catch(() => {
+          this.listLoading = false
+          this.hisBtnLoading = false
+          this.$notify({
+            title: '失败',
+            message: '操作失败！',
+            type: 'error',
+            duration: '2000'
+          })
+        })
+        /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
             if(response.data.code === 0) {
               this.list = response.data.data
@@ -1175,7 +1261,7 @@
               duration: '2000'
             })
           })
-        }
+        }*/
       },
       handleDelHisPro(row) {
         this.$confirm('确认彻底删除此工程吗？', '提示', {
@@ -1407,8 +1493,8 @@
       },
       listTree: function() {
         let self = this
-        return self.list.filter(function (item) {
-          return item.deleted === false
+        return self.proTreeList.filter(function (item) {
+          return item.project.deleted === false
         })
       },
       computeSecretClass() {
@@ -1692,7 +1778,6 @@
 
     .title-container {
       position: relative;
-
       .title {
         font-size: 26px;
         font-weight: 400;

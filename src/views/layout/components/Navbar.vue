@@ -3,7 +3,8 @@
     <hamburger class="hamburger-container" :toggleClick="toggleSideBar" :isActive="sidebar.opened"></hamburger>
 
     <breadcrumb class="breadcrumb-container"></breadcrumb>
-    <div class="proTitle">
+    <myheader></myheader>
+    <!--<div class="proTitle">
       <span><svg-icon icon-class="co-simulation"></svg-icon></span>
       <span>CO-Simulation</span>
       <el-dropdown style="position:absolute;top:-1px;right: 6px;" placement="bottom-start">
@@ -53,7 +54,7 @@
       <el-dropdown class="avatar-container right-menu-item" trigger="click">
         <div class="avatar-wrapper">
           <span class="user-avatar"><svg-icon icon-class="useravata"></svg-icon></span>
-          <!--<img class="user-avatar" src="./2.jpg">-->
+          &lt;!&ndash;<img class="user-avatar" src="./2.jpg">&ndash;&gt;
           <i class="el-icon-caret-bottom"></i>
         </div>
         <el-dropdown-menu slot="dropdown">
@@ -79,7 +80,7 @@
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
-      <!--普通用户修改密码-->
+      &lt;!&ndash;普通用户修改密码&ndash;&gt;
       <el-dialog title="修改密码" :visible.sync="modifyPasswordVisible" width="40%">
         <el-form :model="form" ref="modifyPassForm" :rules="modifyRules" style="width: 80%; margin:0 auto;">
           <el-form-item label="新密码" :label-width="formLabelWidth" prop="passwordNew">
@@ -100,7 +101,7 @@
           <el-button :disabled="this.btnConfirm" type="primary" @click="modifyPassword">确 定</el-button>
         </div>
       </el-dialog>
-    </div>
+    </div>-->
   </el-menu>
 </template>
 
@@ -116,6 +117,7 @@
   import ThemePicker from '@/components/ThemePicker'
   import { projectList, createProject } from '@/api/project'
   import { updateUser } from '@/api/getUsers'
+  import myheader from '../../mainpage/components/myheader'
   /* eslint-disable */
   export default {
     components: {
@@ -125,7 +127,8 @@
       ErrorLog,
       Screenfull,
       LangSelect,
-      ThemePicker
+      ThemePicker,
+      myheader
     },
     data() {
       const validatePassword = (rule, value, callback) => {

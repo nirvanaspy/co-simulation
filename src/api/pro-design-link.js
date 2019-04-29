@@ -213,3 +213,14 @@ export function getProjectsByUser(id) {
     method: 'get'
   })
 }
+
+// 查询子任务树
+export function getProjectsTree(secretClass) {
+  return request({
+    url: '/subtasks/getProjectTrees',
+    headers: {
+      userSecretClass: secretClass
+    },
+    method: 'get'
+  })
+}

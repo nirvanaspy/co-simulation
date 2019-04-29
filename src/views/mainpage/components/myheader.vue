@@ -122,7 +122,11 @@
             <div v-for="item in mesList" class="notice-item" @dblclick="checkMes(item)" :class="{'selectedMes': selectedMesObj !== null && selectedMesObj.id === item.id}">
               <span class="mes-des-box">{{operateBodyMap[item.messageOperate]}}</span>
               <span class="mes-des-box">{{operateTypeMap[item.mainBody]}}</span>
-              <span class="mes-des-box operator">操作人：{{item.mainOperator.username}}</span>
+              <span class="mes-des-box operator">
+                操作人：
+                <span v-if="item.mainOperator">{{item.mainOperator.username}}</span>
+                <span v-else>--</span>
+              </span>
               <span class="mes-des-box time">{{item.createTime}}</span>
               <span class="unRead-icon" v-if="item.ifRead === false">
                 <svg-icon icon-class="unRead"></svg-icon>
@@ -134,31 +138,31 @@
           <div class="notice-detail">
             <div v-if="selectedMesObj !== null">
               <div class="detail-header">
-                <div style="height: 70px;line-height: 50px;padding: 10px;border-bottom: 1px solid #ccc">
-                  <span style="display: inline-block;padding: 2px 10px;background:rgb(241,249,254);height: 30px;line-height: 25px;border-radius: 4px;">
-                    <span style="font-size: 20px;color: rgb(119,194,248);"><svg-icon icon-class="mark"></svg-icon></span>
-                    <span style="color: rgb(122,196,245);font-weight: 500;font-size: 16px;">{{operateBodyMap[selectedMesObj.messageOperate]}}</span>
+                <div class="detail-header-box">
+                  <span class="header-item-box">
+                    <span class="icon-box"><svg-icon icon-class="mark"></svg-icon></span>
+                    <span class="text">{{operateBodyMap[selectedMesObj.messageOperate]}}</span>
                   </span>
                 </div>
               </div>
-              <div class="detail-body" style="min-height: 200px;background: #fff;">
+              <div class="detail-body">
                 {{selectedMesObj.description}}
               </div>
-              <div class="detail-footer" style="min-height: 100px;padding: 10px 20px">
-                <div style="height: 40px;line-height: 40px;">
-                  <span><svg-icon icon-class="user-1" style="font-size: 20px;margin-right: 4px;"></svg-icon>被操作人：</span>
-                  <span>{{selectedMesObj.arrangedPerson.username}}</span>
+              <div class="detail-footer">
+                <div style="height: 40px;line-height: 40px;" v-if="selectedMesObj">
+                  <span><svg-icon icon-class="user-1" class="icons"></svg-icon>被操作人：</span>
+                  <span v-if="selectedMesObj.arrangedPerson">{{selectedMesObj.arrangedPerson.username}}</span>
+                </div>
+                <div style="height: 40px;line-height: 40px;" v-if="selectedMesObj">
+                  <span><svg-icon icon-class="user-1" class="icons"></svg-icon>操作人：</span>
+                  <span v-if="selectedMesObj.mainOperator">{{selectedMesObj.mainOperator.username}}</span>
                 </div>
                 <div style="height: 40px;line-height: 40px;">
-                  <span><svg-icon icon-class="user-1" style="font-size: 20px;margin-right: 4px;"></svg-icon>操作人：</span>
-                  <span>{{selectedMesObj.mainOperator.username}}</span>
-                </div>
-                <div style="height: 40px;line-height: 40px;">
-                  <span><svg-icon icon-class="components3" style="font-size: 20px;margin-right: 4px;"></svg-icon>操作类型：</span>
+                  <span><svg-icon icon-class="components3" class="icons"></svg-icon>操作类型：</span>
                   <span>{{operateTypeMap[selectedMesObj.mainBody]}}</span>
                 </div>
                 <div style="height: 40px;line-height: 40px;">
-                  <span><svg-icon icon-class="time" style="font-size: 20px;margin-right: 4px;color: #333;"></svg-icon>操作时间：</span>
+                  <span><svg-icon icon-class="time" class="icons" style="color: #333;"></svg-icon>操作时间：</span>
                   <span>{{selectedMesObj.createTime}}</span>
                 </div>
               </div>
@@ -175,7 +179,7 @@
   import PanThumb from '@/components/PanThumb'
   import { isvalidPwd } from '@/utils/validate'
   import { updatePassword } from '@/api/getUsers'
-  import { getMesByUser, readAllMes, readMes, clearAllRead } from '@/api/message'
+  import { getMesByUser, readAllMes, readMes, clearAllRead, getMessages } from '@/api/message'
   import service from '@/utils/request'
   import Stomp from 'stompjs'
   import SockJS from 'sockjs-client'
@@ -672,6 +676,45 @@
   }
   .notice-item.selectedMes {
     background: rgb(240, 240, 240);
+  }
+  .detail-header-box {
+    height: 70px;
+    line-height: 50px;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    .header-item-box {
+      display: inline-block;
+      padding: 2px 10px;
+      background:rgb(241,249,254);
+      height: 30px;
+      line-height: 25px;
+      border-radius: 4px;
+      .icon-box {
+        font-size: 20px;color: rgb(119,194,248);
+      }
+      .text {
+        color: rgb(122,196,245);
+        font-weight: 500;
+        font-size: 16px;
+      }
+    }
+  }
+  .detail-body {
+    min-height: 200px;
+    background: #fff;
+    padding: 20px;
+    font-size: 18px;
+    color: #555;
+  }
+  .detail-footer {
+    min-height: 100px;
+    padding: 10px 20px;
+    .icons {
+      font-size: 20px;
+      margin-right: 4px;
+      position: relative;
+      top: 1px;
+    }
   }
   /*// 蒙层
   .mask {

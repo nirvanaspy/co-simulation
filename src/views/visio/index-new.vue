@@ -351,6 +351,7 @@
             )
           );
 
+
         // load();  // load an initial diagram from some JSON text
 
         // initialize the Palette that is on the left side of the page
@@ -487,6 +488,15 @@
         }
 
         for(let i = 0; i < nodeArr.length; i++) {
+          /*if((linkArr.findIndex(target => target.to == nodeArr[i].key) == -1) && (linkArr.findIndex(target => target.from == nodeArr[i].from) == -1)) {
+            this.$notify({
+              title: '提示',
+              message: '流程未闭合',
+              type: 'error',
+              duration: 2000
+            })
+            return
+          }*/
           // 判断是否以建模开始
           if(linkArr.findIndex(target => target.to == nodeArr[i].key) == -1) { //先找到起点
             if(nodeArr[i].text.substring(nodeArr[i].text.length - 2) !== '建模') {
@@ -567,6 +577,11 @@
             size: this.processNodes[i].nodeSize,
             text: this.processNodes[i].nodeName,
             subtaskEntity: this.processNodes[i].subtaskEntity
+          }
+          if(this.processNodes[i].subtaskEntity.ifApprove === true) {
+            nodeItem.pass = true
+            nodeItem.fill = '#2ac06d'
+            nodeItem.ifAllowTo = false
           }
           nodeArr.push(nodeItem)
           if(this.processNodes[i].linkEntityList !== null) {

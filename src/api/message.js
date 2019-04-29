@@ -34,3 +34,10 @@ export function clearAllRead(data) {
     data
   })
 }
+
+export function getMessages() {
+  return request({
+    url: '/messages/messages',
+    method: 'get'
+  })
+}

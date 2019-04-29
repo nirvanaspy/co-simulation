@@ -156,9 +156,12 @@ export function searchProject(data) {
 }
 
 // 根据用户密级查询项目
-export function getProjectBySecretClass(id) {
+export function getProjectBySecretClass(id, ifDeleted) {
   return request({
-    url: '/projects',
-    method: 'get'
+    url: '/projects/byUserSecretClass/' + id,
+    method: 'get',
+    params: {
+      deleted: ifDeleted
+    }
   })
 }

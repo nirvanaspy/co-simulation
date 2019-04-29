@@ -12,6 +12,7 @@
 <script>
   /*eslint-disable*/
   import { libraryList } from "@/api/library"
+  import { getFileTree } from "@/api/sublibFiles"
   export default {
     name: 'library',
     data() {
@@ -43,6 +44,9 @@
     },
     created() {
       this.getLibraryList()
+      getFileTree().then(() => {
+
+      })
     }
   }
 </script>

@@ -151,3 +151,11 @@ export function searchFiles(data) {
     data
   })
 }
+
+// 查询文件树
+export function getFileTree(fileId) {
+  return request({
+    url: '/sublibraryFiles/getLibraryTrees',
+    method: 'get'
+  })
+}

@@ -88,3 +88,10 @@ export function updateSecretClass(id, data) {
     data
   })
 }
+
+export function getUserById(id,) {
+  return request({
+    url: '/users/' + id,
+    method: 'get'
+  })
+}

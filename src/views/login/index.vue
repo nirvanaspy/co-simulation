@@ -34,10 +34,10 @@
         </el-form-item>
 
         <el-button type="primary" style="width:100%;margin-bottom:20px;" :loading="loading" @click.native.prevent="handleLogin">{{$t('login.logIn')}}</el-button>
-        <div class="register-container">
+        <!--<div class="register-container">
           <span class="register-tips">没有账号？</span>
           <span class="register-btn" @click="jumpToRegister">注册</span>
-        </div>
+        </div>-->
       </div>
     </el-form>
   </div>

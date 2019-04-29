@@ -147,25 +147,27 @@
           <el-table :data="proResultList" max-height="400">
             <el-table-column min-width="120" label="名称" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <el-tooltip class="item" effect="dark" content="双击进入该项目" placement="top-start">
+                  <span class="link-type" @dblclick="handleSelect(scope.row)">{{scope.row.name}}</span>
+                </el-tooltip>
               </template>
             </el-table-column>
-            <el-table-column width="120" label="令号" align="center">
+            <el-table-column min-width="120" label="令号" align="center">
               <template slot-scope="scope">
                 <span>{{scope.row.name}}</span>
               </template>
             </el-table-column>
-            <el-table-column width="120" label="创建者" align="center">
+            <el-table-column min-width="120" label="创建者" align="center">
               <template slot-scope="scope">
                 <span>{{scope.row.name}}</span>
               </template>
             </el-table-column>
-            <el-table-column width="120" label="负责人" align="center">
+            <el-table-column min-width="120" label="负责人" align="center">
               <template slot-scope="scope">
                 <span>{{scope.row.name}}</span>
               </template>
             </el-table-column>
-            <el-table-column width="120" label="密级" align="center">
+            <el-table-column min-width="120" label="密级" align="center">
               <template slot-scope="scope">
                 <span>{{scope.row.name}}</span>
               </template>
@@ -208,13 +210,14 @@
 
 <script>
   /*eslint-disable*/
-  import { searchProject } from '@/api/project'
+  import { searchProject, getProjectAuth } from '@/api/project'
   import { searchFiles } from '@/api/sublibFiles'
   import dayjs from 'dayjs'
   export default {
     name: 'searchPanel',
     data() {
       return {
+        userId: '',
         activeName: 'first',
         mainActive: false,
         seletedRow: [],
@@ -309,6 +312,9 @@
         ]
       }
     },
+    created() {
+      this.userId = this.getCookie('userId')
+     },
     methods: {
       // 样式逻辑
       showMainSearch() {
@@ -335,6 +341,14 @@
             value: 1
           }]
         }*/
+        this.proResultList = []
+        if(this.conditionList.length == 0) {
+          this.$message({
+            message: '请先填写筛选条件！',
+            type: 'warning'
+          })
+          return false
+        }
         this.serializeCondtion()
         let data
         if(this.filterObj.logic == '') {
@@ -534,7 +548,62 @@
         }
         this.filterObj = filterObj
         console.log(filterObj)
-      }
+      },
+
+      // 选择项目
+      handleSelect(row) {
+        if(row.finishTime === null || row.orderNum === null) {
+          this.$notify({
+            title: '失败',
+            message: '对不起，该项目还未设置令号和节点时间，请先在项目设置中进行设置！',
+            type: 'error',
+            duration: '2000'
+          })
+          return
+        }
+        this.$store.commit('SET_PROJECTID', row.id)
+        // let proName = URLEncoder.encode(row.name, 'utf-8')
+        this.$store.commit('SET_PROJECTNAME', row.name)
+        // 验证用户密级是否足够
+        row.loading = true
+        getProjectAuth(row.id, this.userId).then((res) => {
+          if(res.data.code === 0) {
+            if(res.data.data === true) {
+              this.$router.push({
+                path: '/task_manage',
+                name: 'task_manage',
+                query: {
+                  name: row.name,
+                  id: row.id
+                }
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: '对不起，您没有无权限查看此项目！',
+                type: 'error',
+                duration: '6000'
+              })
+            }
+          } else {
+            this.$notify({
+              title: '失败',
+              message: '权限验证失败！',
+              type: 'error',
+              duration: '2000'
+            })
+          }
+          row.loading = false
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '权限验证失败！',
+            type: 'error',
+            duration: '2000'
+          })
+          row.loading = false
+        })
+      },
     }
   }
 </script>
