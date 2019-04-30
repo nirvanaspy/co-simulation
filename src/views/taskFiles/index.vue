@@ -170,7 +170,8 @@
         ],
         ifBackToStart: true,
         taskName: '',
-        taskState: null
+        taskState: null,
+        taskIfPass: false
       }
     },
     components: {
@@ -191,6 +192,7 @@
           if(res.data.code === 0) {
             let subtaskObj = res.data.data
             this.taskState = subtaskObj.state
+            this.taskIfPass = subtaskObj.ifApprove
             if(subtaskObj.state === 7 && (subtaskObj.ifApprove === true || subtaskObj.ifReject === true)) {
               this.showSecondEditApply = true
             } else {
@@ -461,6 +463,11 @@
           return '批准中'
         }
         if(this.taskState === 7) {
+          if(this.taskIfPass === true) {
+            return '审批结束 已通过'
+          } else if(this.taskIfPass === false) {
+            return '审批结束 已驳回'
+          }
           return '审批结束'
         }
         if(this.taskState === 8) {

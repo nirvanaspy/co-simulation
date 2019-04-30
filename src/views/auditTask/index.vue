@@ -11,10 +11,16 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="所属项目">
             <template slot-scope="scope">
-              <span>{{scope.row.projectEntity.name}}</span>
+              <span class="link-type" @click="jumpToPro(scope.row.projectEntity)">{{scope.row.projectEntity.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column align="center"
+                           min-width="200px"
+                           label="审批状态"
+                           prop="state"
+                           :filters="[{ text: '已审批', value: 'proofed' }, { text: '未审批', value: 'notProofed' }]"
+                           :filter-method="filterState"
+          >
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 0)}}</el-tag>
@@ -74,7 +80,13 @@
               <span>{{scope.row.projectEntity.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column align="center"
+                           min-width="200px"
+                           label="审批状态"
+                           prop="state"
+                           :filters="[{ text: '已审批', value: 'audited' }, { text: '未审批', value: 'notAudited' }]"
+                           :filter-method="filterState"
+          >
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 1)}}</el-tag>
@@ -148,7 +160,14 @@
               <el-tag type="warning" v-else>待处理</el-tag>
             </template>
           </el-table-column>-->
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column
+            align="center"
+            min-width="200px"
+            label="审批状态"
+            prop="state"
+            :filters="[{ text: '已审批', value: 'signed' }, { text: '未审批', value: 'notSigned' },]"
+            :filter-method="filterState"
+          >
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 2)}}</el-tag>
@@ -208,7 +227,14 @@
               <span>{{scope.row.projectEntity.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column
+            align="center"
+            min-width="200px"
+            label="审批状态"
+            prop="state"
+            :filters="[{ text: '已审批', value: 'approved' }, { text: '未审批', value: 'notApproved' }]"
+            :filter-method="filterState"
+          >
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 3)}}</el-tag>
@@ -320,6 +346,7 @@
   /*eslint-disable*/
   import comFileManage from '@/views/fileManager/filecomp'
   import { getAuditTasks, assessSubtask, getOpinion, getAllOpinion} from '@/api/pro-design-link'
+  import { getProjectAuth } from '@/api/project'
   export default {
     name: 'auditTask',
     data () {
@@ -332,7 +359,6 @@
         fileDialog: false,
         opinionDialog: false,
         opinionTextDialog: false,
-        userId: '',
         selectedId: '',
         selectedName: '',
         collatorList: [],
@@ -539,6 +565,74 @@
         }).catch(() => {
           this.opinionLoading = false
         })
+      },
+      jumpToPro(row) {
+        row.loading = true
+        getProjectAuth(row.id, this.userId).then((res) => {
+          if(res.data.code === 0) {
+            if(res.data.data === true) {
+              this.$store.commit('SET_PROJECTID', row.id)
+              this.$store.commit('SET_PROJECTNAME', row.name)
+              this.$router.push({
+                path: '/task_manage',
+                name: 'task_manage',
+                query: {
+                  name: row.name,
+                  id: row.id
+                }
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: '对不起，您没有无权限查看此项目！',
+                type: 'error',
+                duration: '6000'
+              })
+            }
+          } else {
+            this.$notify({
+              title: '失败',
+              message: '权限验证失败！',
+              type: 'error',
+              duration: '2000'
+            })
+          }
+          row.loading = false
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '权限验证失败！',
+            type: 'error',
+            duration: '2000'
+          })
+          row.loading = false
+        })
+      },
+      filterState(value, row) {
+        if(value == 'proofed') {
+          return row.state > 3
+        }
+        if(value == 'notProofed') {
+          return row.state <= 3
+        }
+        if(value == 'audited') {
+          return row.state > 4
+        }
+        if(value == 'notAudited') {
+          return row.state <= 4
+        }
+        if(value == 'signed') {
+          return row.state > 5
+        }
+        if(value == 'notSigned') {
+          return row.state <= 5
+        }
+        if(value == 'approved') {
+          return row.state > 6
+        }
+        if(value == 'notApproved') {
+          return row.state <= 6
+        }
       }
     },
     computed: {
@@ -576,7 +670,7 @@
       },
       computeMyPassState() {
         return function (row, assessState) {
-          for (let i = 0; i < this.maps.length; i++) {
+          /*for (let i = 0; i < this.maps.length; i++) {
             if(this.maps[i].userEntity.id==this.userId && this.maps[i].subtaskEntity.id==row.id && this.maps[i].assessState == assessState) {
               if(this.maps[i].pass === true) {
                 return '已通过'
@@ -584,6 +678,9 @@
                 return '已驳回'
               }
             }
+          }*/
+          if(row.state > assessState) {
+            return '已处理'
           }
           return '未处理'
         }

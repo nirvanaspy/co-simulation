@@ -6,7 +6,7 @@ export function getSubLibFiles(id, flag) {
     url: '/sublibraryFiles/bySublibraryId/' + id + '/files',
     method: 'get',
     params: {
-      ifApprove: true
+      ifApprove: flag
     }
   })
 }
@@ -159,3 +159,15 @@ export function getFileTree(fileId) {
     method: 'get'
   })
 }
+
+// 查询未通过的子库文件
+export function getFailedFiles(userId) {
+  return request({
+    url: '/sublibraryFiles/getFailedFiles',
+    headers: {
+      'userId': userId
+    },
+    method: 'get'
+  })
+}
+

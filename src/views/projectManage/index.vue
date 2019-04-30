@@ -75,7 +75,7 @@
     </el-header>-->
     <div class="searchContainer my-search-box">
       <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
-      <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+      <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="关键字" v-model="searchQuery">
       </el-input>
       <el-dropdown trigger="click" placement="bottom-start">
           <span class="add-item">
@@ -99,7 +99,13 @@
       <!--结构树-->
       <el-col :span="6">
         <div style="width: 300px;margin: 60px auto;">
-          <el-tree v-if="!isHistory" class="filter-tree" :data="listTree" :props="defaultProps" :default-expand-all="false" :render-content="renderContent">ref="tree2">
+          <el-tree v-if="!isHistory" class="filter-tree" :data="listTree"
+                   :props="defaultProps"
+                   :default-expand-all="false"
+                   :render-content="renderContent"
+                   :filter-node-method="filterNode"
+                   @node-contextmenu = "rightClick"
+                   ref="tree2">
           </el-tree>
         </div>
       </el-col>
@@ -126,7 +132,7 @@
                 </div>
                 <div class="project-info project-detail">
                   <div class="info-detail info-name"><span>{{item.name}}</span></div>
-                  <div class="info-detail info-secretClass">密级：{{computeSecretClass(item.secretClass)}}</div>
+                  <div class="info-detail info-secretClass">密级：<span class="link-type" @click="handleUpSecret(item)">{{computeSecretClass(item.secretClass)}}</span></div>
                   <!--<div class="info-detail info-description">{{item.description}}</div>-->
                 </div>
                 <div class="project-operation project-detail">
@@ -277,7 +283,6 @@
     </el-dialog>
     <!--普通用户修改密码-->
     <el-dialog title="修改密码" :visible.sync="modifyPasswordVisible" append-to-body width="40%" class="limit-width-dialog">
-
       <el-form :model="form" ref="modifyPassForm" :rules="modifyRules" style="width: 80%; margin:0 auto;">
         <el-form-item label="新密码" :label-width="formLabelWidth" prop="passwordNew">
           <el-input :type="passwordType" v-model="form.passwordNew" auto-complete="off"></el-input>
@@ -398,6 +403,26 @@
     <el-dialog title="设计环节管理" :visible.sync="designLinkVisible" append-to-body width="40%" class="limit-width-dialog">
       <designLink v-if="designLinkVisible"></designLink>
     </el-dialog>
+    <!--修改项目密级-->
+    <el-dialog title="修改密级" :visible.sync="updateSecretVisible" append-to-body width="40%" class="limit-width-dialog">
+      <el-form :model="temp" ref="modifyPassForm" :rules="rules" style="width: 80%; margin:0 auto;">
+        <el-form-item label="密级" prop="secretClass" >
+          <el-select v-model="temp.secretClass" placeholder="请选择项目密级" @change="clearPicOption">
+            <el-option
+              v-for="item in secretClassOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="updateSecretVisible = false">取 消</el-button>
+        <el-button type="primary" @click="modifySec" :loading="modSecLoading">确 定
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -420,7 +445,8 @@
     arrangePro,
     startPro,
     getProjectAuth,
-    getProjectBySecretClass
+    getProjectBySecretClass,
+    updateProSec
   } from '@/api/project'
   import { updatePassword, allUser, getUserById } from '@/api/getUsers'
   import { getLinks } from '@/api/designLinks'
@@ -495,6 +521,7 @@
         proSettingVisible: false,
         designLinkVisible: false,
         modPasLoading: false,
+        updateSecretVisible: false,
         passwordType: 'password',
         passwordTypeAgain: 'password',
         btnConfirm: false,
@@ -505,8 +532,8 @@
           {
             label: '公开',
             value: 0
-          },
-          {
+          }
+          /*{
             label: '内部',
             value: 1
           },
@@ -518,7 +545,7 @@
             label: '机密',
             value: 3
           },
-          /*{
+          {
             label: '绝密',
             value: 4
           }*/
@@ -558,6 +585,7 @@
         getMaLoading: false,
         delLoading: false,
         showDialog: false,
+        modSecLoading: false,
         userData: {
           username: '',
           password: ''
@@ -574,7 +602,9 @@
         finishTime: '',
         orderNum: '',
         designLinks: [],
-        userSecretClass: 0
+        userSecretClass: 0,
+        currentNode: {},
+        menuVisible: false
       }
     },
     created() {
@@ -592,9 +622,27 @@
         getUserById(this.userId).then((res) => {
           if(res.data.code === 0) {
             this.userSecretClass = res.data.data.secretClass
+            let options = [{
+              label: '公开',
+              value: 0
+            },
+              {
+                label: '内部',
+                value: 1
+              },
+              {
+                label: '秘密',
+                value: 2
+              },
+              {
+                label: '机密',
+                value: 3
+              }]
+            this.secretClassOptions = options.filter(item => item.value <= this.userSecretClass)
           }
         })
       },
+      // 查询树数据
       getTrees() {
         getUserById(this.userId).then((res) => {
           if(res.data.code === 0) {
@@ -619,7 +667,21 @@
             })
           }
         })
-
+      },
+      // 树节点搜索
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.name.indexOf(value) !== -1;
+      },
+      // 树节点右键
+      rightClick(event, data, node, self) {
+        // this.currentNode.data = node.data
+        // console.log(node)
+        if(node.data.subtask) {
+          this.handleSelect(node.data.project)
+        } else {
+          return
+        }
       },
       handleTabClick(tab, event) {
         if (tab.label === '回收站') {
@@ -779,6 +841,7 @@
                   duration: 2000
                 })
                 this.getList()
+                this.getTrees()
               } else {
                 this.creProLoading = false
                 this.errorMessage = '操作失败！'
@@ -814,13 +877,49 @@
           this.$refs['dataForm'].clearValidate()
         })*/
       },
+      handleUpSecret(row) {
+        this.selectedId = row.id;
+        this.temp = Object.assign({}, row)
+        this.updateSecretVisible = true
+      },
+      modifySec() {
+        let qs = require('qs')
+        this.modSecLoading = true
+        let data = {
+          secretClass: this.temp.secretClass
+        }
+        let postData = qs.stringify(data)
+        updateProSec(this.selectedId, postData).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getList()
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'success',
+              duration: 2000
+            })
+          }
+          this.modSecLoading = false
+          this.updateSecretVisible = false
+        }).catch(() => {
+          this.modSecLoading = false
+          this.updateSecretVisible = false
+        })
+      },
       updateData() {
         /*this.$refs['dataForm'].validate((valid) => {
             if (valid) {
 
             }
         })*/
-        let qs = require('qs');
+        let qs = require('qs')
         this.creProLoading = true
         let data = {
           'name': this.temp.name,
@@ -894,6 +993,7 @@
                 duration: 2000
               })
               this.getList()
+              this.getTrees()
             } else {
               row.delLoading = false
               this.$notify({
@@ -936,23 +1036,32 @@
       },
       // 启动项目
       handleStartPro(row) {
-        startPro(row.id).then((res) => {
-          if(res.data.code === 0) {
-            this.$notify({
-              title: '成功',
-              message: '项目启动成功',
-              type: 'success',
-              duration: 2000
-            })
-          } else {
-            this.$notify({
-              title: '失败',
-              message: res.data.msg,
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
+        if(row.state === 0) {
+          startPro(row.id).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '项目启动成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        } else {
+          this.$notify({
+            title: '失败',
+            message: '项目已启动，请勿重复操作！',
+            type: 'error',
+            duration: 2000
+          })
+        }
       },
       // 切换项目负责人
       setPersonInC(pic) {
@@ -1206,6 +1315,7 @@
             duration: '2000'
           })
         })
+        this.getTrees()
         /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
             if(response.data.code === 0) {
@@ -1361,7 +1471,6 @@
             </span>
           )
         }
-
       },
       handleMangeDesignLinks() {
         this.designLinkVisible = true
@@ -1369,7 +1478,7 @@
       setFinishTimeAndOrder() {
         let qs = require('qs')
         let data = {
-          finishTime: this.finishTime.toString(),
+          finishTime: (this.finishTime + 24*3600000).toString(),
           orderNum: this.orderNum,
           userId: this.userId
         }
@@ -1439,7 +1548,7 @@
         }
         let qs = require('qs');
         let data = {
-          finishTime: this.temp.finishTime.toString(),
+          finishTime: (this.temp.finishTime + 24*3600000 -1000).toString(),
           orderNum: this.temp.orderNum,
           userId: this.userId
         }
@@ -1511,6 +1620,11 @@
             return '绝密'
           }
         }
+      }
+    },
+    watch: {
+      searchQuery(val) {
+        this.$refs.tree2.filter(val);
       }
     },
     mounted() {

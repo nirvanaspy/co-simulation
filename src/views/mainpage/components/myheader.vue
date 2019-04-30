@@ -71,6 +71,9 @@
               <span @click="routerToMyPro" style="display:block;">我的项目</span>
             </el-dropdown-item>
             <el-dropdown-item divided>
+              <span @click="jumpToAudit" style="display:block;">我的审核</span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
               <span @click="logout" style="display:block;">{{$t('navbar.logOut')}}</span>
             </el-dropdown-item>
           </el-dropdown-menu>
@@ -241,6 +244,7 @@
         noticeDialogVisible: false,
         mesList: [],
         unReadMesCount: 0,
+        currentCount: 0,
         operateTypeMap: {
           0: '无操作',
           1: '赋予新角色',
@@ -381,6 +385,10 @@
             let resBody2 = resBody.replace(/[\\]/g, '');
             that.webResBody = JSON.parse(resBody2);
             // that.unReadMesCount = that.webResBody.data
+            if(that.currentCount === that.webResBody.data) {
+              return
+            }
+            that.currentCount = that.webResBody.data
             if(that.unReadMesCount <  that.webResBody.data) {
               that.unReadMesCount = that.webResBody.data
               getMesByUser(that.userId).then((res) => {
@@ -400,13 +408,6 @@
                   that.mesList = newArr.sort(that.sortDate);
                   let latestMes = that.mesList[0]
                   console.log(latestMes)
-                  let operatorPerson = latestMes.mainOperator.username
-                  /*let operateType = that.operateTypeMap[latestMes.messageOperate]
-                  let operateBody = that.operateBodyMap[latestMes.mainBody]*/
-                  let operateType = that.operateTypeMap[latestMes.mainBody]
-                  let operateBody = that.operateBodyMap[latestMes.messageOperate]
-                  let arrangedPerson = latestMes.arrangedPerson.username
-                  let mes = operateBody + '被' + operateType
                   that.$notify.info({
                     title: '你有一条新消息',
                     message: latestMes.description,

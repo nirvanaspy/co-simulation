@@ -389,7 +389,6 @@
           limit: 5,
           tagname: ''
         },
-        total: null,
         pagesize:10,//每页的数据条数
         currentPage:1,//默认开始页面
         indexedDB: null,

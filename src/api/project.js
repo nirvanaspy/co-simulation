@@ -165,3 +165,12 @@ export function getProjectBySecretClass(id, ifDeleted) {
     }
   })
 }
+
+// 更新项目密级
+export function updateProSec(id, data) {
+  return request({
+    url: '/projects/' + id + '/secretClass',
+    method: 'patch',
+    data
+  })
+}

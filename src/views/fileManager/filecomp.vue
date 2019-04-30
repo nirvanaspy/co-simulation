@@ -109,6 +109,12 @@
               <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'secondEdit')">
                 <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'secondEdit')">二次修改文件</span>
               </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'revoke')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销修改</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'changeVersion')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleChangeVersion(scope.row)">更换版本</span>
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -323,6 +329,30 @@
         <el-button type="primary" @click="editFileInfo">确 定</el-button>
       </span>
     </el-dialog>
+    <!--修改文件版本-->
+    <el-dialog
+      class="selectVersion"
+      title="选择需要回退的版本"
+      :visible.sync="versionSelectDialog"
+      append-to-body
+      width="30%">
+      <el-form label-position="left" label-width="70px">
+        <el-form-item label="选择版本">
+          <el-select v-model="switchVersion" placeholder="请选择回退的版本" style="width: 100%">
+            <el-option
+              v-for="item in switchVersionOptions"
+              :key="item.id"
+              :label="item.version"
+              :value="item.version">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="versionSelectDialog = false">取 消</el-button>
+        <el-button type="primary" @click="changeVersion">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -330,7 +360,7 @@
   /*eslint-disable*/
   import { compList, createComp, updateComp, copyComp, importComp, deleteComp, compSingle, saveFolder, getCompFiles, saveFiles, deleteCompFiles, uploadFolder, previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
-  import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo, modifyTaskFile } from '@/api/pro-design-link'
+  import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo, modifyTaskFile, revokeTaskFileModify, taskFileVersionReplace, getTaskFileVersion } from '@/api/pro-design-link'
   import { libraryList, subLibraryList } from "@/api/library"
   import service from '@/utils/request'
   import maniFile from '@/views/fileManager/maniFile'
@@ -524,6 +554,7 @@
         uploadType: 'normal', // 上传文件状态：一般上传；直接修改上传；二次修改上传；
         selectedFileId: '', // 选中的文件id
         currentVersion: '',
+        targetEditFile: {},
         fileModify: {
           version: '',
           versionNum: 1,
@@ -539,6 +570,9 @@
             value: false
           }
         ],
+        versionSelectDialog: false,
+        switchVersion: '',
+        switchVersionOptions: [],
       }
     },
     created() {
@@ -1375,6 +1409,7 @@
         this.selectedFileId = row.id
         this.uploadType = editType
         this.currentVersion = row.version
+        this.targetEditFile = row
         this.fileModify.version = ''
         this.uploadDialog = true
         this.hiddenClose = false
@@ -1388,6 +1423,87 @@
           this.fileCompleteLength = 0
           this.fileInfoList = []
           $('.manage-uploader .uploader-btn').css('display','inline-block')
+        })
+      },
+      handleRevoke(row) {
+        this.$confirm('确认撤销上次的修改吗吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          revokeTaskFileModify(row.id).then((res) => {
+            if(res.data.code === 0) {
+              this.getList()
+              this.$notify({
+                title: '成功',
+                message: '撤销',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: '删除失败',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消撤销操作'
+          })
+        })
+      },
+      handleChangeVersion(row) {
+        this.selectFileId = row.id
+        this.switchVersion = ''
+        this.currentVersion = row.version
+        getTaskFileVersion(row.id).then((res) => {
+          if(res.data.code === 0) {
+            this.switchVersionOptions = res.data.data
+            this.versionSelectDialog = true
+          }
+        })
+      },
+      changeVersion() {
+        let data = {
+          version: this.switchVersion
+        }
+        let qs = require('qs')
+        let dataPost = qs.stringify(data)
+        taskFileVersionReplace(this.selectFileId, dataPost).then((res) => {
+          if(res.data.code === 0) {
+            this.getList()
+            this.$notify({
+              title: '成功',
+              message: '版本更新成功',
+              type: 'success',
+              duration: 2000
+            })
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '删除失败',
+            type: 'error',
+            duration: 2000
+          })
         })
       }
     },
@@ -1473,7 +1589,8 @@
           let subApprove = row.subTaskEntity.ifApprove
           let subReject = row.subTaskEntity.ifReject
           // 文件删除按钮
-          if(opType === 'delete') {
+          // 修改文件信息
+          if(opType === 'delete' || opType === 'modifyInfo') {
             if(subState === 1 || (subState === 7 && subApprove !== true)) {
               return false
             } else {
@@ -1496,6 +1613,22 @@
               return true
             }
           }
+          // 撤销修改按钮
+          if(opType === 'revoke') {
+            if((subState === 7 && subReject === true) || subState === 9) {
+              return false
+            } else {
+              return true
+            }
+          }
+          // 选择版本
+          if(opType === 'changeVersion') {
+            if((subState === 7 && subReject === true) || subState === 9) {
+              return false
+            } else {
+              return true
+            }
+          }
         }
       },
       // 计算版本号
@@ -1504,7 +1637,13 @@
           let optionComputed = []
           if(this.currentVersion.length > 0) {
             let versionState = this.currentVersion.substring(0, 1)
-            let versionNum =  parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
+            let versionNum
+            if(this.targetEditFile.ifApprove === true) {
+              versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
+            } else {
+              versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length))
+            }
+
             if(versionState === 'M') {
               optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
             }

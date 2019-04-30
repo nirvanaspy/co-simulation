@@ -224,3 +224,28 @@ export function getProjectsTree(secretClass) {
     method: 'get'
   })
 }
+
+// 撤销子任务文件修改
+export function revokeTaskFileModify(fileId) {
+  return request({
+    url: '/subtaskFiles/' + fileId + '/revokeModify',
+    method: 'patch'
+  })
+}
+
+// 修改文件版本
+export function taskFileVersionReplace(fileId, data) {
+  return request({
+    url: '/subtaskFiles/' + fileId + '/versionReplace',
+    method: 'patch',
+    data
+  })
+}
+
+// 查询文件版本
+export function getTaskFileVersion(fileId) {
+  return request({
+    url: '/subtaskFiles/' + fileId + '/getSublibraryHistoriesFiles',
+    method: 'get'
+  })
+}

@@ -100,7 +100,7 @@
                 <template slot-scope="scope">
                   <el-select v-model="scope.row.field" placeholder="请选择">
                     <el-option
-                      v-for="item in proFieldOptions"
+                      v-for="item in fileFiledOptions"
                       :key="item.value"
                       :label="item.label"
                       :value="item.value">
@@ -181,24 +181,29 @@
                 <span>{{scope.row.name}}</span>
               </template>
             </el-table-column>
-            <el-table-column width="120" label="令号" align="center">
+            <el-table-column width="120" label="产品型号" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span>{{scope.row.productNo}}</span>
               </template>
             </el-table-column>
-            <el-table-column width="120" label="创建者" align="center">
+            <el-table-column width="120" label="文件图号" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
-              </template>
-            </el-table-column>
-            <el-table-column width="120" label="负责人" align="center">
-              <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span>{{scope.row.fileNo}}</span>
               </template>
             </el-table-column>
             <el-table-column width="120" label="密级" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span>{{computeSecretClass(scope.row.secretClass)}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column width="120" label="版本" align="center">
+              <template slot-scope="scope">
+                <span>{{scope.row.version}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column width="120" label="上传者" align="center">
+              <template slot-scope="scope">
+                <span>{{scope.row.userEntity.username}}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -274,8 +279,12 @@
             value: 'secretClass'
           },
           {
-            label: '负责人',
-            value: 'pic.id'
+            label: '产品型号',
+            value: 'productNo'
+          },
+          {
+            label: '文件图号',
+            value: 'fileNo'
           }
         ],
         operatorOptions: [
@@ -604,6 +613,23 @@
           row.loading = false
         })
       },
+    },
+    computed: {
+      computeSecretClass() {
+        return function(item) {
+          if(item === 0) {
+            return '公开'
+          } else if (item === 1) {
+            return '内部'
+          } else if (item === 2) {
+            return '秘密'
+          } else if (item === 3) {
+            return '机密'
+          } else if (item === 4) {
+            return '绝密'
+          }
+        }
+      }
     }
   }
 </script>
