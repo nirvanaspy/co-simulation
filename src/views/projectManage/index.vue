@@ -554,7 +554,9 @@
           id: '',
           name: '',
           description: '',
-          secretClass: 0
+          secretClass: 0,
+          finishTime: null,
+          orderNum: null
         },
         saveTemp: {
 
@@ -1026,13 +1028,12 @@
         if(item.creator.id === this.userId || item.pic.id === this.userId) {
           this.hasPermission = true
         }
-        this.proSettingVisible = true
         this.temp = Object.assign({}, item)
         this.saveTemp = {
           name: this.temp.name,
           description: this.temp.description
         }
-
+        this.proSettingVisible = true
       },
       // 启动项目
       handleStartPro(row) {
@@ -1548,7 +1549,7 @@
         }
         let qs = require('qs');
         let data = {
-          finishTime: (this.temp.finishTime + 24*3600000 -1000).toString(),
+          finishTime: (parseInt(this.temp.finishTime) + 24*3600000 -1000).toString(),
           orderNum: this.temp.orderNum,
           userId: this.userId
         }
