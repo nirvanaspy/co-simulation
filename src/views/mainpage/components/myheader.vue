@@ -386,9 +386,10 @@
             that.webResBody = JSON.parse(resBody2);
             // that.unReadMesCount = that.webResBody.data
             if(that.currentCount == that.webResBody.data) {
+              // alert(that.webResBody.data)
               return
             }
-            that.currentCount = that.webResBody.data
+            // that.currentCount = that.webResBody.data
             if(that.unReadMesCount <  that.webResBody.data) {
               that.unReadMesCount = that.webResBody.data
               getMesByUser(that.userId).then((res) => {
