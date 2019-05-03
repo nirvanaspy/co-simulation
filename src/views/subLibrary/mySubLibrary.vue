@@ -50,10 +50,9 @@
 
 <script>
   /*eslint-disable*/
-  import { subLibraryList, addSubLibrary, updateSubLibrary, deleteSubLibrary } from '@/api/library'
-
+  import { subLibraryList, addSubLibrary, updateSubLibrary, deleteSubLibrary, libraryList } from '@/api/library'
   export default {
-    name: 'subLibrary',
+    name: 'mySubLibrary',
     data() {
       return {
         role: null,
@@ -74,13 +73,24 @@
         },
         rules: {
           type: [{required: true, message: '请输入库名！', trigger: 'blur'}],
-        },
+        }
       }
     },
     created() {
+      // this.libId = this.$route.params.id
       this.role = this.$store.getters.roles
-      this.libId = this.$route.params.id
-      this.getSublibraries(this.libId)
+      libraryList().then((res) => {
+        if(res.data.code === 0) {
+          let libList = res.data.data
+          for(let i = 0; i < libList.length; i++) {
+            if(libList[i].type === this.$route.meta.title) {
+              this.libId = libList[i].id
+              this.getSublibraries(this.libId)
+              break
+            }
+          }
+        }
+      })
     },
     methods: {
       getSublibraries(id) {

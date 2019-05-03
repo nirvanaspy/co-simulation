@@ -23,7 +23,7 @@
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 0)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 2)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -89,7 +89,7 @@
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 1)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 3)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -165,12 +165,12 @@
             min-width="200px"
             label="审批状态"
             prop="state"
-            :filters="[{ text: '已审批', value: 'signed' }, { text: '未审批', value: 'notSigned' },]"
+            :filters="[{ text: '已审批', value: 'signed' }, { text: '未审批', value: 'notSigned' }]"
             :filter-method="filterState"
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 2)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 4)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -237,7 +237,7 @@
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 3)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 5)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -372,14 +372,15 @@
         },
         rules: {
           text: [
-            { required: false, message: '请输入活动审批意见', trigger: 'blur' }
+            { required: false, message: '请输入审批意见', trigger: 'blur' }
           ],
 
         },
         maps: [],  //存取当前回传maps中的用户操作状态数组(maps废弃，当前存储的是userEntityList)
         auditLoading: false,
         opinionLoading: false,
-        currentAuditMode: 0
+        currentAuditMode: 0,
+        myTimer: null
       }
     },
     components: {
@@ -389,6 +390,15 @@
       console.log(this.selectedName)
       this.userId = this.getCookie('userId')
       this.getAuditTaskList(this.userId)
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
+      this.myTimer = setInterval(this.getAuditTaskList, 20000)
+    },
+    destroyed() {
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
     },
     methods: {
       getAuditTaskList() {

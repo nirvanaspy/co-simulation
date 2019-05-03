@@ -1,7 +1,7 @@
 <template>
   <div class="subLibFileCont">
     <div class="subLibFileManage">
-      <subFile :selectCompId="subLibId"></subFile>
+      <subFile :selectCompId="subLibId" ref="subFiles"></subFile>
     </div>
   </div>
 </template>
@@ -13,7 +13,8 @@
     name: 'subLibFiles',
     data() {
       return {
-        subLibId: ''
+        subLibId: '',
+        myTimer: null
       }
     },
     components: {
@@ -21,7 +22,18 @@
     },
     created() {
       this.subLibId  = this.$route.params.id
-    }
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
+      this.myTimer = setInterval(() => {
+        this.$refs.subFiles.refreshFileList()
+      }, 20000)
+    },
+    destroyed() {
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
+    },
   }
 </script>
 

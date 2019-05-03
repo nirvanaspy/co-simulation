@@ -385,7 +385,7 @@
             let resBody2 = resBody.replace(/[\\]/g, '');
             that.webResBody = JSON.parse(resBody2);
             // that.unReadMesCount = that.webResBody.data
-            if(that.currentCount === that.webResBody.data) {
+            if(that.currentCount == that.webResBody.data) {
               return
             }
             that.currentCount = that.webResBody.data
@@ -411,6 +411,7 @@
                   that.$notify.info({
                     title: '你有一条新消息',
                     message: latestMes.description,
+                    position: 'bottom-right',
                     duration: 2000
                   })
                 }

@@ -26,7 +26,7 @@
 
 <script>
   /*eslint-disable*/
-  import { libraryList } from "@/api/library"
+  import { libraryList } from '@/api/library'
   import libTree from './libraryTree'
   export default {
     name: 'library',

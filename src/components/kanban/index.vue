@@ -367,7 +367,9 @@
             }
           })
           console.log(row.projectEntity.secretClass)
-          this.setCookie('taskSelectedName')
+          this.setCookie('taskSelectedName',encodeURI(row.name))
+          this.setCookie('taskSelectedId', row.id)
+          this.setCookie('taskSelectedClass', row.projectEntity.secretClass)
         } else {
           this.$notify({
             title: '失败',

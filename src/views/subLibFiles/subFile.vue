@@ -115,7 +115,7 @@
           </el-table-column>
         </el-table>
       </el-tab-pane>
-      <el-tab-pane label="未通过">
+      <el-tab-pane label="尚未通过">
         <div class="operationContainer" style="height: 40px;border-bottom:1px solid #ebeef5" v-if="forUse !== 'preview'">
           <div style="position: absolute;top: 10px;left: 16px">
             <el-button type="primary" size="mini" @click="handleCommit">提交审核</el-button>
@@ -132,10 +132,12 @@
                   style="width: 100%"
                   class="fileList"
                   @selection-change="handleSelectionChange"
+                  :row-key="getRowKey"
         >
           <el-table-column
             type="selection"
             :selectable="fileAuditSelection"
+            :reserve-selection="true"
             width="55">
           </el-table-column>
           <el-table-column label="文件名" min-width="200">
@@ -728,6 +730,13 @@
       this.initData()
     },
     methods: {
+      refreshFileList() {
+        getFailedFiles(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            this.list = res.data.data
+          }
+        })
+      },
       getAbleUser() {
         this.getMaLoading = true
         allUser().then((res) => {
@@ -778,8 +787,10 @@
       getList() {
         this.listLoading = true
         getFailedFiles(this.userId).then((res) => {
-          this.list = res.data.data
-          this.listLoading = false
+          if(res.data.code === 0) {
+            this.list = res.data.data
+            this.listLoading = false
+          }
         }).catch(() => {
           this.listLoading = false
           this.$notify({
@@ -790,8 +801,10 @@
           })
         })
         getSubLibFiles(this.componentId, true).then((res) => {
-          this.listApproved = res.data.data
-          this.approveListLoading = false
+          if(res.data.code === 0) {
+            this.listApproved = res.data.data
+            this.approveListLoading = false
+          }
         }).catch(() => {
           this.approveListLoading = false
           this.$notify({
@@ -1236,6 +1249,9 @@
           return 1
         }
       },
+      getRowKey(row) {
+        return row.id
+      },
       // 根据文件审核状态进行筛选
       filterState(value, row) {
         if(value == 'notCommit') {
@@ -1474,18 +1490,35 @@
           let optionComputed = []
           if(this.currentVersion.length > 0) {
             let versionState = this.currentVersion.substring(0, 1)
-            let versionNum =  parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
-            if(versionState === 'M') {
-              optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
-            }
-            if(versionState === 'C') {
-              optionComputed = [{value: 'C' + versionNum},{value: 'S'}]
-            }
-            if(versionState === 'S') {
-              optionComputed = [{value: 'S' + versionNum},{value: 'D'}]
-            }
-            if(versionState === 'D') {
-              optionComputed = [{value: 'D' + versionNum}]
+            let versionNum
+            if(this.targetEditFile.ifApprove === true) {
+              versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
+              if(versionState === 'M') {
+                optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
+              }
+              if(versionState === 'C') {
+                optionComputed = [{value: 'C' + versionNum},{value: 'S1'}]
+              }
+              if(versionState === 'S') {
+                optionComputed = [{value: 'S' + versionNum},{value: 'D1'}]
+              }
+              if(versionState === 'D') {
+                optionComputed = [{value: 'D' + versionNum}]
+              }
+            } else {
+              versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length))
+              if(versionState === 'M') {
+                optionComputed = [{value: 'M' + versionNum}]
+              }
+              if(versionState === 'C') {
+                optionComputed = [{value: 'C' + versionNum}]
+              }
+              if(versionState === 'S') {
+                optionComputed = [{value: 'S' + versionNum}]
+              }
+              if(versionState === 'D') {
+                optionComputed = [{value: 'D' + versionNum}]
+              }
             }
             return optionComputed
           }

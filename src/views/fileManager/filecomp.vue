@@ -323,6 +323,16 @@
         <el-form-item label="文件图号">
           <el-input v-model="fileEditInfo.fileNo" placeholder="请输入文件图号"></el-input>
         </el-form-item>
+        <el-form-item label="目标库">
+          <el-cascader
+            style="width: 100%"
+            :options="libOptions"
+            @focus="getLib"
+            @active-item-change="handleItemChange"
+            @change="onSubLibChange"
+          ></el-cascader>
+          <!--:props="libProps"-->
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="editInfoDialog = false">取 消</el-button>
@@ -572,7 +582,7 @@
         ],
         versionSelectDialog: false,
         switchVersion: '',
-        switchVersionOptions: [],
+        switchVersionOptions: []
       }
     },
     created() {
@@ -586,6 +596,13 @@
       this.maniType = ''
     },
     methods: {
+      refreshFileList() {
+        getTaskFiles(this.componentId,this.parentNodeId).then((res) => {
+          if(res.data.code ===0) {
+            this.list = res.data.data
+          }
+        })
+      },
       processResponse() {
         console.log(arguments, 'processResponse')
       },
@@ -613,10 +630,10 @@
       getList() {
         this.listLoading = true
         getTaskFiles(this.componentId,this.parentNodeId).then((res) => {
-          this.list = res.data.data
-          this.listLoading = false
-          // this.parentNodeId = ''
-          // (this.parentNodeId)
+          if(res.data.code ===0) {
+            this.list = res.data.data
+            this.listLoading = false
+          }
         }).catch(() => {
           this.listLoading = false
           this.$notify({
@@ -1117,15 +1134,15 @@
         previewFiles(row.id).then((res) => {
           if(res.data.code === 0) {
             if(res.data.data.fileType === 'picture') {
-              this.$router.push({
-                path: '/preview/index',
+              /*this.$router.push({
+                path: '/preview',
                 query: {
                   id: res.data.data.pathId,
                   type: res.data.data.fileType
                 }
-              })
-              /*const {href} = this.$router.resolve({ path: '/preview/index',query: {id: res.data.data.pathId, type: res.data.data.fileType}})
-              window.open(href, '_blank')*/
+              })*/
+              const {href} = this.$router.resolve({ path: '/preview',query: {id: res.data.data.pathId, type: res.data.data.fileType}})
+              window.open(href, '_blank')
             }
             if(res.data.data.fileType === 'office') {
               // let href = 'http://192.168.31.69:8080/preview/viewer/document/' + res.data.data.pathId
@@ -1338,7 +1355,8 @@
           'secretClass': this.fileEditInfo.secretClass,
           'type': this.fileEditInfo.type,
           'productNo': this.fileEditInfo.productNo,
-          'fileNo': this.fileEditInfo.fileNo
+          'fileNo': this.fileEditInfo.fileNo,
+          'sublibraryId': this.fileUpInfo.subLibraryId
           // 'codeName': this.fileEditInfo.codeName
         }
         var qs = require('qs');
@@ -1591,7 +1609,7 @@
           // 文件删除按钮
           // 修改文件信息
           if(opType === 'delete' || opType === 'modifyInfo') {
-            if(subState === 1 || (subState === 7 && subApprove !== true)) {
+            if(subState === 1 || (subState === 7 && subApprove !== true) || subState === 9) {
               return false
             } else {
               return true
@@ -1640,21 +1658,32 @@
             let versionNum
             if(this.targetEditFile.ifApprove === true) {
               versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
+              if(versionState === 'M') {
+                optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
+              }
+              if(versionState === 'C') {
+                optionComputed = [{value: 'C' + versionNum},{value: 'S1'}]
+              }
+              if(versionState === 'S') {
+                optionComputed = [{value: 'S' + versionNum},{value: 'D1'}]
+              }
+              if(versionState === 'D') {
+                optionComputed = [{value: 'D' + versionNum}]
+              }
             } else {
               versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length))
-            }
-
-            if(versionState === 'M') {
-              optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
-            }
-            if(versionState === 'C') {
-              optionComputed = [{value: 'C' + versionNum},{value: 'S'}]
-            }
-            if(versionState === 'S') {
-              optionComputed = [{value: 'S' + versionNum},{value: 'D'}]
-            }
-            if(versionState === 'D') {
-              optionComputed = [{value: 'D' + versionNum}]
+              if(versionState === 'M') {
+                optionComputed = [{value: 'M' + versionNum}]
+              }
+              if(versionState === 'C') {
+                optionComputed = [{value: 'C' + versionNum}]
+              }
+              if(versionState === 'S') {
+                optionComputed = [{value: 'S' + versionNum}]
+              }
+              if(versionState === 'D') {
+                optionComputed = [{value: 'D' + versionNum}]
+              }
             }
             return optionComputed
           }

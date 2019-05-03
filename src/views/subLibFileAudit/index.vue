@@ -9,7 +9,13 @@
               <span>{{scope.row.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column align="center"
+                           min-width="200px"
+                           label="审批状态"
+                           prop="state"
+                           :filters="[{ text: '已审批', value: 'proofed' }, { text: '未审批', value: 'notProofed' }]"
+                           :filter-method="filterState"
+          >
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 0)}}</el-tag>
@@ -32,7 +38,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="操作">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary">预览文件</el-button>
+              <el-button size="mini" type="primary" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true">
@@ -61,7 +67,12 @@
               <span>{{scope.row.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column align="center"
+                           min-width="200px"
+                           label="审批状态"
+                           prop="state"
+                           :filters="[{ text: '已审批', value: 'audited' }, { text: '未审批', value: 'notAudited' }]"
+                           :filter-method="filterState">
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 1)}}</el-tag>
@@ -91,7 +102,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="操作">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary">预览文件</el-button>
+              <el-button size="mini" type="primary" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 2 || scope.row.ifReject == true">
@@ -120,7 +131,12 @@
               <span>{{scope.row.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column align="center"
+                           min-width="200px"
+                           label="审批状态"
+                           prop="state"
+                           :filters="[{ text: '已审批', value: 'signed' }, { text: '未审批', value: 'notSigned' }]"
+                           :filter-method="filterState">
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 2)}}</el-tag>
@@ -143,7 +159,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="操作">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary">预览文件</el-button>
+              <el-button size="mini" type="primary" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 3||computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true">
@@ -172,7 +188,12 @@
               <span>{{scope.row.name}}</span>
             </template>
           </el-table-column>
-          <el-table-column align="center" min-width="200px" label="我的结果">
+          <el-table-column align="center"
+                           min-width="200px"
+                           label="审批状态"
+                           prop="state"
+                           :filters="[{ text: '已审批', value: 'approved' }, { text: '未审批', value: 'notApproved' }]"
+                           :filter-method="filterState">
             <template slot-scope="scope">
               <span>
                 <el-tag type="info">{{computeMyPassState(scope.row, 3)}}</el-tag>
@@ -280,6 +301,8 @@
 <script>
   /*eslint-disable*/
   import comFileManage from '@/views/fileManager/filecomp'
+  import { previewFiles } from '@/api/component'
+  import service from '@/utils/request'
   import { getAuditTasks, assessSubtask, getOpinion, getAllOpinion} from '@/api/pro-design-link'
   import { getAuditLibFilesByUser, auditLibFile, getFileAudits } from '@/api/sublibFiles'
   export default {
@@ -316,6 +339,7 @@
         maps: [],
         currenttaskid: 0,
         currentAuditMode: 0,
+        myTimer: null
         // assessState: 0
       }
     },
@@ -326,6 +350,15 @@
       console.log(this.selectedName)
       this.userId = this.getCookie('userId')
       this.getAuditTaskList(this.userId)
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
+      this.myTimer = setInterval(this.getAuditTaskList, 20000)
+    },
+    destroyed() {
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
     },
     methods: {
       getAuditTaskList() {
@@ -516,6 +549,54 @@
         }).catch(() => {
           this.opinionLoading = false
         })
+      },
+      previewFile(row) {
+        previewFiles(row.id).then((res) => {
+          if(res.data.code === 0) {
+            if(res.data.data.fileType === 'picture') {
+              /*this.$router.push({
+                path: '/preview',
+                query: {
+                  id: res.data.data.pathId,
+                  type: res.data.data.fileType
+                }
+              })*/
+              const {href} = this.$router.resolve({ path: '/preview',query: {id: res.data.data.pathId, type: res.data.data.fileType}})
+              window.open(href, '_blank')
+            }
+            if(res.data.data.fileType === 'office') {
+              // let href = 'http://192.168.31.69:8080/preview/viewer/document/' + res.data.data.pathId
+              let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
+              window.open(href, '_blank')
+            }
+          }
+        })
+      },
+      filterState(value, row) {
+        if(value == 'proofed') {
+          return row.state > 1
+        }
+        if(value == 'notProofed') {
+          return row.state <= 1
+        }
+        if(value == 'audited') {
+          return row.state > 2
+        }
+        if(value == 'notAudited') {
+          return row.state <= 2
+        }
+        if(value == 'signed') {
+          return row.state > 3
+        }
+        if(value == 'notSigned') {
+          return row.state <= 3
+        }
+        if(value == 'approved') {
+          return row.state > 4
+        }
+        if(value == 'notApproved') {
+          return row.state <= 4
+        }
       }
     },
     computed: {
@@ -553,7 +634,7 @@
       },
       computeMyPassState() {
         return function (row, assessState) {
-          for (let i = 0; i < this.maps.length; i++) {
+          /* for (let i = 0; i < this.maps.length; i++) {
             if(this.maps[i].userEntity.id==this.userId && this.maps[i].sublibraryFilesEntity.id==row.fileEntity.id && this.maps[i].assessState == assessState) {
               if(this.maps[i].pass === true) {
                 return '已通过'
@@ -561,6 +642,9 @@
                 return '已驳回'
               }
             }
+          }*/
+          if(row.state > assessState) {
+            return '已处理'
           }
           return '未处理'
         }

@@ -171,7 +171,8 @@
         ifBackToStart: true,
         taskName: '',
         taskState: null,
-        taskIfPass: false
+        taskIfPass: false,
+        myTimer: null
       }
     },
     components: {
@@ -179,16 +180,54 @@
     },
     created() {
       this.userId = this.getCookie('userId')
-      this.selectedId = this.$route.params.id
-      this.taskName = this.$route.query.name
-      this.proSecretClass = parseInt(this.$route.query.proClass)
+      this.selectedId = this.$route.params.id !== ':id' ? this.$route.params.id : this.getCookie('taskSelectedId')
+      this.taskName = this.$route.query.name ? this.$route.query.name : decodeURI(unescape(this.getCookie('taskSelectedName')))
+      this.proSecretClass = this.$route.query.proClass ? parseInt(this.$route.query.proClass) : parseInt(this.getCookie('taskSelectedClass'))
       this.getSubtaskDetails()
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
+      this.myTimer = setInterval(() => {
+        this.refreshSubTaskDetail()
+        this.$refs.fileComp.refreshFileList()
+      }, 20000)
+    },
+    destroyed() {
+      if(this.myTimer) {
+        clearInterval(this.myTimer)
+      }
     },
     methods: {
-      getSubtaskDetails() {
+      refreshSubTaskDetail() {
         getSubtaskDetail(this.selectedId).then((res) => {
+          if(res.data.code === 0) {
+            let subtaskObj = res.data.data
+            this.taskState = subtaskObj.state
+            this.taskIfPass = subtaskObj.ifApprove
+            if(subtaskObj.state === 7 && (subtaskObj.ifApprove === true || subtaskObj.ifReject === true)) {
+              this.showSecondEditApply = true
+            } else {
+              this.showSecondEditApply = false
+            }
+            if(subtaskObj.state === 1 || subtaskObj.state === 9 || (subtaskObj.state === 7 && subtaskObj.ifReject === true)) {
+              this.$refs.fileComp.showUploadFlag = true
+              this.ableToCommit = true
+            } else {
+              this.$refs.fileComp.showUploadFlag = false
+              this.ableToCommit = false
+            }
+          } else {
+            this.ableToCommit = true
+            this.$refs.fileComp.showUploadFlag = true
+          }
+        })
+      },
+      getSubtaskDetails() {
+        this.$nextTick(() => {
           this.ableToCommit = false
           this.$refs.fileComp.showUploadFlag = false
+        })
+        getSubtaskDetail(this.selectedId).then((res) => {
           if(res.data.code === 0) {
             let subtaskObj = res.data.data
             this.taskState = subtaskObj.state
