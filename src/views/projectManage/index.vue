@@ -1479,7 +1479,7 @@
       setFinishTimeAndOrder() {
         let qs = require('qs')
         let data = {
-          finishTime: (this.finishTime + 24*3600000).toString(),
+          finishTime: (parseInt(this.finishTime) + 24*3600000 - 1000).toString(),
           orderNum: this.orderNum,
           userId: this.userId
         }
