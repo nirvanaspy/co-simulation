@@ -41,3 +41,12 @@ export function getMessages() {
     method: 'get'
   })
 }
+
+// 根据是否已读查询消息
+export function findMesByIfRead(data) {
+  return request({
+    url: '/messages/findByIfRead',
+    method: 'post',
+    data
+  })
+}

@@ -74,6 +74,9 @@
               <span @click="jumpToAudit" style="display:block;">我的审核</span>
             </el-dropdown-item>
             <el-dropdown-item divided>
+              <span @click="jumpToLog" style="display:block;">下载日志</span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
               <span @click="logout" style="display:block;">{{$t('navbar.logOut')}}</span>
             </el-dropdown-item>
           </el-dropdown-menu>
@@ -182,10 +185,11 @@
   import PanThumb from '@/components/PanThumb'
   import { isvalidPwd } from '@/utils/validate'
   import { updatePassword } from '@/api/getUsers'
-  import { getMesByUser, readAllMes, readMes, clearAllRead, getMessages } from '@/api/message'
+  import { getMesByUser, readAllMes, readMes, clearAllRead, getMessages, findMesByIfRead } from '@/api/message'
   import service from '@/utils/request'
   import Stomp from 'stompjs'
   import SockJS from 'sockjs-client'
+  import debounce from 'lodash/debounce'
   export default {
     name: 'myheader',
     components: {
@@ -264,6 +268,7 @@
         },
         selectedMesObj: null,
         readingMes: false,
+        hasChecked: false
       }
     },
     created() {
@@ -271,8 +276,9 @@
       this.role = this.$store.getters.roles
       this.userName += this.getCookie('username')
       this.userId = this.getCookie('userId')
-      this.subscribeNotice()
+      // this.subscribeNotice()
       this.getAllMes()
+      this.getUnreadMes()
     },
     methods: {
       jumpToAudit() {
@@ -293,6 +299,11 @@
       jumpToPro() {
         this.$router.push({
           path: '/projectManage'
+        })
+      },
+      jumpToLog() {
+        this.$router.push({
+          path: '/downloadLogs/index'
         })
       },
       logout() {
@@ -384,39 +395,14 @@
             let resBody = response.body;
             let resBody2 = resBody.replace(/[\\]/g, '');
             that.webResBody = JSON.parse(resBody2);
-            // that.unReadMesCount = that.webResBody.data
             if(that.currentCount == that.webResBody.data) {
-              // alert(that.webResBody.data)
               return
             }
             // that.currentCount = that.webResBody.data
-            if(that.unReadMesCount <  that.webResBody.data) {
+            // if(that.unReadMesCount <  that.webResBody.data) {
+            if(that.currentCount <  that.webResBody.data) {
               that.unReadMesCount = that.webResBody.data
-              getMesByUser(that.userId).then((res) => {
-                if(res.data.code === 0) {
-                  // this.mesList = res.data.data
-                  let unReadList = []
-                  let newArr = [];
-                  for(let i = 0; i < res.data.data.length; i++){
-                    if(res.data.data[i].ifRead == false) {
-                      unReadList.push(res.data.data[i])
-                    }
-                    let newCreateTime = (res.data.data[i].createTime).replace(new RegExp("-", "gm"), "/");
-                    let newCreateSecond = (new Date(newCreateTime)).getTime(); //得到毫秒数
-                    newArr.push(res.data.data[i])
-                    newArr[i].timeStartApp = newCreateSecond;
-                  }
-                  that.mesList = newArr.sort(that.sortDate);
-                  let latestMes = that.mesList[0]
-                  console.log(latestMes)
-                  that.$notify.info({
-                    title: '你有一条新消息',
-                    message: latestMes.description,
-                    position: 'bottom-right',
-                    duration: 2000
-                  })
-                }
-              })
+              that.currentCount = that.webResBody.data
             }
           })
         })
@@ -450,8 +436,24 @@
               newArr.push(res.data.data[i])
               newArr[i].timeStartApp = newCreateSecond;
             }
-            this.unReadMesCount = unReadList.length
+            // this.unReadMesCount = unReadList.length
             this.mesList = newArr.sort(this.sortDate);
+          }
+        })
+      },
+      getUnreadMes() {
+        let qs = require('qs')
+        let data = {
+          ifRead: false,
+          userId: this.userId
+        }
+        let dataPost = qs.stringify(data)
+        findMesByIfRead(dataPost).then((res) => {
+          if(res.data.code === 0) {
+            let unReadList = res.data.data
+            this.unReadMesCount = unReadList.length
+            this.currentCount = unReadList.length
+            this.subscribeNotice()
           }
         })
       },
@@ -514,6 +516,38 @@
     computed: {
       ifShowSearch() {
         return this.$store.state.app.ifSearch
+      }
+    },
+    watch: {
+      currentCount(newValue, oldValue) {
+        if(newValue === oldValue || oldValue === 0) {
+          return
+        }
+        getMesByUser(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            // this.mesList = res.data.data
+            let unReadList = []
+            let newArr = [];
+            for(let i = 0; i < res.data.data.length; i++){
+              if(res.data.data[i].ifRead == false) {
+                unReadList.push(res.data.data[i])
+              }
+              let newCreateTime = (res.data.data[i].createTime).replace(new RegExp("-", "gm"), "/");
+              let newCreateSecond = (new Date(newCreateTime)).getTime(); //得到毫秒数
+              newArr.push(res.data.data[i])
+              newArr[i].timeStartApp = newCreateSecond;
+            }
+            this.mesList = newArr.sort(this.sortDate);
+            let latestMes = this.mesList[0]
+            // that.setCookie('mesCount', that.mesList.length)
+            this.$notify.info({
+              title: '你有一条新消息',
+              message: latestMes.description,
+              position: 'bottom-right',
+              duration: 2000
+            })
+          }
+        })
       }
     }
   }
