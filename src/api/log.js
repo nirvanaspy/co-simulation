@@ -1,13 +1,9 @@
 import request from '../utils/request'
 
-export function logList(proId, listQuery) {
+export function logList() {
   return request({
-    url: '/projects/' + proId + '/deploylogs',
-    method: 'get',
-    params: {
-      size: listQuery.limit,
-      page: listQuery.page
-    }
+    url: '/downLogs',
+    method: 'get'
   })
 }
 
