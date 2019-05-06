@@ -29,6 +29,7 @@
     "jsonlint": "1.6.2",
     "jsonwebtoken": "^8.3.0",
     "jszip": "3.1.5",
+    "lodash": "^4.17.11",
     "mockjs": "1.0.1-beta3",
     "normalize.css": "7.0.0",
     "nprogress": "0.2.0",

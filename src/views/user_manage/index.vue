@@ -165,7 +165,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="createDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addUsers">确 定</el-button>
+        <el-button type="primary" @click="addUsers" :loading="addUserLoading">确 定</el-button>
       </span>
     </el-dialog>
     <!--编辑用户-->
@@ -350,7 +350,8 @@
         deleteDialogVisible: false,
         createRoleDialog: false,
         editRoleDialog: false,
-        editPassDialog: false
+        editPassDialog: false,
+        addUserLoading: false
       }
     },
     created() {
@@ -579,7 +580,8 @@
         })
       },
       addUsers() {
-        var qs = require('qs')
+        this.addUserLoading = true
+        let qs = require('qs')
         let data = {
           'username': this.createUserInfo.username,
           'password': this.createUserInfo.password,
@@ -606,6 +608,9 @@
               duration: 2000
             })
           }
+          this.addUserLoading = false
+        }).catch(() => {
+          this.addUserLoading = false
         })
       },
       editUser() {
