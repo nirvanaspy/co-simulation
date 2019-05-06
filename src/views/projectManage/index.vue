@@ -132,7 +132,10 @@
                 </div>
                 <div class="project-info project-detail">
                   <div class="info-detail info-name"><span>{{item.name}}</span></div>
-                  <div class="info-detail info-secretClass">密级：<span class="link-type" @click="handleUpSecret(item)">{{computeSecretClass(item.secretClass)}}</span></div>
+                  <div class="info-detail info-secretClass">
+                    密级：<span class="link-type" @click="handleUpSecret(item)">{{computeSecretClass(item.secretClass)}}</span>
+                    <span style="margin-left: 10px;">当前状态：<span :class="stateClassMap[item.state]">{{stateMap[item.state]}}</span></span>
+                  </div>
                   <!--<div class="info-detail info-description">{{item.description}}</div>-->
                 </div>
                 <div class="project-operation project-detail">
@@ -494,7 +497,9 @@
         selectedId: '',
         hasPermission: false,
         tableKey: 0,
-        list: [],
+        list: [
+          {name: 'pro1', secretClass: 1, state: 2 }
+        ],
         proTreeList: [],
         proManagerOptions: [],
         listQuery: {
@@ -606,7 +611,19 @@
         designLinks: [],
         userSecretClass: 0,
         currentNode: {},
-        menuVisible: false
+        menuVisible: false,
+        stateMap: {
+          0: '未开始',
+          1: '进行中',
+          2: '已完成',
+          3: '已超时',
+        },
+        stateClassMap: {
+          0: 'notStart',
+          1: 'started',
+          2: 'finished',
+          3: 'overTime',
+        }
       }
     },
     created() {
@@ -1761,7 +1778,18 @@
           float: left;
           height: 100%;
         }
-
+        .notStart {
+          color: #909399;
+        }
+        .started {
+          color: #E6A23C;
+        }
+        .finished {
+          color: #67C23A;
+        }
+        .overTime {
+          color: #F56C6C;
+        }
         .project-star {
           width: 40px;
           text-align: center;
