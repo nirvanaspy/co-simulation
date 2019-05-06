@@ -12,9 +12,9 @@
         <span class="user-name">
           {{userName}}
         </span>
-        <span class="role-info">
+        <!--<span class="role-info">
           用户角色
-        </span>
+        </span>-->
       </div>
     </div>
     <el-menu

@@ -155,7 +155,7 @@ export const asyncRouterMap = [
   {
     path: '/taskFiles',
     component: Layout,
-    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '任务文件', icon: 'documentation' }}]
+    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '当前任务', icon: 'documentation' }}]
   },
   {
     path: '/device',
@@ -165,17 +165,17 @@ export const asyncRouterMap = [
   {
     path: '/audit_tasks',
     component: Layout,
-    children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: ' 任务审核', icon: 'audit' }}]
+    children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: ' 任务审核', icon: 'audit2' }}]
   },
   {
     path: '/audit_subLibFile',
     component: Layout,
-    children: [{ path: 'index', component: _import('subLibFileAudit/index'), name: 'subLibFileAudits', meta: { title: ' 文件审核', icon: 'audit' }}]
+    children: [{ path: 'index', component: _import('subLibFileAudit/index'), name: 'subLibFileAudits', meta: { title: ' 文件审核', icon: 'audit2' }}]
   },
   {
     path: '/audit_apply',
     component: Layout,
-    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '文件修改申请', icon: 'audit' }}]
+    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '文件修改申请', icon: 'audit2' }}]
     /* meta: {
       roles: ['ROLE_ADMIN']
     }*/
@@ -185,5 +185,11 @@ export const asyncRouterMap = [
     component: _import('auditTask/preview'),
     // children: [{ path: 'index', component: _import('auditTask/preview'), name: 'preview', meta: { title: '申请', icon: 'audit' }}],
     hidden: true
+  },
+  // 下载日志
+  {
+    path: '/downloadLogs',
+    component: Layout,
+    children: [{ path: 'index', component: _import('log/index'), name: 'downloadLog', meta: { title: '下载日志', icon: 'logs' }}]
   }
 ]

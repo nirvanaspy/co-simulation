@@ -404,10 +404,8 @@
                 {text: "热学仿真", size: "100 50", figure: "subtask"},
                 {text: "热仿真", size: "100 50", figure: "subtask"},
                 {text: "电磁仿真", size: "100 50", figure: "subtask"},
-                /*{text: "DB", figure: "Database", fill: "lightgray"},*/
-                {text: "???", figure: "Diamond", fill: "lightskyblue"},
-                /*{text: "End", figure: "Circle", fill: "#CE0620"},
-                {text: "Comment", figure: "RoundedRectangle", fill: "lightyellow"},*/
+                {text: "???", figure: "Diamond", fill: "lightskyblue"}
+
               ], [
                 // the Palette also has a disconnected Link, which the user can drag-and-drop
                 {points: new go.List(/*go.Point*/).addAll([new go.Point(0, 0), new go.Point(30, 0), new go.Point(30, 40), new go.Point(60, 40)])}
