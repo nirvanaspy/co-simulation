@@ -570,6 +570,15 @@
               let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
               window.open(href, '_blank')
             }
+            // 不支持预览的文件类型
+            if(res.data.data.fileType === 'fileNotSupported') {
+              this.$notify({
+                title: '失败',
+                message: '不支持预览此文件类型',
+                type: 'error',
+                duration: 2000
+              })
+            }
           } else {
             this.$notify({
               title: '失败',
