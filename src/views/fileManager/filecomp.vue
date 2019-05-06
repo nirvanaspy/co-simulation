@@ -1,5 +1,5 @@
 <template>
-  <div class="fileComp">
+  <div class="fileComp" v-loading="viewLoading">
     <div class="operationContainer" style="height: 40px;border-bottom:1px solid #ebeef5" v-if="forUse !== 'preview'">
       <div style="float: left;padding-left: 10px;">
         <el-breadcrumb separator-class="el-icon-arrow-right">
@@ -90,7 +90,7 @@
             </el-tooltip>
             <el-dropdown-menu slot="dropdown" v-if="forUse === 'preview'">
               <el-dropdown-item>
-                <span style="display:inline-block;padding:0 10px;" @click="previewFile(scope.row)">预览</span>
+                <span style="display:inline-block;padding:0 10px;" v-loading="scope.row.loading" @click="previewFile(scope.row)">预览</span>
               </el-dropdown-item>
             </el-dropdown-menu>
             <el-dropdown-menu slot="dropdown" v-else>
@@ -582,7 +582,8 @@
         ],
         versionSelectDialog: false,
         switchVersion: '',
-        switchVersionOptions: []
+        switchVersionOptions: [],
+        viewLoading: false
       }
     },
     created() {
@@ -1131,6 +1132,7 @@
         })
       },
       previewFile(row) {
+        this.viewLoading = true
         previewFiles(row.id).then((res) => {
           if(res.data.code === 0) {
             if(res.data.data.fileType === 'picture') {
@@ -1149,7 +1151,17 @@
               let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
               window.open(href, '_blank')
             }
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
           }
+          this.viewLoading = false
+        }).catch(() => {
+          this.viewLoading = false
         })
       },
       switchFolder(row,index){
