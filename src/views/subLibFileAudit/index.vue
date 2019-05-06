@@ -38,7 +38,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="操作">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary" @click="previewFile(scope.row)">预览文件</el-button>
+              <el-button size="mini" type="primary" :loading="scope.row.loading" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true">
@@ -102,7 +102,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="操作">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary" @click="previewFile(scope.row)">预览文件</el-button>
+              <el-button size="mini" type="primary" :loading="scope.row.loading" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 2 || scope.row.ifReject == true">
@@ -159,7 +159,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="操作">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary" @click="previewFile(scope.row)">预览文件</el-button>
+              <el-button size="mini" type="primary" :loading="scope.row.loading" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 3||computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true">
@@ -223,7 +223,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="操作">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary">预览文件</el-button>
+              <el-button size="mini" type="primary" :loading="scope.row.loading" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 4 || scope.row.ifReject == true || scope.row.ifApprove == true">
@@ -301,7 +301,7 @@
 <script>
   /*eslint-disable*/
   import comFileManage from '@/views/fileManager/filecomp'
-  import { previewFiles } from '@/api/component'
+  import { previewSublibFiles } from '@/api/component'
   import service from '@/utils/request'
   import { getAuditTasks, assessSubtask, getOpinion, getAllOpinion} from '@/api/pro-design-link'
   import { getAuditLibFilesByUser, auditLibFile, getFileAudits } from '@/api/sublibFiles'
@@ -551,7 +551,8 @@
         })
       },
       previewFile(row) {
-        previewFiles(row.id).then((res) => {
+        row.loading = true
+        previewSublibFiles(row.id).then((res) => {
           if(res.data.code === 0) {
             if(res.data.data.fileType === 'picture') {
               /*this.$router.push({
@@ -569,7 +570,17 @@
               let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
               window.open(href, '_blank')
             }
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
           }
+          row.loading = false
+        }).catch(() => {
+          row.loading = false
         })
       },
       filterState(value, row) {
