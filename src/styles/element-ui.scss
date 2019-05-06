@@ -402,3 +402,9 @@
     background: #4be8dd;
   }
 }
+
+.drop-box {
+  .el-radio+.el-radio {
+    margin-left: 12px;
+  }
+}

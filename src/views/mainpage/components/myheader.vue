@@ -109,6 +109,11 @@
     <el-dialog title="" :visible.sync="noticeDialogVisible" append-to-body width="100%" class="message-dialog">
       <el-row :gutter="20" style="height: 100%;position: relative;">
         <div class="drop-box">
+          <el-radio-group v-model="checkType" @change="checkTypeChange" style="margin-right: 10px">
+            <el-radio label="unRead">未读</el-radio>
+            <el-radio label="hasRead">已读</el-radio>
+            <el-radio label="all">全部</el-radio>
+          </el-radio-group>
           <el-dropdown>
             <span class="el-dropdown-link">
               更多操作<i class="el-icon-arrow-down el-icon--right"></i>
@@ -125,7 +130,7 @@
         </div>
         <el-col style="height: 100%;" :span="6">
           <div class="notice-list-box">
-            <div v-for="item in mesList" class="notice-item" @dblclick="checkMes(item)" :class="{'selectedMes': selectedMesObj !== null && selectedMesObj.id === item.id}">
+            <div v-for="item in listA" class="notice-item" @dblclick="checkMes(item)" :class="{'selectedMes': selectedMesObj !== null && selectedMesObj.id === item.id}">
               <span class="mes-des-box">{{operateBodyMap[item.messageOperate]}}</span>
               <span class="mes-des-box">{{operateTypeMap[item.mainBody]}}</span>
               <span class="mes-des-box operator">
@@ -189,7 +194,7 @@
   import service from '@/utils/request'
   import Stomp from 'stompjs'
   import SockJS from 'sockjs-client'
-  import debounce from 'lodash/debounce'
+  // import debounce from 'lodash/debounce'
   export default {
     name: 'myheader',
     components: {
@@ -268,7 +273,8 @@
         },
         selectedMesObj: null,
         readingMes: false,
-        hasChecked: false
+        hasChecked: false,
+        checkType: 'all'
       }
     },
     created() {
@@ -387,7 +393,7 @@
         let url = service.defaults.baseURL + '/COSIMULATION';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
-        // stompClient.debug=null
+        stompClient.debug=null
         let that = this;
         let username = this.getCookie('username')
         stompClient.connect({}, function (frame) {
@@ -511,11 +517,27 @@
           this.selectedMesObj = item
           console.log(this.selectedMesObj)
         }
+      },
+      checkTypeChange(val) {
       }
     },
     computed: {
       ifShowSearch() {
         return this.$store.state.app.ifSearch
+      },
+      listA() {
+        let self = this
+        if(this.checkType === 'unRead') {
+          return self.mesList.filter((item) => {
+            return item.ifRead == false
+          })
+        } else if(this.checkType === 'hasRead') {
+          return self.mesList.filter((item) => {
+            return item.ifRead == true
+          })
+        } else {
+          return self.mesList
+        }
       }
     },
     watch: {
