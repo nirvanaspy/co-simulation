@@ -2,7 +2,8 @@
   <div class="app-container calendar-list-container" id="components">
     <div class="task-text">
       <span class="text">{{taskName}}</span>
-      <span class="text" style="color: #e6a23c;">{{computeCurrentState}}</span>
+      <span class="text" style="color: #67C23A" v-if="computeCurrentState === '审批结束 已通过'">{{computeCurrentState}}</span>
+      <span class="text" style="color: #e6a23c;" v-else>{{computeCurrentState}}</span>
     </div>
     <span class="task-detail">
       <!--<div class="task-text">

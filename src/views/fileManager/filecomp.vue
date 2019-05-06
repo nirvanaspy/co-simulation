@@ -70,6 +70,11 @@
           <span>{{scope.row.version}}</span>
         </template>
       </el-table-column>
+      <el-table-column width="120" label="文件类型">
+        <template slot-scope="scope">
+          <span>{{typeMap[scope.row.type]}}</span>
+        </template>
+      </el-table-column>
       <el-table-column width="120" label="所属库">
         <template slot-scope="scope">
           <span :class="{warningText: computeSublibName(scope.row.sublibraryEntitySet).length > 1}" v-for="item in computeSublibName(scope.row.sublibraryEntitySet)" style="display: block;">{{item}}</span>
@@ -469,6 +474,12 @@
             value: '3'
           }
         ],
+        typeMap: {
+          0: '参数文件',
+          1: '模型文件',
+          2: '报告文件',
+          3: '实验数据'
+        },
         codeNameOptions: [
           {
             label: '产品型号',

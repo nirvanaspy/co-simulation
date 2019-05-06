@@ -125,6 +125,7 @@
     position: absolute;
     left: 0;
     top: 200px;
+    z-index: 10000;
     border-radius: 10px;
     padding: 10px;
     margin-left: -10px;
