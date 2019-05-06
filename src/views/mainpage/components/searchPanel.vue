@@ -272,7 +272,7 @@
           },
           {
             label: '后缀',
-            value: 'postFix'
+            value: 'postfix'
           },
           {
             label: '密级',
@@ -318,7 +318,13 @@
             label: '并且',
             value: 'and'
           }
-        ]
+        ],
+        secretMap: {
+          '公开': 0,
+          '秘密': 1,
+          '机密': 2,
+          '绝密': 3,
+        }
       }
     },
     created() {
@@ -492,6 +498,9 @@
             field: this.fileConditionList[i].field,
             operator: this.fileConditionList[i].operator,
             value: this.fileConditionList[i].value
+          }
+          if(filterItem.field === 'secretClass') {
+            filterItem.value = this.secretMap[this.fileConditionList[i].value]
           }
           if(filterObj.filters.length > 1) {
             let copyObj = JSON.parse(JSON.stringify(filterObj))
