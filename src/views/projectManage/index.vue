@@ -379,6 +379,7 @@
                     type="date"
                     placeholder="选择日期"
                     format="yyyy 年 MM 月 dd 日"
+                    :picker-options="pickerOptions"
                     value-format="timestamp">
                   </el-date-picker>
                 </div>
@@ -388,6 +389,7 @@
                     type="date"
                     placeholder="选择日期"
                     format="yyyy 年 MM 月 dd 日"
+                    :picker-options="pickerOptions"
                     value-format="timestamp">
                   </el-date-picker>
                   <!--<el-button type="primary" size="mini" @click="updateFinishTimeAndOrder">修改</el-button>-->
@@ -492,6 +494,11 @@
         }
       }
       return {
+        pickerOptions: {
+          disabledDate(time) {
+            return time.getTime() < Date.now() - 8.64e7;
+          },
+        },
         userId: '',
         userName: '',
         selectedId: '',
@@ -1063,6 +1070,7 @@
                 type: 'success',
                 duration: 2000
               })
+              this.getList()
             } else {
               this.$notify({
                 title: '失败',
