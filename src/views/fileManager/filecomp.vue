@@ -1413,11 +1413,13 @@
               let resData = res.data.data
               this.libOptions = []
               resData.forEach((item) => {
-                this.libOptions.push({
-                  label: item.type,
-                  value: item.id,
-                  children: []
-                })
+                if(item.type !== '参数库') {
+                  this.libOptions.push({
+                    label: item.type,
+                    value: item.id,
+                    children: []
+                  })
+                }
               })
             }
           })
@@ -1679,7 +1681,7 @@
           if(this.currentVersion.length > 0) {
             let versionState = this.currentVersion.substring(0, 1)
             let versionNum
-            if(this.targetEditFile.ifApprove === true) {
+            if(this.targetEditFile.subTaskEntity.ifApprove === true) {
               versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
               if(versionState === 'M') {
                 optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
@@ -1720,14 +1722,20 @@
             return true
           }
         }
-        if(this.uploadType === 'secondEdit') { // 普通模式下用户必填参数 密级、类型、产品型号、文件图号、目标库、新版本
+        if(this.uploadType === 'secondEdit') { // 二次修改模式下用户必填参数 密级、类型、产品型号、文件图号、目标库、新版本
           if(this.fileUpInfo.secretClass !== null && this.fileInfo.type !== null && this.fileUpInfo.productNo !== null && this.fileUpInfo.fileNo !== null && this.fileUpInfo.subLibraryId !== null && this.fileModify.version !== null &&
             this.fileUpInfo.secretClass !== '' && this.fileInfo.type !== '' && this.fileUpInfo.productNo !== '' && this.fileUpInfo.fileNo !== '' && this.fileUpInfo.subLibraryId !== '' && this.fileModify.version !== '')
           {
             return true
           }
         }
-
+        if(this.uploadType === 'edit') { // 直接修改模式下用户必填参数 密级、类型、产品型号、文件图号、目标库、新版本
+          if(this.fileUpInfo.secretClass !== null && this.fileInfo.type !== null && this.fileUpInfo.productNo !== null && this.fileUpInfo.fileNo !== null && this.fileUpInfo.subLibraryId !== null &&
+            this.fileUpInfo.secretClass !== '' && this.fileInfo.type !== '' && this.fileUpInfo.productNo !== '' && this.fileUpInfo.fileNo !== '' && this.fileUpInfo.subLibraryId !== '' )
+          {
+            return true
+          }
+        }
       }
       /*computeVersionNum() {
         if(this.uploadType === 'secondEdit') {
