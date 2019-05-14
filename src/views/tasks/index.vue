@@ -36,6 +36,7 @@
       <span>
         <el-button type="success" @click="handleSelectTemplate" size="mini" v-if="roles.includes('ROLE_PROJECT_MANAGER') || editable === true">选择模版</el-button>
         <el-button type="success" @click="handleCheckTemplate" size="mini" v-else>查看流程</el-button>
+        <el-button type="primary" @click="handleStartPro" size="mini" v-if="startAble">启动项目</el-button>
       </span>
       <!--<el-button type="primary" @click="handleBackToPro" size="mini">项目管理</el-button>-->
     </div>
@@ -56,7 +57,7 @@
   import Kanban from '@/components/kanban'
   import visio from '@/views/visio/index-new'
   import { getLinks, getProcessNodes } from '@/api/pro-design-link'
-  import { getProjectById } from '@/api/project'
+  import { getProjectById, startPro } from '@/api/project'
 
   export default {
     name: 'task_manage',
@@ -101,7 +102,9 @@
         listLoading: false,
         templateDialog: false,
         editable: false,
-        completeFlag: false
+        completeFlag: false,
+        proInfo: {},
+        startAble: false
       }
     },
     created() {
@@ -117,6 +120,12 @@
       getProDetail() {
         getProjectById(this.proId).then((res) => {
           if(res.data.code === 0) {
+            this.proInfo = res.data.data
+            if(this.proInfo.state === 0 && this.proInfo.pic.id === this.getCookie('userId')) {
+              this.startAble = true
+            } else {
+              this.startAble = false
+            }
             if(res.data.data.pic.id === this.getCookie('userId')) {
               this.editable = true
             }
@@ -168,6 +177,29 @@
       },
       handleBackToPro() {
         this.$router.push({ path: '/projectManage' })
+      },
+      handleStartPro() {
+        startPro(this.proId).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '项目启动成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.startAble = false
+            this.getProDetail()
+            this.getLinkList()
+            this.getProcessList()
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
       }
     },
     computed: {
