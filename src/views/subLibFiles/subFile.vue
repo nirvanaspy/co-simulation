@@ -232,7 +232,7 @@
                     <span style="display:inline-block;padding:0 10px;" @click="applyToEdit(scope.row)">申请二次修改</span>
                   </el-dropdown-item>
                   <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'revoke')">
-                    <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销</span>
+                    <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销修改</span>
                   </el-dropdown-item>
                   <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'changeVersion')">
                     <span style="display:inline-block;padding:0 10px;" @click="handleRevokeSecond(scope.row)">更换版本</span>
@@ -716,7 +716,8 @@
         versionSelectDialog: false,
         switchVersion: '',
         switchVersionOptions: [],
-        commitLoading: false
+        commitLoading: false,
+        targetEditFile: {}
       }
     },
     created() {
@@ -835,6 +836,7 @@
         this.selectedFileId = row.id
         this.uploadType = editType
         this.currentVersion = row.version
+        this.targetEditFile = row
         this.uploadDialog = true
         this.hiddenClose = false
         this.$nextTick(() => {
@@ -1161,7 +1163,7 @@
       handleCommit() {
         if(this.selectedFiles.length === 0) {
           this.$message({
-            message: '清先选择文件！',
+            message: '请先选择文件！',
             type: 'warning'
           })
           return
@@ -1550,6 +1552,7 @@
             } else {
               return true
             }
+            return false
           }
           // 文件直接修改按钮
           if (opType === 'edit') {

@@ -175,7 +175,7 @@ export const asyncRouterMap = [
   {
     path: '/audit_apply',
     component: Layout,
-    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '文件修改申请', icon: 'audit2' }}]
+    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '二次修改申请', icon: 'audit2' }}]
     /* meta: {
       roles: ['ROLE_ADMIN']
     }*/

@@ -8,8 +8,8 @@ let ipConfig = getIp()
 let portConfig = getPort()
 // let serviceConfig = 'http://' + ipConfig + ':' + portConfig + '/apis'
 // let serviceConfig = 'http://127.0.0.1:8080' + '/apis'
-let serviceConfig = 'http://192.168.31.134:8080'
-// let serviceConfig = 'http://127.0.0.1:8080'
+// let serviceConfig = 'http://192.168.31.134:8080'
+let serviceConfig = 'http://127.0.0.1:8080'
 // let serviceConfig = 'http://192.168.31.13:8080' + '/apis'
 
 let timeStamp = getExpire()
