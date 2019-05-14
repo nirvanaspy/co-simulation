@@ -41,16 +41,16 @@
               <el-button size="mini" type="primary" :loading="scope.row.loading" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true">
+                  <el-dropdown-item :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 1)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true">
+                  <el-dropdown-item :disabled="scope.row.state > 1||scope.row.state==1 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 1)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -105,16 +105,16 @@
               <el-button size="mini" type="primary" :loading="scope.row.loading" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 2 || scope.row.ifReject == true">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 2 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state !== 2 || scope.row.ifReject == true">
+                  <el-dropdown-item :disabled="scope.row.state !== 2 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 2)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state !== 2 || scope.row.ifReject == true">
+                  <el-dropdown-item :disabled="scope.row.state !== 2 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 2)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -162,16 +162,16 @@
               <el-button size="mini" type="primary" :loading="scope.row.loading" @click="previewFile(scope.row)">预览文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 3||computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 3||computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state !== 3|| computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true">
+                  <el-dropdown-item :disabled="scope.row.state !== 3|| computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 3)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state !== 3|| computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true">
+                  <el-dropdown-item :disabled="scope.row.state !== 3|| computedAssessState(scope.row) || scope.row.state > 3 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 3)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
