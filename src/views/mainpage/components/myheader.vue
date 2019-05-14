@@ -393,7 +393,7 @@
         let url = service.defaults.baseURL + '/COSIMULATION';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
-        stompClient.debug=null
+        // stompClient.debug=null
         let that = this;
         let username = this.getCookie('username')
         stompClient.connect({}, function (frame) {
@@ -442,7 +442,7 @@
               newArr.push(res.data.data[i])
               newArr[i].timeStartApp = newCreateSecond;
             }
-            // this.unReadMesCount = unReadList.length
+            this.unReadMesCount = unReadList.length
             this.mesList = newArr.sort(this.sortDate);
           }
         })
