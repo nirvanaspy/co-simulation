@@ -91,6 +91,7 @@
             type="date"
             placeholder="设置截止日期"
             format="yyyy 年 MM 月 dd 日"
+            :picker-options="pickerOptions"
             value-format="timestamp">
           </el-date-picker>
         </el-form-item>
@@ -137,6 +138,11 @@
     },
     data() {
       return {
+        pickerOptions: {
+          disabledDate(time) {
+            return time.getTime() < Date.now() - 8.64e7;
+          },
+        },
         proId: '',
         userId: '',
         taskInfo: {
