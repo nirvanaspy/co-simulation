@@ -14,13 +14,13 @@
             <div class="userboard">
               <div class="filiter-box">
                 <div class="input-group">
-                  <el-input type="text" size="small" style="width:200px;"></el-input>
+                  <el-input type="text" size="small" v-model="searchQuery" style="width:200px;"></el-input>
                   <div class="input-group-button">
                     <svg-icon icon-class="search"></svg-icon>
                   </div>
                 </div>
               </div>
-              <div v-for="item in userList" class="user-item" v-if="item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor'">
+              <div v-for="item in userListA" class="user-item" v-if="item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor'">
                 <div class="editor-box">
                   <!--<span class="editor-item editor-edit" @click="handleEnableSelect(item)">
                     <el-tooltip content="修改角色" placement="top">
@@ -351,7 +351,8 @@
         createRoleDialog: false,
         editRoleDialog: false,
         editPassDialog: false,
-        addUserLoading: false
+        addUserLoading: false,
+        searchQuery: ''
       }
     },
     created() {
@@ -382,7 +383,9 @@
       getRolesList() {
         roleList(this.listQuery).then((res) => {
           if(res.data.code === 0) {
-            this.roleList = res.data.data
+            this.roleList = res.data.data.filter((item) => {
+              return item.name !== 'admin' && item.name !== 'security_guard' && item.name !== 'security_auditor' && item.name !== 'user'
+            })
           } else {
             this.$notify({
               title: '失败',
@@ -807,6 +810,12 @@
       }
     },
     computed: {
+      userListA: function () {
+        let self = this;
+        return self.userList.filter(function (item) {
+          return item.username.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+        })
+      },
       listenNowTabs() {
         return this.nowTabs
       },
@@ -1077,7 +1086,7 @@
     width: 32px;
     line-height: 32px;
     position: relative;
-    top: 1px;
+    top: 2px;
     left: -10px;
     display: inline-block;
     // background: #3f7b5f;
