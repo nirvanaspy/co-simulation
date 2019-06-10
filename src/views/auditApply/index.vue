@@ -10,7 +10,7 @@
         </el-table-column>
         <el-table-column align="center" min-width="120px" label="所属库">
           <template slot-scope="scope">
-            <span>{{scope.row.sublibraryEntity.type}}</span>
+            <span>{{scope.row.subDepot.type}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" width="200px" label="操作">
@@ -31,7 +31,7 @@
         </el-table-column>
         <el-table-column align="center" min-width="120px" label="所属项目">
           <template slot-scope="scope">
-            <span>{{scope.row.projectEntity.name}}</span>
+            <span>{{scope.row.project.name}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" width="200px" label="操作">

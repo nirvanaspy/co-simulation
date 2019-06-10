@@ -63,7 +63,7 @@
       <el-table-column label="种类" width="100">
         <template slot-scope="scope">
           <span v-if="scope.row.folder !== true && !scope.row.newFolder">
-            {{scope.row.fileEntity.postfix}}
+            {{scope.row.files.postfix}}
           </span>
           <span v-if="scope.row.folder == true && !scope.row.newFolder">
             文件夹
@@ -72,7 +72,7 @@
       </el-table-column>
       <el-table-column width="120" :label="$t('table.compSize')">
         <template slot-scope="scope">
-          <span v-if="scope.row.folder !== true">{{computedSize(scope.row.fileEntity.fileSize)}}</span>
+          <span v-if="scope.row.folder !== true">{{computedSize(scope.row.files.fileSize)}}</span>
           <span v-if="scope.row.folder === true&&scope.row.name">--</span>
           <span v-if="scope.row.newFolder" style="cursor: pointer;" @click="cancelNewFolder">
             <svg-icon icon-class="cancel"></svg-icon>
@@ -1098,9 +1098,9 @@
           let iconType = ''
           if(row.folder == true) {
             iconType = 'folder'
-          } else if(row.fileEntity.type === 'png' || row.fileEntity.type === 'jpg' || row.fileEntity.type === 'gif'){
+          } else if(row.files.type === 'png' || row.files.type === 'jpg' || row.files.type === 'gif'){
             iconType = 'image'
-          } else if(row.fileEntity.type === 'rar' || row.fileEntity.type === 'zip') {
+          } else if(row.files.type === 'rar' || row.files.type === 'zip') {
             iconType = 'compressed'
           } else {
             iconType = 'file'

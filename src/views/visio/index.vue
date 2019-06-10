@@ -543,14 +543,14 @@
                   fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL'
                 })*/
                 // if(nodeArr.findIndex(target => target.key == linkArr[j].to) > -1) {
-                if(nodeArr[i].subtaskEntity) {
+                if(nodeArr[i].subtask) {
                   arrRes.push({
                     nodeName: nodeArr[i].text,
                     location: nodeArr[i].loc,
                     selfSign: nodeArr[i].key,
                     figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
                     nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-                    subtaskId: nodeArr[i].subtaskEntity ? nodeArr[i].subtaskEntity.id : null,
+                    subtaskId: nodeArr[i].subtask ? nodeArr[i].subtask.id : null,
                     parentSign: linkArr[j].from,
                     toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
                     fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
@@ -578,7 +578,7 @@
                   selfSign: nodeArr[i].key,
                   figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
                   nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-                  subtaskId: nodeArr[i].subtaskEntity ? nodeArr[i].subtaskEntity.id : null,
+                  subtaskId: nodeArr[i].subtask ? nodeArr[i].subtask.id : null,
                   parentSign: linkArr[j].from,
                   toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
                   fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
@@ -622,11 +622,11 @@
               selfSign: nodeArr[i].key,
               figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
               nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-              subtaskId: nodeArr[i].subtaskEntity ? nodeArr[i].subtaskEntity.id : null,
+              subtaskId: nodeArr[i].subtask ? nodeArr[i].subtask.id : null,
               parentSign: 'NULL',
               toPort: 'NULL',
               fromPort: 'NULL',
-              ifNew: nodeArr[i].subtaskEntity ? false : true
+              ifNew: nodeArr[i].subtask ? false : true
               /*parentSign: null,
               toPort: null,
               fromPort: null*/
@@ -683,9 +683,9 @@
               loc: this.processNodes[i].location,
               size: this.processNodes[i].nodeSize,
               text: this.processNodes[i].nodeName,
-              subtaskEntity: this.processNodes[i].subtaskEntity
+              subtask: this.processNodes[i].subtask
             }
-            if(this.processNodes[i].subtaskEntity.ifApprove === true) {
+            if(this.processNodes[i].subtask.ifApprove === true) {
               arrItem.fill = '#2ac06d'
               arrItem.pass = true
             }
@@ -702,7 +702,7 @@
               points: []
             }
             // 判断已完成的子任务的连接关系
-            if(this.processNodes[i].subtaskEntity.ifApprove === true) {
+            if(this.processNodes[i].subtask.ifApprove === true) {
               linkItem.pass = true
             }
             linkArr.push(linkItem)

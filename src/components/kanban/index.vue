@@ -11,7 +11,7 @@
       <div v-for="element in list" :key="element.id" class="board-item" @dblclick.stop="handleSelectTask(element)">
         <span class="tag-box"></span>
         <span @click="handleEditTask(element)">
-          <!--<span v-if="element.designLinkEntity">{{element.designLinkEntity.description}}</span>-->
+          <!--<span v-if="element.designLink">{{element.designLink.description}}</span>-->
           <span class="link-type">{{element.name}}</span>
         </span>
         <!--<span>{{ element.description }}</span>-->
@@ -25,8 +25,8 @@
           <span class="status-box">
             {{copmutedDate(element.finishTime)}}
           </span>
-          <span class="link-type taskPic" v-if="element.userEntity">
-            <svg-icon icon-class="people"></svg-icon>{{element.userEntity.username}}
+          <span class="link-type taskPic" v-if="element.users">
+            <svg-icon icon-class="people"></svg-icon>{{element.users.username}}
           </span>
         </div>
       </div>
@@ -52,12 +52,12 @@
           </label>
           <el-input v-model="taskInfo.description"></el-input>
         </el-form-item>-->
-        <el-form-item :label="$t('table.projectDesc')" prop="userEntity">
+        <el-form-item :label="$t('table.projectDesc')" prop="users">
           <label slot="label">
             <svg-icon icon-class="people"></svg-icon>
             执行者
           </label>
-          <el-select v-model="taskInfo.userEntity" value-key="id" :loading="getMaLoading" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
+          <el-select v-model="taskInfo.users" value-key="id" :loading="getMaLoading" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
             <el-option
               v-for="item in taskPicOptions"
               :key="item.id"
@@ -71,7 +71,7 @@
             <svg-icon icon-class="process"></svg-icon>
             设计环节
           </label>
-          <el-select v-model="taskInfo.designLinkEntity" value-key="description" @focus="getAbleLinks" placeholder="请选择" style="width: 100%">
+          <el-select v-model="taskInfo.designLink" value-key="description" @focus="getAbleLinks" placeholder="请选择" style="width: 100%">
             <el-option
               v-for="item in desiginLinkOptions"
               :key="item.id"
@@ -149,10 +149,10 @@
           name: '',
           info: '',
           userId: '',
-          userEntity: {
+          users: {
 
           },
-          designLinkEntity: {
+          designLink: {
 
           },
           finishTime: '',
@@ -168,7 +168,7 @@
         desiginLinkOptions: [],
         rules: {
           finishTime: [{required: true, message: '请选择结束时间！', trigger: 'change'}],
-          userEntity: [{required: true, message: '请选择任务负责人！', trigger: 'change'}],
+          users: [{required: true, message: '请选择任务负责人！', trigger: 'change'}],
         },
         getMaLoading: true
       }
@@ -202,7 +202,7 @@
             res.data.data.forEach((item) => {
               if(item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor') {
                 if(this.list.length > 0) {
-                  if(item.secretClass >= this.list[0].projectEntity.secretClass) {
+                  if(item.secretClass >= this.list[0].project.secretClass) {
                     this.taskPicOptions.push(item)
                   }
                 } else {
@@ -232,7 +232,7 @@
             let data = {
               finishTime: this.taskInfo.finishTime.toString(),
               userId: this.taskInfo.userId,
-              designLinkEntityId: this.taskInfo.linkId
+              designLinkId: this.taskInfo.linkId
             }
             let dataPost = qs.stringify(data)
             setProLinks(this.proId, dataPost).then((res) => {
@@ -263,11 +263,11 @@
       handleEditTask(temp) {
         this.dialogStatus = 'update'
         this.taskInfo = Object.assign({}, temp)
-        if (temp.userEntity !== null) {
-          this.taskPicOptions = [temp.userEntity]
+        if (temp.users !== null) {
+          this.taskPicOptions = [temp.users]
         }
-        if (temp.designLinkEntity !== null) {
-          this.desiginLinkOptions = [temp.designLinkEntity]
+        if (temp.designLink !== null) {
+          this.desiginLinkOptions = [temp.designLink]
         }
         this.newTaskDialog = true
         this.$nextTick(() => {
@@ -280,9 +280,9 @@
             let qs = require('qs')
             let data = {
               finishTime: this.taskInfo.finishTime.toString(),
-              userId: this.taskInfo.userEntity.id,
+              userId: this.taskInfo.users.id,
               loginUserId: this.userId
-              // designLinkEntityId: this.taskInfo.designLinkEntity.id
+              // designLinkId: this.taskInfo.designLink.id
             }
             let dataPost = qs.stringify(data)
             updateProDesignLink(this.taskInfo.id, this.proId, dataPost).then(res => {
@@ -347,7 +347,7 @@
             id: row.id
           },
           query: {
-            name: row.designLinkEntity ? row.designLinkEntity.name : ''
+            name: row.designLink ? row.designLink.name : ''
           }
         })
         this.setCookie('taskSelectedName')*/
@@ -360,7 +360,7 @@
           })
           return
         }
-        if(row.userEntity !== null) {
+        if(row.users !== null) {
           this.$router.push({
             path: '/taskFiles',
             name: 'taskFiles',
@@ -368,14 +368,13 @@
               id: row.id
             },
             query: {
-              proClass: row.projectEntity.secretClass,
+              proClass: row.project.secretClass,
               name: row.name
             }
           })
-          console.log(row.projectEntity.secretClass)
           this.setCookie('taskSelectedName',encodeURI(row.name))
           this.setCookie('taskSelectedId', row.id)
-          this.setCookie('taskSelectedClass', row.projectEntity.secretClass)
+          this.setCookie('taskSelectedClass', row.project.secretClass)
         } else {
           this.$notify({
             title: '失败',

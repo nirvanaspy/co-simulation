@@ -203,7 +203,7 @@
             </el-table-column>
             <el-table-column width="120" label="上传者" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.userEntity.username}}</span>
+                <span>{{scope.row.users.username}}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -401,7 +401,7 @@
             operator: 'eq',
             value: true
           },{
-            field: 'userEntity.id',
+            field: 'users.id',
             operator: 'contains',
             value: '218b4827'
           }]

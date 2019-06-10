@@ -574,16 +574,19 @@
             loc: this.processNodes[i].location,
             size: this.processNodes[i].nodeSize,
             text: this.processNodes[i].nodeName,
-            subtaskEntity: this.processNodes[i].subtaskEntity
+            subtask: this.processNodes[i].subtask
           }
-          if(this.processNodes[i].subtaskEntity.ifApprove === true) {
+          if(this.processNodes[i].subtask.ifApprove === true) {
             nodeItem.pass = true
             nodeItem.fill = '#2ac06d'
             nodeItem.ifAllowTo = false
           }
+          if(this.processNodes[i].subtask.ifApprove === false && this.processNodes[i].subtask.state > 0) {
+            nodeItem.fill = '#f9944a'
+          }
           nodeArr.push(nodeItem)
-          if(this.processNodes[i].linkEntityList !== null) {
-            this.processNodes[i].linkEntityList.forEach((link) => {
+          if(this.processNodes[i].linkList !== null) {
+            this.processNodes[i].linkList.forEach((link) => {
               let fromNode = this.processNodes.find(item => item.id == link.parentId)
               if(fromNode !== undefined) {
                 let linkItem = {

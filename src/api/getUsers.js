@@ -89,9 +89,25 @@ export function updateSecretClass(id, data) {
   })
 }
 
-export function getUserById(id,) {
+export function getUserById(id) {
   return request({
     url: '/users/' + id,
     method: 'get'
+  })
+}
+
+export function updateUserDepartment(id, data) {
+  return request({
+    url: '/users/' + id + '/department',
+    method: 'patch',
+    data
+  })
+}
+
+export function ifIncharge(data) {
+  return request({
+    url: '/subtasks/ifIncharge',
+    method: 'post',
+    data
   })
 }

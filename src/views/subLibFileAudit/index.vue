@@ -227,7 +227,7 @@
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 4 || scope.row.ifReject == true || scope.row.ifApprove == true">
-                  <!--scope.row.userEntity.id==userId?true:scope.row.state !== 5-->
+                  <!--scope.row.users.id==userId?true:scope.row.state !== 5-->
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -266,7 +266,7 @@
                 style="width: 100%">
         <el-table-column align="center" min-width="80px" label="审批人">
           <template slot-scope="scope">
-            <span>{{scope.row.userEntity.username}}</span>
+            <span>{{scope.row.users.username}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" width="120px" label="所属审核流程">
@@ -388,8 +388,8 @@
       },
       handlePassApply(row, state) {
         // 当用户是当前子任务的创建者，则直接忽略通过
-        if(row.userEntity.id==this.userId) {
-          this.currenttaskid=row.userEntity.id
+        if(row.users.id==this.userId) {
+          this.currenttaskid=row.users.id
         }
         this.dialogStatus = 'pass'
         this.opinionDialog = true
@@ -552,6 +552,7 @@
       },
       previewFile(row) {
         row.loading = true
+        this.listLoading = true
         previewSublibFiles(row.id).then((res) => {
           if(res.data.code === 0) {
             if(res.data.data.fileType === 'picture') {
@@ -588,8 +589,10 @@
             })
           }
           row.loading = false
+          this.listLoading = false
         }).catch(() => {
           row.loading = false
+          this.listLoading = false
         })
       },
       filterState(value, row) {
@@ -642,7 +645,7 @@
           for(let i=0;i<this.maps.length;i++){
             // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
             if(this.maps[i].state === 3) {
-              if(this.maps[i].userEntity.id == this.userId && this.maps[i].sublibraryFilesEntity.id == row.id){
+              if(this.maps[i].users.id == this.userId && this.maps[i].sublibraryFilesEntity.id == row.id){
                 console.log(this.maps[i])
                 assessState = true
                 break
@@ -655,7 +658,7 @@
       computeMyPassState() {
         return function (row, assessState) {
           /* for (let i = 0; i < this.maps.length; i++) {
-            if(this.maps[i].userEntity.id==this.userId && this.maps[i].sublibraryFilesEntity.id==row.fileEntity.id && this.maps[i].assessState == assessState) {
+            if(this.maps[i].users.id==this.userId && this.maps[i].sublibraryFilesEntity.id==row.files.id && this.maps[i].assessState == assessState) {
               if(this.maps[i].pass === true) {
                 return '已通过'
               } else {

@@ -135,7 +135,7 @@
               <span class="mes-des-box">{{operateTypeMap[item.mainBody]}}</span>
               <span class="mes-des-box operator">
                 操作人：
-                <span v-if="item.mainOperator">{{item.mainOperator.username}}</span>
+                <span v-if="item.mainOperatorName">{{item.mainOperatorName}}</span>
                 <span v-else>--</span>
               </span>
               <span class="mes-des-box time">{{item.createTime}}</span>
@@ -162,11 +162,11 @@
               <div class="detail-footer">
                 <div style="height: 40px;line-height: 40px;" v-if="selectedMesObj">
                   <span><svg-icon icon-class="user-1" class="icons"></svg-icon>被操作人：</span>
-                  <span v-if="selectedMesObj.arrangedPerson">{{selectedMesObj.arrangedPerson.username}}</span>
+                  <span v-if="selectedMesObj.arrangedPersonName">{{selectedMesObj.arrangedPersonName}}</span>
                 </div>
                 <div style="height: 40px;line-height: 40px;" v-if="selectedMesObj">
                   <span><svg-icon icon-class="user-1" class="icons"></svg-icon>操作人：</span>
-                  <span v-if="selectedMesObj.mainOperator">{{selectedMesObj.mainOperator.username}}</span>
+                  <span v-if="selectedMesObj.mainOperatorName">{{selectedMesObj.mainOperatorName}}</span>
                 </div>
                 <div style="height: 40px;line-height: 40px;">
                   <span><svg-icon icon-class="components3" class="icons"></svg-icon>操作类型：</span>

@@ -1,401 +1,455 @@
- //覆盖一些element-ui样式
+//覆盖一些element-ui样式
 
- .el-breadcrumb__inner, .el-breadcrumb__inner a{
-  font-weight: 400!important;
+.el-breadcrumb__inner, .el-breadcrumb__inner a {
+  font-weight: 400 !important;
 }
- .navbar {
-   .el-breadcrumb__item {
-     line-height: 62px!important;
-     a {
-       color: #fff;
-       font-weight: 700!important;
-     }
-   }
- }
 
- .el-upload {
-   input[type="file"] {
-     display: none !important;
-   }
- }
+.navbar {
+  .el-breadcrumb__item {
+    line-height: 62px !important;
 
- .el-upload__input {
-   display: none;
- }
+    a {
+      color: #fff;
+      font-weight: 700 !important;
+    }
+  }
+}
 
- .cell {
-   .el-tag {
-     margin-right: 0px;
-   }
- }
+.el-upload {
+  input[type="file"] {
+    display: none !important;
+  }
+}
 
- .small-padding {
-   .cell {
-     padding-left: 5px;
-     padding-right: 5px;
-   }
- }
+.el-upload__input {
+  display: none;
+}
 
- .fixed-width{
-  .el-button--mini{
+.cell {
+  .el-tag {
+    margin-right: 0px;
+  }
+}
+
+.small-padding {
+  .cell {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+.fixed-width {
+  .el-button--mini {
     padding: 7px 10px;
     width: 60px;
   }
- }
+}
 
- .status-col {
-   .cell {
-     padding: 0 10px;
-     text-align: center;
-     .el-tag {
-       margin-right: 0px;
-     }
-   }
- }
+.status-col {
+  .cell {
+    padding: 0 10px;
+    text-align: center;
 
- //暂时性解决dialog 问题 https://github.com/ElemeFE/element/issues/2461
- .el-dialog {
-   transform: none;
-   left: 0;
-   position: relative;
-   margin: 0 auto;
- }
- .visio-dialog .el-dialog {
-   height: 80%;
-   margin-top: 10vh !important;
-   .el-dialog__body {
-     height: calc(100% - 40px);
-   }
- }
+    .el-tag {
+      margin-right: 0px;
+    }
+  }
+}
 
- //文章页textarea修改样式
- .article-textarea {
-   textarea {
-     padding-right: 40px;
-     resize: none;
-     border: none;
-     border-radius: 0px;
-     border-bottom: 1px solid #bfcbd9;
-   }
- }
+//暂时性解决dialog 问题 https://github.com/ElemeFE/element/issues/2461
+.el-dialog {
+  transform: none;
+  left: 0;
+  position: relative;
+  margin: 0 auto;
+}
 
- //element ui upload
- .upload-container {
-   .el-upload {
-     width: 100%;
-     .el-upload-dragger {
-       width: 100%;
-       height: 200px;
-     }
-   }
- }
+.visio-dialog .el-dialog {
+  height: 80%;
+  margin-top: 10vh !important;
+
+  .el-dialog__body {
+    height: calc(100% - 40px);
+  }
+}
+
+//文章页textarea修改样式
+.article-textarea {
+  textarea {
+    padding-right: 40px;
+    resize: none;
+    border: none;
+    border-radius: 0px;
+    border-bottom: 1px solid #bfcbd9;
+  }
+}
+
+//element ui upload
+.upload-container {
+  .el-upload {
+    width: 100%;
+
+    .el-upload-dragger {
+      width: 100%;
+      height: 200px;
+    }
+  }
+}
 
 //dropdown
- .el-dropdown-menu{
-  a{
+.el-dropdown-menu {
+  a {
     display: block
   }
 }
- #packageTable {
-   thead{
-     th{
-       padding-top:0;
-       padding-bottom:0;
-     }
-   }
- }
 
- .deploy-action-btn.el-button--mini {
-   padding: 7px 5px;
- }
-
- .el-tabs .el-tabs__content {
-   height: 100%;
-   overflow-y: scroll;
-   /*隐藏滚动条，当IE下溢出，仍然可以滚动*/
-   -ms-overflow-style:none;
-   /*火狐下隐藏滚动条*/
-   overflow:-moz-scrollbars-none;
- }
- /*Chrome下隐藏滚动条，溢出可以透明滚动*/
- .el-tabs {
-   .el-tabs__content::-webkit-scrollbar{width:0px}
- }
-
-
- .project-container .el-tabs__header.is-left {
-   position: absolute;
-   left: calc(18% - 130px);
-   .el-tabs__item {
-     color: #777;
-   }
-   .el-tabs__item:hover,  .el-tabs__item.is-active {
-     color: #409EFF;
-   }
- }
- .limit-width-dialog {
-   .el-dialog {
-     max-width: 540px;
-   }
- }
- .message-dialog {
-   .el-dialog {
-     margin-top: 60px !important;
-     height: calc(100% - 60px);
-     // opacity: 0.6;
-     background: rgba(255,255,255,0.7);
-     .el-dialog__header {
-       background: none !important;
-       height: 50px;
-       border: 1px solid #ccc;
-     }
-     .el-dialog__body {
-       height: calc(100% - 51px);
-       padding: 10px 60px 30px;
-     }
-     .el-dialog__close {
-       color: #333;
-     }
-   }
- }
-
-
- .scanResDialog .el-tabs__content {
-   height: 500px;
-   overflow-y: scroll;
- }
- .scanResDialog {
-   .el-dialog {
-     .el-dialog__body {
-       padding-top: 0;
-     }
-     min-width: 620px;
-   }
-   .searchResTable {
-     height: 500px;
-     overflow-y: scroll;
-   }
- }
-
- .no-padding-dialog {
-   .el-dialog {
-     .el-dialog__body {
-       padding-top: 0;
-     }
-   }
-   .filter-item {
-     .el-input__inner {
-       border-radius: 100px;
-       height: 30px;
-       line-height: 30px;
-     }
-   }
- }
-
- .ableToSelectComp {
-   .el-table__expanded-cell {
-     padding: 4px 30px;
-   }
- }
-
- .avatar-wrapper .el-icon-caret-bottom {
-   color: #fff;
- }
-
- .el-tabs--border-card  {
-   box-shadow: 0 1px 1px 0 rgba(0,0,0,.06), 0 0 6px 0 rgba(0,0,0,.04);
- }
-
-
- //弹框样式(golobal)
- .usermanageCont {
-   .el-dialog {
-     width: 400px !important;
-   }
- }
- .el-dialog__header {
-   // background: #2eb2dc !important;
-   background: #82d4ec !important;
-   height: 40px;
-   .el-dialog__title {
-     color: #fff;
-   }
-   .el-icon-close {
-     color: #fff;
-   }
- }
- .el-dialog__header {
-   padding: 10px 20px!important;
-   .el-dialog__headerbtn {
-     top: 13px;
-   }
-   .el-dialog__headerbtn:hover .el-dialog__close {
-     color: #fff;
-   }
- }
-
- /*.createDialog {
-   .el-dialog__header {
-     // background: rgb(92,184,92) !important;
-     .el-dialog__title {
-       color: #fff;
-     }
-     .el-icon-close {
-       color: #fff;
-     }
-   }
- }
-
- .editDialog {
-   .el-dialog__header {
-     // background: rgb(240,173,48) !important;
-     .el-dialog__title {
-       color: #fff;
-     }
-     .el-icon-close {
-       color: #fff;
-     }
-   }
- }*/
-
- .personInfoDialog {
-   .el-form-item__content {
-     line-height: 30px;
-   }
-   .el-form-item {
-     margin-bottom: 8px !important;
-   }
-   .el-form-item__label {
-     line-height: 30px;
-   }
-   .el-input, .el-form-item__content {
-     height: 30px;
-   }
-   input.el-input__inner {
-     height: 30px;
-   }
-   .el-dialog__body {
-     text-align: left;
-   }
-   .el-dialog__footer {
-     padding: 0px 20px 10px;
-   }
- }
- .usermanageCont {
-   .el-tabs__content {
-     padding: 20px 40px;
-   }
- }
-
-
- .project-container {
-   .el-tabs__nav-wrap::after {
-     background-color: transparent;
-   }
-   .el-tabs__nav-wrap.is-left {
-     margin-top: 20px;
-   }
-   .el-tabs__header.is-top {
-     width: 60%;
-     max-width: 800px;
-     margin: 0 auto;
-   }
-   .el-tabs__item {
-     color: #777;
-   }
-   .el-tabs__item.is-active {
-     color: #409EFF;
-   }
- }
- .pro-setting-dialog {
-    .el-dialog {
-      max-width: 800px;
-      min-width: 600px;
-      .el-dialog__header {
-        text-align: center;
-        font-weight: 700;
-      }
-      .el-dialog__body {
-        padding: 10px 20px 20px 0;
-      }
+#packageTable {
+  thead {
+    th {
+      padding-top: 0;
+      padding-bottom: 0;
     }
-   .el-tabs__item {
-     color: #777;
-     font-size: 14px;
-     font-weight: 500;
-   }
-   .el-tabs__item.is-active {
-     color: #409EFF;
-   }
-   .el-tabs__content {
-     padding-left: 20px;
-   }
-   .el-input__inner {
-     height: 44px;
-     line-height: 44px;
-   }
- }
+  }
+}
 
- .role-select {
-   min-width: 240px;
-   .el-input__inner {
-     border: none;
-     height: 30px;
-     line-height: 30px;
-   }
-   .el-input__suffix {
-     display: none;
-   }
- }
+.deploy-action-btn.el-button--mini {
+  padding: 7px 5px;
+}
 
- .my-menu-dropdown.el-dropdown-menu{
-   margin-left: -210px;
-   top: 60px!important;
-   .popper__arrow {
-     display: none;
-   }
- }
- .audit-dialog {
-   .el-dialog__body {
-     max-height: 600px;
-     overflow-y: auto;
-   }
- }
- .audit-collapse {
-   border-top: none;
-   border-bottom: none;
-   margin-top: 20px;
-   .el-collapse-item__header {
-     border: none;
-     color: #606266;
-     font-size: 14px;
-   }
-   .el-collapse-item__header.is-active {
-     // color: #409EFF;
-   }
-   .el-collapse-item__wrap {
-     border: none;
-   }
- }
+.el-tabs .el-tabs__content {
+  height: 100%;
+  overflow-y: scroll;
+  /*隐藏滚动条，当IE下溢出，仍然可以滚动*/
+  -ms-overflow-style: none;
+  /*火狐下隐藏滚动条*/
+  overflow: -moz-scrollbars-none;
+}
 
- .el-tooltip__popper {
-   padding: 2px 4px;
- }
+/*Chrome下隐藏滚动条，溢出可以透明滚动*/
+.el-tabs {
+  .el-tabs__content::-webkit-scrollbar {
+    width: 0px
+  }
+}
 
- .repeatFiles {
-   .el-table__header {
-     .cell {
-       color: #f56c6c;
-     }
-   }
- }
 
- .myBage {
-   .el-badge__content {
-     top: 16px;
-     right: 6px;
-   }
- }
+.project-container .el-tabs__header.is-left {
+  position: absolute;
+  left: calc(18% - 130px);
+
+  .el-tabs__item {
+    color: #777;
+  }
+
+  .el-tabs__item:hover, .el-tabs__item.is-active {
+    color: #409EFF;
+  }
+}
+
+.limit-width-dialog {
+  .el-dialog {
+    max-width: 540px;
+  }
+}
+
+.message-dialog {
+  .el-dialog {
+    margin-top: 60px !important;
+    height: calc(100% - 60px);
+    // opacity: 0.6;
+    background: rgba(255, 255, 255, 0.9);
+
+    .el-dialog__header {
+      background: none !important;
+      height: 50px;
+      border: 1px solid #ccc;
+    }
+
+    .el-dialog__body {
+      height: calc(100% - 51px);
+      padding: 10px 60px 30px;
+    }
+
+    .el-dialog__close {
+      color: #333;
+    }
+  }
+}
+
+
+.scanResDialog .el-tabs__content {
+  height: 500px;
+  overflow-y: scroll;
+}
+
+.scanResDialog {
+  .el-dialog {
+    .el-dialog__body {
+      padding-top: 0;
+    }
+
+    min-width: 620px;
+  }
+
+  .searchResTable {
+    height: 500px;
+    overflow-y: scroll;
+  }
+}
+
+.no-padding-dialog {
+  .el-dialog {
+    .el-dialog__body {
+      padding-top: 0;
+    }
+  }
+
+  .filter-item {
+    .el-input__inner {
+      border-radius: 100px;
+      height: 30px;
+      line-height: 30px;
+    }
+  }
+}
+
+.ableToSelectComp {
+  .el-table__expanded-cell {
+    padding: 4px 30px;
+  }
+}
+
+.avatar-wrapper .el-icon-caret-bottom {
+  color: #fff;
+}
+
+.el-tabs--border-card {
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .06), 0 0 6px 0 rgba(0, 0, 0, .04);
+}
+
+
+//弹框样式(golobal)
+.usermanageCont {
+  .el-dialog {
+    width: 400px !important;
+  }
+}
+
+.el-dialog__header {
+  // background: #2eb2dc !important;
+  background: #82d4ec !important;
+  height: 40px;
+
+  .el-dialog__title {
+    color: #fff;
+  }
+
+  .el-icon-close {
+    color: #fff;
+  }
+}
+
+.el-dialog__header {
+  padding: 10px 20px !important;
+
+  .el-dialog__headerbtn {
+    top: 13px;
+  }
+
+  .el-dialog__headerbtn:hover .el-dialog__close {
+    color: #fff;
+  }
+}
+
+/*.createDialog {
+  .el-dialog__header {
+    // background: rgb(92,184,92) !important;
+    .el-dialog__title {
+      color: #fff;
+    }
+    .el-icon-close {
+      color: #fff;
+    }
+  }
+}
+
+.editDialog {
+  .el-dialog__header {
+    // background: rgb(240,173,48) !important;
+    .el-dialog__title {
+      color: #fff;
+    }
+    .el-icon-close {
+      color: #fff;
+    }
+  }
+}*/
+
+.personInfoDialog {
+  .el-form-item__content {
+    line-height: 30px;
+  }
+
+  .el-form-item {
+    margin-bottom: 8px !important;
+  }
+
+  .el-form-item__label {
+    line-height: 30px;
+  }
+
+  .el-input, .el-form-item__content {
+    height: 30px;
+  }
+
+  input.el-input__inner {
+    height: 30px;
+  }
+
+  .el-dialog__body {
+    text-align: left;
+  }
+
+  .el-dialog__footer {
+    padding: 0px 20px 10px;
+  }
+}
+
+.usermanageCont {
+  .el-tabs__content {
+    padding: 20px 40px;
+  }
+}
+
+
+.project-container {
+  .el-tabs__nav-wrap::after {
+    background-color: transparent;
+  }
+
+  .el-tabs__nav-wrap.is-left {
+    margin-top: 20px;
+  }
+
+  .el-tabs__header.is-top {
+    width: 60%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .el-tabs__item {
+    color: #777;
+  }
+
+  .el-tabs__item.is-active {
+    color: #409EFF;
+  }
+}
+
+.pro-setting-dialog {
+  .el-dialog {
+    max-width: 800px;
+    min-width: 600px;
+
+    .el-dialog__header {
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .el-dialog__body {
+      padding: 10px 20px 20px 0;
+    }
+  }
+
+  .el-tabs__item {
+    color: #777;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .el-tabs__item.is-active {
+    color: #409EFF;
+  }
+
+  .el-tabs__content {
+    padding-left: 20px;
+  }
+
+  .el-input__inner {
+    height: 44px;
+    line-height: 44px;
+  }
+}
+
+.role-select {
+  min-width: 240px;
+
+  .el-input__inner {
+    border: none;
+    height: 30px;
+    line-height: 30px;
+  }
+
+  .el-input__suffix {
+    display: none;
+  }
+}
+
+.my-menu-dropdown.el-dropdown-menu {
+  margin-left: -210px;
+  top: 60px !important;
+
+  .popper__arrow {
+    display: none;
+  }
+}
+
+.audit-dialog {
+  .el-dialog__body {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+}
+
+.audit-collapse {
+  border-top: none;
+  border-bottom: none;
+  margin-top: 20px;
+
+  .el-collapse-item__header {
+    border: none;
+    color: #606266;
+    font-size: 14px;
+  }
+
+  .el-collapse-item__header.is-active {
+    // color: #409EFF;
+  }
+
+  .el-collapse-item__wrap {
+    border: none;
+  }
+}
+
+.el-tooltip__popper {
+  padding: 2px 4px;
+}
+
+.repeatFiles {
+  .el-table__header {
+    .cell {
+      color: #f56c6c;
+    }
+  }
+}
+
+.myBage {
+  .el-badge__content {
+    top: 16px;
+    right: 6px;
+  }
+}
+
 .tree-container {
   .el-tree {
     // background: #effdfc;
@@ -404,7 +458,23 @@
 }
 
 .drop-box {
-  .el-radio+.el-radio {
+  .el-radio + .el-radio {
     margin-left: 12px;
+  }
+}
+
+.departmentCont {
+  .add-card .el-card__body {
+    height: 100%;
+  }
+
+  .el-card {
+    border: none;
+    margin: 0 20px;
+    background: #f1f5f9;
+  }
+
+  .el-card.is-hover-shadow:hover {
+    box-shadow: 0 3px 25px -4px rgba(0, 0, 0, 0.9);
   }
 }

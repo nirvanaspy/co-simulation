@@ -11,7 +11,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="所属项目">
             <template slot-scope="scope">
-              <span class="link-type" @click="jumpToPro(scope.row.projectEntity)">{{scope.row.projectEntity.name}}</span>
+              <span class="link-type" @click="jumpToPro(scope.row.project)">{{scope.row.project.name}}</span>
             </template>
           </el-table-column>
           <el-table-column align="center"
@@ -75,7 +75,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="所属项目">
             <template slot-scope="scope">
-              <span>{{scope.row.projectEntity.name}}</span>
+              <span>{{scope.row.project.name}}</span>
             </template>
           </el-table-column>
           <el-table-column align="center"
@@ -148,7 +148,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="所属项目">
             <template slot-scope="scope">
-              <span>{{scope.row.projectEntity.name}}</span>
+              <span>{{scope.row.project.name}}</span>
             </template>
           </el-table-column>
           <!--<el-table-column align="center" min-width="200px" label="是否通过">
@@ -222,7 +222,7 @@
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="所属项目">
             <template slot-scope="scope">
-              <span>{{scope.row.projectEntity.name}}</span>
+              <span>{{scope.row.project.name}}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -262,7 +262,7 @@
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
                   <el-button size="mini" type="warning" :disabled="scope.row.state !== 6 || scope.row.ifReject == true || scope.row.ifApprove == true">
-                  <!--scope.row.userEntity.id==userId?true:scope.row.state !== 5-->
+                  <!--scope.row.users.id==userId?true:scope.row.state !== 5-->
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -301,7 +301,7 @@
                 style="width: 100%">
         <el-table-column align="center" min-width="80px" label="审批人">
           <template slot-scope="scope">
-            <span>{{scope.row.userEntity.username}}</span>
+            <span>{{scope.row.users.username}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center" width="120px" label="所属审核流程">
@@ -367,7 +367,7 @@
           ],
 
         },
-        maps: [],  //存取当前回传maps中的用户操作状态数组(maps废弃，当前存储的是userEntityList)
+        maps: [],  //存取当前回传maps中的用户操作状态数组(maps废弃，当前存储的是usersList)
         auditLoading: false,
         opinionLoading: false,
         currentAuditMode: 0,
@@ -411,7 +411,7 @@
       },
       handlePassApply(row, state) {
         // 当用户是当前子任务的创建者，则直接忽略通过
-          if(row.userEntity.id==this.userId) {
+          if(row.users.id==this.userId) {
           this.$notify({
             title: '失败',
             message: '无法审核通过自己',
@@ -659,7 +659,7 @@
           for(let i=0;i<this.maps.length;i++){
             // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
             if(this.maps[i].state === 5) {
-              if(this.maps[i].userEntity.id == this.userId && this.maps[i].subtaskEntity.id == row.id){
+              if(this.maps[i].users.id == this.userId && this.maps[i].subtask.id == row.id){
                 console.log(this.maps[i])
                 assessState = true
                 break
@@ -672,7 +672,7 @@
       computeMyPassState() {
         return function (row, assessState) {
           /*for (let i = 0; i < this.maps.length; i++) {
-            if(this.maps[i].userEntity.id==this.userId && this.maps[i].subtaskEntity.id==row.id && this.maps[i].assessState == assessState) {
+            if(this.maps[i].users.id==this.userId && this.maps[i].subtask.id==row.id && this.maps[i].assessState == assessState) {
               if(this.maps[i].pass === true) {
                 return '已通过'
               } else {
@@ -691,7 +691,7 @@
           let assessState=0
           for(let i=0;i<this.maps.length;i++){
             // 多人会签判断会签人身份（是否已经会签），判断会签任务id（确定唯一会签）
-            if(this.maps[i].userEntity.id==this.userId&&this.maps[i].subtaskEntity.id==row.id){
+            if(this.maps[i].users.id==this.userId&&this.maps[i].subtask.id==row.id){
               if(assessState<this.maps[i].assessState)
               assessState=this.maps[i].assessState
             }
@@ -702,7 +702,7 @@
       computeMyPassState() {
         return function (row, assessState) {
           for (let i = 0; i < this.maps.length; i++) {
-            if(this.maps[i].userEntity.id==this.userId && this.maps[i].subtaskEntity.id==row.id && this.maps[i].assessState == assessState) {
+            if(this.maps[i].users.id==this.userId && this.maps[i].subtask.id==row.id && this.maps[i].assessState == assessState) {
               if(this.maps[i].pass === true) {
                 return '已通过'
               } else {

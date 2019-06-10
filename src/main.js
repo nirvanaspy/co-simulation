@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import uploader from 'vue-simple-uploader'
 import axios from 'axios'
+import Cookies from 'js-cookie'
 Vue.prototype.$axios = axios
 /* eslint-disable */
 Vue.use(uploader)

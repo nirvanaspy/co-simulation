@@ -342,7 +342,7 @@
         <!--<el-tab-pane label="任务管理">
           <span class="tab-name" slot="label"><i class="el-icon-setting" style="padding-right: 10px;"></i>配置管理</span>
           <div>
-            &lt;!&ndash;<el-select v-model="temp.proDesignLinkEntitySet" multiple placeholder="请选择" @focus="getDesignLinks" style="width: 100%;" @change="setProDesignLink">
+            &lt;!&ndash;<el-select v-model="temp.prodesignLinkSet" multiple placeholder="请选择" @focus="getDesignLinks" style="width: 100%;" @change="setProDesignLink">
               <el-option
                 v-for="item in designLinks"
                 :key="item.id"
@@ -350,7 +350,7 @@
                 :value="item.id">
               </el-option>
             </el-select>&ndash;&gt;
-            <div v-for="item in temp.proDesignLinkEntitySet"></div>
+            <div v-for="item in temp.prodesignLinkSet"></div>
           </div>
         </el-tab-pane>-->
         <el-tab-pane label="项目设置">

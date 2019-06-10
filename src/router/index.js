@@ -141,6 +141,22 @@ export const asyncRouterMap = [
       roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
     }
   },
+  {
+    path: '/department',
+    component: Layout,
+    children: [{
+      path: 'index',
+      name: 'department',
+      component: _import('department/index'),
+      meta: {
+        title: '部门管理',
+        icon: 'department'
+      }
+    }],
+    meta: {
+      roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
+    }
+  },
   { path: '/task_manage',
     component: MainPage,
     children: [{ path: '', component: _import('tasks/index'), name: 'task_manage', meta: { title: '任务管理', icon: 'components1' }}],
@@ -155,12 +171,12 @@ export const asyncRouterMap = [
   {
     path: '/taskFiles',
     component: Layout,
-    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '当前任务', icon: 'documentation' }}]
+    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '当前任务', icon: 'documentation-icon' }}]
   },
   {
     path: '/device',
     component: Layout,
-    children: [{ path: 'device', component: _import('device/index'), name: 'device', meta: { title: 'device', icon: 'computer' }}]
+    children: [{ path: 'device', component: _import('device/index'), name: 'device', meta: { title: 'device', icon: 'computer-icon' }}]
   },
   {
     path: '/audit_tasks',

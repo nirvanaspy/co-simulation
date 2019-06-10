@@ -44,7 +44,7 @@
       <el-table-column label="种类" width="100">
         <template slot-scope="scope">
           <span v-if="scope.row.folder !== true && !scope.row.newFolder">
-            {{scope.row.fileEntity.postfix}}
+            {{scope.row.files.postfix}}
           </span>
           <span v-if="scope.row.folder == true && !scope.row.newFolder">
             文件夹
@@ -53,7 +53,7 @@
       </el-table-column>
       <el-table-column width="120" :label="$t('table.compSize')">
         <template slot-scope="scope">
-          <span v-if="scope.row.folder !== true">{{computedSize(scope.row.fileEntity.fileSize)}}</span>
+          <span v-if="scope.row.folder !== true">{{computedSize(scope.row.files.fileSize)}}</span>
           <span v-if="scope.row.folder === true&&scope.row.name">--</span>
           <span v-if="scope.row.newFolder" style="cursor: pointer;" @click="cancelNewFolder">
             <svg-icon icon-class="cancel"></svg-icon>
@@ -77,7 +77,7 @@
       </el-table-column>
       <el-table-column width="120" label="所属库">
         <template slot-scope="scope">
-          <span :class="{warningText: computeSublibName(scope.row.sublibraryEntitySet).length > 1}" v-for="item in computeSublibName(scope.row.sublibraryEntitySet)" style="display: block;">{{item}}</span>
+          <span :class="{warningText: computeSublibName(scope.row.subDepotSet).length > 1}" v-for="item in computeSublibName(scope.row.subDepotSet)" style="display: block;">{{item}}</span>
         </template>
       </el-table-column>
       <el-table-column min-width="150px" label="创建时间">
@@ -1556,9 +1556,9 @@
           let iconType = ''
           if(row.folder == true) {
             iconType = 'folder'
-          } else if(row.fileEntity.type === 'png' || row.fileEntity.type === 'jpg' || row.fileEntity.type === 'gif'){
+          } else if(row.files.type === 'png' || row.files.type === 'jpg' || row.files.type === 'gif'){
             iconType = 'image'
-          } else if(row.fileEntity.type === 'rar' || row.fileEntity.type === 'zip') {
+          } else if(row.files.type === 'rar' || row.files.type === 'zip') {
             iconType = 'compressed'
           } else {
             iconType = 'file'
@@ -1628,9 +1628,9 @@
       },
       computeBtnDisable() {
         return function (row, opType) {
-          let subState = row.subTaskEntity.state
-          let subApprove = row.subTaskEntity.ifApprove
-          let subReject = row.subTaskEntity.ifReject
+          let subState = row.subtask.state
+          let subApprove = row.subtask.ifApprove
+          let subReject = row.subtask.ifReject
           // 文件删除按钮
           // 修改文件信息
           if(opType === 'delete' || opType === 'modifyInfo') {
@@ -1681,7 +1681,7 @@
           if(this.currentVersion.length > 0) {
             let versionState = this.currentVersion.substring(0, 1)
             let versionNum
-            if(this.targetEditFile.subTaskEntity.ifApprove === true) {
+            if(this.targetEditFile.subtask.ifApprove === true) {
               versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length)) + 1
               if(versionState === 'M') {
                 optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]

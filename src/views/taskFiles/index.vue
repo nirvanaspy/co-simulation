@@ -301,7 +301,7 @@
         }
 
         for(let i = 0; i < this.$refs.fileComp.list.length; i++) {
-          if(this.$refs.fileComp.list[i].sublibraryEntitySet.length > 1) {
+          if(this.$refs.fileComp.list[i].subDepotSet.length > 1) {
             this.$confirm('库中有文件同时属于多个库，确认继续提交吗？', '提示', {
               confirmButtonText: '确定',
               cancelButtonText: '取消',
@@ -317,7 +317,7 @@
             return
           }
         }
-        let subtaskObj = this.$refs.fileComp.list[0].subTaskEntity
+        let subtaskObj = this.$refs.fileComp.list[0].subtask
         if(subtaskObj.state == 1 && subtaskObj.ifReject == false && subtaskObj.ifApprove == false) {
           this.commitType = 'firstCommit'
         }
@@ -523,7 +523,7 @@
           let subtaskObj
           if(list) {
             if(list[0]) {
-              subtaskObj = list[0].subTaskEntity
+              subtaskObj = list[0].subtask
             } else {
               return false
             }
@@ -539,7 +539,7 @@
         let subtaskObj
         if(this.$refs.fileComp !== undefined) {
           if(this.$refs.fileComp.list[0]) {
-            subtaskObj = this.$refs.fileComp.list[0].subTaskEntity
+            subtaskObj = this.$refs.fileComp.list[0].subtask
           } else {
             return false
           }

@@ -27,11 +27,11 @@
                       <svg-icon icon-class="switchrole"></svg-icon>
                     </el-tooltip>
                   </span>-->
-                  <span class="editor-item editor-edit" @click="handleEditPass(item)">
-                    <el-tooltip content="修改密码" placement="top">
+                  <!--<span class="editor-item editor-edit" @click="handleEditDepa(item)">
+                    <el-tooltip content="修改部门" placement="top">
                       <svg-icon icon-class="edit"></svg-icon>
                     </el-tooltip>
-                  </span>
+                  </span>-->
                   <span v-if="item.enabled" class="editor-item editor-disable" @click="handleDisableUser(item)">
                     <el-tooltip content="禁用用户" placement="top">
                       <svg-icon icon-class="disable"></svg-icon>
@@ -58,6 +58,10 @@
                   <div class="userName">
                     <span class="username-title">用户名:</span>
                     <span class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</span>
+                  </div>
+                  <div class="userSecret">
+                    <span class="username-title">部门:</span>
+                    <span class="secret-text link-type" @click="handleEditDepa(item)">{{item.department.name}}</span>
                   </div>
                   <div class="userSecret">
                     <span class="username-title">密级:</span>
@@ -156,12 +160,22 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="密码">
+        <el-form-item label="用户部门">
+          <el-select v-model="createUserInfo.departmentName" placeholder="请选择" style="width: 100%;">
+            <el-option
+              v-for="item in departmentList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.name">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <!--<el-form-item label="密码">
           <el-input v-model="createUserInfo.password" type="password"></el-input>
         </el-form-item>
         <el-form-item label="再次输入">
           <el-input v-model="createUserInfo.passwordAgain" type="password"></el-input>
-        </el-form-item>
+        </el-form-item>-->
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="createDialogVisible = false">取 消</el-button>
@@ -272,13 +286,36 @@
                 <el-button type="primary" @click="editRole()">确 定</el-button>
             </span>
     </el-dialog>
+    <!--修改用户部门-->
+    <el-dialog title="修改用户部门"
+               class="editDialog"
+               :visible.sync="editDepaDialog"
+               width="30%">
+      <el-form label-position="left" label-width="80px" :model="userInfo">
+        <el-form-item label="用户部门">
+          <el-select value-key="id" v-model="userInfo.department" placeholder="请选择" style="width: 100%;">
+            <el-option
+              v-for="item in departmentList"
+              :key="item.id"
+              :label="item.name"
+              :value="item">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editDepaDialog = false">取 消</el-button>
+        <el-button type="primary" @click="editDepa()">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
   /*eslint-disable*/
   import { isvalidUsername, isvalidPwd } from '@/utils/validate'
-  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole, updatePassword, updateSecretClass } from '@/api/getUsers'
+  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole, updatePassword, updateSecretClass, updateUserDepartment, ifIncharge } from '@/api/getUsers'
+  import { getDepartment } from '@/api/department'
   import { roleList, deleteRole, addRole, updateRole } from '@/api/roles'
   import store from '../../store'
 
@@ -297,20 +334,23 @@
         },
         // roleList: null,
         roleList: [],
+        departmentList: [],
         userInfo: {
           id: '',
           username: '',
           password: '',
           newPassword: '',
           passwordAgain: '',
-          secretClass: 0
+          secretClass: 0,
+          department: null
         },
         createUserInfo: {
           username: '',
           // secretClass: 0,
           password: '',
           passwordAgain: '',
-          roleName: ''
+          roleName: '',
+          departmentName: ''
         },
         secretOptions: [
           {
@@ -351,6 +391,7 @@
         createRoleDialog: false,
         editRoleDialog: false,
         editPassDialog: false,
+        editDepaDialog: false,
         addUserLoading: false,
         searchQuery: ''
       }
@@ -358,6 +399,7 @@
     created() {
       this.role = this.$store.getters.roles[0]
       this.getUserList()
+      this.getDepartmentList()
       this.getRolesList()
     },
     mounted() {
@@ -384,7 +426,7 @@
         roleList(this.listQuery).then((res) => {
           if(res.data.code === 0) {
             this.roleList = res.data.data.filter((item) => {
-              return item.name !== 'admin' && item.name !== 'security_guard' && item.name !== 'security_auditor' && item.name !== 'user'
+              return item.name !== 'admin' && item.name !== 'security_guard' && item.name !== 'security_auditor' && item.name !== 'users'
             })
           } else {
             this.$notify({
@@ -393,6 +435,13 @@
               type: 'error',
               duration: 2000
             })
+          }
+        })
+      },
+      getDepartmentList() {
+        getDepartment().then((res) => {
+          if(res.data.code === 0) {
+            this.departmentList = res.data.data
           }
         })
       },
@@ -422,6 +471,10 @@
       },
       handleEditPass(item) {
         this.editPassDialog = true
+        this.userInfo = Object.assign({}, item)
+      },
+      handleEditDepa(item) {
+        this.editDepaDialog = true
         this.userInfo = Object.assign({}, item)
       },
       handleDisableUser(item){
@@ -492,22 +545,41 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          deleteUser(item.id).then((res) => {
+          let data = {
+            userId: item.id
+          }
+          let qs = require('qs');
+          let postData = qs.stringify(data)
+          ifIncharge(postData).then((res) => {
             if(res.data.code === 0) {
-              this.getUserList()
-              this.$notify({
-                title: '成功',
-                message: '删除成功',
-                type: 'success',
-                duration: 2000
-              })
-            } else {
-              this.$notify({
-                title: '失败',
-                message: res.data.msg,
-                type: 'error',
-                duration: 2000
-              })
+              if(res.data.data === true) {
+                this.$notify({
+                  title: '失败',
+                  message: '当前用户可能为项目负责人、子任务负责人、审核员，无法删除!',
+                  type: 'error',
+                  duration: 2000
+                })
+                return
+              } else {
+                deleteUser(item.id).then((res) => {
+                  if(res.data.code === 0) {
+                    this.getUserList()
+                    this.$notify({
+                      title: '成功',
+                      message: '删除成功',
+                      type: 'success',
+                      duration: 2000
+                    })
+                  } else {
+                    this.$notify({
+                      title: '失败',
+                      message: res.data.msg,
+                      type: 'error',
+                      duration: 2000
+                    })
+                  }
+                })
+              }
             }
           })
         }).catch(() => {
@@ -587,9 +659,10 @@
         let qs = require('qs')
         let data = {
           'username': this.createUserInfo.username,
-          'password': this.createUserInfo.password,
+          // 'password': this.createUserInfo.password,
           // 'secretClass': this.createUserInfo.secretClass,
-          'roleName': this.createUserInfo.roleName
+          'roleName': this.createUserInfo.roleName,
+          'departmentName': this.createUserInfo.departmentName,
         }
         let postData = qs.stringify(data)
         let roleName = this.createUserInfo.roleName
@@ -711,6 +784,33 @@
               duration: 2000
             })
             this.editPassDialog = false
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      },
+      editDepa() {
+        var qs = require('qs')
+        console.log(this.userInfo)
+        let data = {
+          'departmentId': this.userInfo.department.id
+        }
+        let datapost = qs.stringify(data)
+        updateUserDepartment(this.userInfo.id, datapost).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '部门修改成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.editDepaDialog = false
+            this.getUserList()
           } else {
             this.$notify({
               title: '失败',
