@@ -1,21 +1,26 @@
 <template>
   <div class="app-container calendar-list-container" id="components">
-    <div class="task-text">
-      <span class="text">{{taskName}}</span>
-      <span class="text" style="color: #67C23A" v-if="computeCurrentState === '审批结束 已通过'">{{computeCurrentState}}</span>
-      <span class="text" style="color: #e6a23c;" v-else>{{computeCurrentState}}</span>
+    <div v-if="!selectedId" style="text-align: center;color: #555;font-size: 18px;">
+      还没有选择子任务,请进入项目管理页面进行选择！
     </div>
-    <span class="task-detail">
+    <div v-else>
+      <div class="task-text">
+        <span class="text">{{taskName}}</span>
+        <span class="text" style="color: #67C23A" v-if="computeCurrentState === '审批结束 已通过'">{{computeCurrentState}}</span>
+        <span class="text" style="color: #e6a23c;" v-else>{{computeCurrentState}}</span>
+      </div>
+      <span class="task-detail">
       <!--<div class="task-text">
         <span class="text">{{taskName}}</span>
         <span class="text" style="color: #e6a23c;font-size: 12px;">{{computeCurrentState}}</span>
       </div>-->
       <el-button type="primary" size="small" @click="handleCommit" :disabled="!ableToCommit">提交审核</el-button>
       <el-button type="primary" size="small" @click="handleApplySecondEdit" v-if="showSecondEditApply">申请二次修改</el-button>
-      <!--<el-button type="primary" size="small">直接修改</el-button>-->
+        <!--<el-button type="primary" size="small">直接修改</el-button>-->
     </span>
-    <div style="height: 100%;overflow: auto;width: 100%;padding:5px 0 10px 10px;">
-      <comFileManage :selectCompId="selectedId" :selectCompName="selectdName" :proClass="proSecretClass" ref="fileComp"></comFileManage>
+      <div style="height: 100%;overflow: auto;width: 100%;padding:5px 0 10px 10px;">
+        <comFileManage :selectCompId="selectedId" :selectCompName="selectdName" :proClass="proSecretClass" ref="fileComp"></comFileManage>
+      </div>
     </div>
     <el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="60%" class="limit-width-dialog audit-dialog">
       <el-form label-position="left" label-width="80px">
@@ -210,7 +215,7 @@
             } else {
               this.showSecondEditApply = false
             }
-            if(subtaskObj.state === 1 || subtaskObj.state === 9 || (subtaskObj.state === 7 && subtaskObj.ifReject === true)) {
+            if(subtaskObj.state === 1 || subtaskObj.state === 9 || (subtaskObj.state === 7 && subtaskObj.ifReject === true && this.userId === subtaskObj.users.id)) {
               this.$refs.fileComp.showUploadFlag = true
               this.ableToCommit = true
             } else {
@@ -233,6 +238,11 @@
             let subtaskObj = res.data.data
             this.taskState = subtaskObj.state
             this.taskIfPass = subtaskObj.ifApprove
+            if(this.userId !== subtaskObj.users.id) {
+              this.$refs.fileComp.showUploadFlag = false
+              this.ableToCommit = false
+              return
+            }
             if(subtaskObj.state === 7 && (subtaskObj.ifApprove === true || subtaskObj.ifReject === true)) {
               this.showSecondEditApply = true
             } else {

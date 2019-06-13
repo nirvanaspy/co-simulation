@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { isvalidUsername } from '@/utils/validate'
+// import { isvalidUsername } from '@/utils/validate'
 import { mapMutations } from 'vuex'
 import dayjs from 'dayjs'
 /* eslint-disable */
@@ -118,7 +118,7 @@ export default {
             this.loading = false
 
             // if(this.$store.getters.roles.includes('ROLE_ADMIN')) {
-            if(this.loginForm.username === 'admin') {
+            if(this.loginForm.username === 'admin' || this.loginForm.username === 'securityGuard') {
               this.$router.push({ path: '/user_manage/index' })
             } else {
               this.$router.push({ path: '/projectManage' })

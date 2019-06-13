@@ -135,6 +135,7 @@
     -ms-overflow-style:none;
     /*火狐下隐藏滚动条*/
     overflow:-moz-scrollbars-none;
+    scrollbar-width: none;
   }
   .tree-container::-webkit-scrollbar{width:0px}
   .tree-bar {

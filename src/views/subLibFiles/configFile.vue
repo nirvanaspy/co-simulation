@@ -1,17 +1,17 @@
 <template>
   <div class="fileComp">
-    <el-tabs type="border-card">
+    <!--<el-tabs type="border-card">
       <el-tab-pane label="已通过">
         <el-table :key='tableKey' :data="listApproved" v-loading="listLoading" element-loading-text="正在加载库文件" fit
                   highlight-current-row
                   style="width: 100%"
                   class="fileList"
         >
-          <!--<el-table-column
+          &lt;!&ndash;<el-table-column
             type="selection"
             :selectable="fileAuditSelection"
             width="55">
-          </el-table-column>-->
+          </el-table-column>&ndash;&gt;
           <el-table-column label="文件名" min-width="200">
             <template slot-scope="scope">
               <span>
@@ -35,36 +35,26 @@
           </span>
             </template>
           </el-table-column>
-          <el-table-column width="100" :label="$t('table.compSize')">
+          <el-table-column width="120" :label="$t('table.compSize')">
             <template slot-scope="scope">
               <span v-if="scope.row.folder !== true">{{computedSize(scope.row.files.fileSize)}}</span>
-              <span v-if="scope.row.folder === true&&scope.row.name">--</span>
+              <span v-if="scope.row.folder === true&&scope.row.name">&#45;&#45;</span>
               <span v-if="scope.row.newFolder" style="cursor: pointer;" @click="cancelNewFolder">
             <svg-icon icon-class="cancel"></svg-icon>
           </span>
             </template>
           </el-table-column>
-          <el-table-column width="100" label="密级">
+          <el-table-column width="120" label="密级">
             <template slot-scope="scope">
               <span>{{computedSecret(scope.row.secretClass)}}</span>
             </template>
           </el-table-column>
-          <el-table-column width="100" label="版本">
+          <el-table-column width="120" label="版本">
             <template slot-scope="scope">
               <span>{{scope.row.version}}</span>
             </template>
           </el-table-column>
-          <el-table-column width="120" label="产品型号">
-            <template slot-scope="scope">
-              <span>{{scope.row.productNo}}</span>
-            </template>
-          </el-table-column>
-          <el-table-column width="120" label="文件图号">
-            <template slot-scope="scope">
-              <span>{{scope.row.fileNo}}</span>
-            </template>
-          </el-table-column>
-          <el-table-column width="140" label="创建时间">
+          <el-table-column width="180" label="创建时间">
             <template slot-scope="scope">
               <span>{{scope.row.createTime}}</span>
             </template>
@@ -95,30 +85,30 @@
                   </el-dropdown-item>
                 </el-dropdown-menu>
                 <el-dropdown-menu slot="dropdown" v-else>
-                  <!--<el-dropdown-item>
+                  &lt;!&ndash;<el-dropdown-item>
                     <span style="display:inline-block;padding:0 10px;" @click="deleteFile(scope.row)">删除</span>
-                  </el-dropdown-item>-->
+                  </el-dropdown-item>&ndash;&gt;
                   <el-dropdown-item>
                     <span style="display:inline-block;padding:0 10px;" @click="exportFile(scope.row)">下载</span>
                   </el-dropdown-item>
-                  <!--<el-dropdown-item divided>
+                  &lt;!&ndash;<el-dropdown-item divided>
                     <span style="display:inline-block;padding:0 10px;" @click="handleEditInfo(scope.row)">修改文件信息</span>
-                  </el-dropdown-item>-->
-                  <!--<el-dropdown-item divided>
+                  </el-dropdown-item>&ndash;&gt;
+                  &lt;!&ndash;<el-dropdown-item divided>
                     <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'edit')">修改文件</span>
-                  </el-dropdown-item>-->
-                  <!--<el-dropdown-item divided>
+                  </el-dropdown-item>&ndash;&gt;
+                  &lt;!&ndash;<el-dropdown-item divided>
                     <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'secondEdit')">二次修改文件</span>
-                  </el-dropdown-item>-->
+                  </el-dropdown-item>&ndash;&gt;
                   <el-dropdown-item divided>
                     <span style="display:inline-block;padding:0 10px;" @click="applyToEdit(scope.row)">申请二次修改</span>
                   </el-dropdown-item>
-                  <!--<el-dropdown-item divided>
+                  &lt;!&ndash;<el-dropdown-item divided>
                     <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销</span>
                   </el-dropdown-item>
                   <el-dropdown-item divided>
                     <span style="display:inline-block;padding:0 10px;" @click="handleRevokeSecond(scope.row)">更换版本</span>
-                  </el-dropdown-item>-->
+                  </el-dropdown-item>&ndash;&gt;
                 </el-dropdown-menu>
               </el-dropdown>
             </template>
@@ -173,36 +163,26 @@
           </span>
             </template>
           </el-table-column>
-          <el-table-column width="100" :label="$t('table.compSize')">
+          <el-table-column width="120" :label="$t('table.compSize')">
             <template slot-scope="scope">
               <span v-if="scope.row.folder !== true">{{computedSize(scope.row.files.fileSize)}}</span>
-              <span v-if="scope.row.folder === true&&scope.row.name">--</span>
+              <span v-if="scope.row.folder === true&&scope.row.name">&#45;&#45;</span>
               <span v-if="scope.row.newFolder" style="cursor: pointer;" @click="cancelNewFolder">
             <svg-icon icon-class="cancel"></svg-icon>
           </span>
             </template>
           </el-table-column>
-          <el-table-column width="100" label="密级">
+          <el-table-column width="120" label="密级">
             <template slot-scope="scope">
               <span>{{computedSecret(scope.row.secretClass)}}</span>
             </template>
           </el-table-column>
-          <el-table-column width="100" label="版本">
+          <el-table-column width="120" label="版本">
             <template slot-scope="scope">
               <span>{{scope.row.version}}</span>
             </template>
           </el-table-column>
-          <el-table-column width="120" label="产品型号">
-            <template slot-scope="scope">
-              <span>{{scope.row.productNo}}</span>
-            </template>
-          </el-table-column>
-          <el-table-column width="120" label="文件图号">
-            <template slot-scope="scope">
-              <span>{{scope.row.fileNo}}</span>
-            </template>
-          </el-table-column>
-          <el-table-column width="140" label="创建时间">
+          <el-table-column width="180" label="创建时间">
             <template slot-scope="scope">
               <span>{{scope.row.createTime}}</span>
             </template>
@@ -263,7 +243,132 @@
           </el-table-column>
         </el-table>
       </el-tab-pane>
-    </el-tabs>
+    </el-tabs>-->
+    <div class="operationContainer" style="position:relative; height: 40px;border-bottom:1px solid #ebeef5;" v-if="forUse !== 'preview'">
+      <div style="position: absolute;top: -6px;left: 16px">
+        <el-button type="primary" size="mini" @click="handleCommit">提交审核</el-button>
+      </div>
+      <div style="float: right;color:rgb(0, 171, 235);cursor: pointer;padding-right: 20px;" v-if="username === 'admin' && showUploadBtn">
+         <span @click="handleuploadFile">
+           <svg-icon icon-class="upload1"></svg-icon>
+           <span style="font-size: 14px;margin-left: 6px;">上传文件</span>
+         </span>
+      </div>
+    </div>
+    <el-table :key='tableKey' :data="allFileList" v-loading="listLoading" element-loading-text="正在加载库文件" fit
+              highlight-current-row
+              style="width: 100%;"
+              @selection-change="handleSelectionChange"
+              :row-key="getRowKey"
+    >
+      <el-table-column
+        type="selection"
+        :selectable="fileAuditSelection"
+        :reserve-selection="true"
+        width="55">
+      </el-table-column>
+      <el-table-column label="文件名" min-width="200">
+        <template slot-scope="scope">
+          <span>
+            <svg-icon :icon-class="classifyIcon(scope.row)" style="font-size: 30px;margin-right: 10px;cursor: pointer;color:  #26bada;"></svg-icon>
+            <el-tooltip class="item" effect="dark" :content="scope.row.name" placement="top">
+              <span v-if="!scope.row.newFolder" class="link-type" :class="{'repeatFile': scope.row.repeat}"
+                    style="position:relative;top:2px;display:inline-block;width:70%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis">
+                {{scope.row.name}}
+              </span>
+            </el-tooltip>
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="种类" width="100">
+        <template slot-scope="scope">
+          <span v-if="scope.row.folder !== true && !scope.row.newFolder">
+            {{scope.row.files.postfix}}
+          </span>
+          <span v-if="scope.row.folder == true && !scope.row.newFolder">
+            文件夹
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column width="120" :label="$t('table.compSize')">
+        <template slot-scope="scope">
+          <span v-if="scope.row.folder !== true">{{computedSize(scope.row.files.fileSize)}}</span>
+          <span v-if="scope.row.folder === true&&scope.row.name">&#45;&#45;</span>
+          <span v-if="scope.row.newFolder" style="cursor: pointer;" @click="cancelNewFolder">
+            <svg-icon icon-class="cancel"></svg-icon>
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column width="120" label="密级">
+        <template slot-scope="scope">
+          <span>{{computedSecret(scope.row.secretClass)}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column width="120" label="版本">
+        <template slot-scope="scope">
+          <span>{{scope.row.version}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column width="180" label="创建时间">
+        <template slot-scope="scope">
+          <span>{{scope.row.createTime}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="审核状态" width="100"
+                       align="center"
+                       :filters="filiterStateList"
+                       :filter-method="filterState"
+                       prop="state"
+      >
+        <template slot-scope="scope">
+          <span :class="computeStateClass(scope.row)">
+            {{computeAuditState(scope.row)}}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column width="40px">
+        <template slot-scope="scope">
+          <el-dropdown v-if="scope.row.name" trigger="click">
+            <el-tooltip class="item" effect="dark" content="更多操作" placement="top">
+              <span class="el-dropdown-link">
+              <svg-icon icon-class="ellipsis"></svg-icon>
+            </span>
+            </el-tooltip>
+            <el-dropdown-menu slot="dropdown" v-if="forUse === 'preview'">
+              <el-dropdown-item>
+                <span style="display:inline-block;padding:0 10px;" @click="previewFile(scope.row)">预览</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+            <el-dropdown-menu slot="dropdown" v-else>
+              <el-dropdown-item :disabled="computeBtnDisable(scope.row, 'delete')">
+                <span style="display:inline-block;padding:0 10px;" @click="deleteFile(scope.row)">删除</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'download')">
+                <span style="display:inline-block;padding:0 10px;" @click="exportFile(scope.row)">下载</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'modifyInfo')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleEditInfo(scope.row)">修改文件信息</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'edit')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'edit')">修改文件</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'secondEdit')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'secondEdit')">二次修改文件</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'apply')">
+                <span style="display:inline-block;padding:0 10px;" @click="applyToEdit(scope.row)">申请二次修改</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'revoke')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销修改</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'changeVersion')">
+                <span style="display:inline-block;padding:0 10px;" @click="handleRevokeSecond(scope.row)">更换版本</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </template>
+      </el-table-column>
+    </el-table>
     <!--上传文件弹框-->
     <el-dialog
       class="uploadDialog"
@@ -560,6 +665,8 @@
     },
     data() {
       return {
+        username: '',
+        showUploadBtn: false,
         ip: '',
         port: '',
         userId: '',
@@ -645,6 +752,7 @@
         tableKey: 0,
         list: [],
         listApproved: [],
+        allFileList: [],
         singleComp: null,
         total: null,
         listLoading: true,
@@ -664,7 +772,7 @@
           simultaneousUploads: 20,
           autoStart: false,
           testChunks: true,
-          singleFile: false // 单文件上传模式配置项
+          singleFile: true // 单文件上传模式配置项
         },
         attrs: {
           accept: 'image/*'
@@ -741,6 +849,7 @@
       }
     },
     created() {
+      this.username = this.getCookie('username')
       this.ip = this.getCookie('ip')
       this.port= this.getCookie('port')
       this.userId = this.getCookie('userId')
@@ -752,10 +861,43 @@
     },
     methods: {
       refreshFileList() {
-        getFailedFiles(this.userId).then((res) => {
+        /*getFailedFiles(this.userId).then((res) => {
           if(res.data.code === 0) {
             this.list = res.data.data
           }
+        })*/
+        this.showUploadBtn = false
+        getSubLibFiles(this.componentId, true).then((res) => {
+          if(res.data.code === 0) {
+            this.listApproved = res.data.data
+            this.approveListLoading = false
+            getSubLibFiles(this.componentId, false).then((res) => {
+              if(res.data.code === 0) {
+                this.list = res.data.data
+                this.listLoading = false
+                this.allFileList = this.listApproved.concat(this.list)
+                if (this.allFileList.length === 0) {
+                  this.showUploadBtn = true
+                }
+              }
+            }).catch(() => {
+              this.listLoading = false
+              this.$notify({
+                title: '失败',
+                message: '加载出错！',
+                type: 'error',
+                duration: 2000
+              })
+            })
+          }
+        }).catch(() => {
+          this.approveListLoading = false
+          this.$notify({
+            title: '失败',
+            message: '加载出错！',
+            type: 'error',
+            duration: 2000
+          })
         })
       },
       getAbleUser() {
@@ -807,24 +949,29 @@
       },
       getList() {
         this.listLoading = true
-        getFailedFiles(this.userId).then((res) => {
-          if(res.data.code === 0) {
-            this.list = res.data.data
-            this.listLoading = false
-          }
-        }).catch(() => {
-          this.listLoading = false
-          this.$notify({
-            title: '失败',
-            message: '加载出错！',
-            type: 'error',
-            duration: 2000
-          })
-        })
+        this.showUploadBtn = false
         getSubLibFiles(this.componentId, true).then((res) => {
           if(res.data.code === 0) {
             this.listApproved = res.data.data
             this.approveListLoading = false
+            getSubLibFiles(this.componentId, false).then((res) => {
+              if(res.data.code === 0) {
+                this.list = res.data.data
+                this.listLoading = false
+                this.allFileList = this.listApproved.concat(this.list)
+                if (this.allFileList.length === 0) {
+                  this.showUploadBtn = true
+                }
+              }
+            }).catch(() => {
+              this.listLoading = false
+              this.$notify({
+                title: '失败',
+                message: '加载出错！',
+                type: 'error',
+                duration: 2000
+              })
+            })
           }
         }).catch(() => {
           this.approveListLoading = false
@@ -1547,19 +1694,6 @@
           }
         }
       },
-      /*computeVersionNum() {
-        if(this.uploadType === 'secondEdit') {
-          if(this.currentVersion.length > 0) {
-            let versionNum = this.currentVersion.substring(1, this.currentVersion.length)
-            if(this.fileModify.version === this.currentVersion.substring(0, 1)) {
-              return parseInt(versionNum) + 1
-            } else {
-              return parseInt(versionNum)
-            }
-          }
-        }
-
-      }*/
       computeBtnDisable() {
         return function (row, opType) {
           let subState = row.state

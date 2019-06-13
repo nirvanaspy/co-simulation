@@ -18,7 +18,7 @@
               style="width: 100%"
               class="fileList"
     >
-      <el-table-column label="文件名" min-width="200">
+      <el-table-column label="文件名" min-width="100">
         <template slot-scope="scope">
           <span>
             <svg-icon :icon-class="classifyIcon(scope.row)" style="font-size: 30px;margin-right: 10px;cursor: pointer;color:  #26bada;"></svg-icon>
@@ -51,7 +51,7 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column width="120" :label="$t('table.compSize')">
+      <el-table-column width="100" :label="$t('table.compSize')">
         <template slot-scope="scope">
           <span v-if="scope.row.folder !== true">{{computedSize(scope.row.files.fileSize)}}</span>
           <span v-if="scope.row.folder === true&&scope.row.name">--</span>
@@ -60,17 +60,27 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column width="120" label="密级">
+      <el-table-column width="100" label="密级">
         <template slot-scope="scope">
           <span>{{computedSecret(scope.row.secretClass)}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="120" label="版本">
+      <el-table-column width="100" label="版本">
         <template slot-scope="scope">
           <span>{{scope.row.version}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="120" label="文件类型">
+      <el-table-column width="120" label="产品型号">
+        <template slot-scope="scope">
+          <span>{{scope.row.productNo}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column width="120" label="文件图号">
+        <template slot-scope="scope">
+          <span>{{scope.row.fileNo}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column width="100" label="文件类型">
         <template slot-scope="scope">
           <span>{{typeMap[scope.row.type]}}</span>
         </template>
@@ -80,7 +90,7 @@
           <span :class="{warningText: computeSublibName(scope.row.subDepotSet).length > 1}" v-for="item in computeSublibName(scope.row.subDepotSet)" style="display: block;">{{item}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="150px" label="创建时间">
+      <el-table-column min-width="100px" label="创建时间">
         <template slot-scope="scope">
           <span>{{scope.row.createTime}}</span>
         </template>

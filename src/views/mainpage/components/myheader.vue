@@ -21,7 +21,7 @@
                   <span class="icon-box">
                     <svg-icon icon-class="knowledge"></svg-icon>
                   </span>
-                <span class="icon-text">我的库</span>
+                <span class="icon-text">库</span>
               </div>
               <div class="flex-menu-item" @click="jumpToAudit()">
                   <span class="icon-box" style="color: #3f9fe1;">
@@ -75,6 +75,9 @@
             </el-dropdown-item>
             <el-dropdown-item divided>
               <span @click="jumpToLog" style="display:block;">下载日志</span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
+              <span @click="jumpToAuditApply" style="display:block;">二次修改申请</span>
             </el-dropdown-item>
             <el-dropdown-item divided>
               <span @click="logout" style="display:block;">{{$t('navbar.logOut')}}</span>
@@ -131,8 +134,8 @@
         <el-col style="height: 100%;" :span="6">
           <div class="notice-list-box">
             <div v-for="item in listA" class="notice-item" @dblclick="checkMes(item)" :class="{'selectedMes': selectedMesObj !== null && selectedMesObj.id === item.id}">
-              <span class="mes-des-box">{{operateBodyMap[item.messageOperate]}}</span>
-              <span class="mes-des-box">{{operateTypeMap[item.mainBody]}}</span>
+              <span class="mes-des-box">{{operateBodyMap[item.mainBody]}}</span>
+              <span class="mes-des-box">{{operateTypeMap[item.messageOperate]}}</span>
               <span class="mes-des-box operator">
                 操作人：
                 <span v-if="item.mainOperatorName">{{item.mainOperatorName}}</span>
@@ -152,7 +155,7 @@
                 <div class="detail-header-box">
                   <span class="header-item-box">
                     <span class="icon-box"><svg-icon icon-class="mark"></svg-icon></span>
-                    <span class="text">{{operateBodyMap[selectedMesObj.messageOperate]}}</span>
+                    <span class="text">{{operateBodyMap[selectedMesObj.mainBody]}}</span>
                   </span>
                 </div>
               </div>
@@ -310,6 +313,11 @@
       jumpToLog() {
         this.$router.push({
           path: '/downloadLogs/index'
+        })
+      },
+      jumpToAuditApply() {
+        this.$router.push({
+          path: '/audit_apply/index'
         })
       },
       logout() {

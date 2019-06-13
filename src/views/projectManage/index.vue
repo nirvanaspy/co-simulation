@@ -138,7 +138,7 @@
                   </div>
                   <!--<div class="info-detail info-description">{{item.description}}</div>-->
                 </div>
-                <div class="project-operation project-detail">
+                <div class="project-operation project-detail" v-if="userName !== 'securityGuard'">
                   <span class="icons icons-setting" @click="handleStartPro(item)">
                     <el-tooltip content="启动项目" placement="top">
                       <svg-icon icon-class="startup"></svg-icon>
@@ -243,7 +243,7 @@
       <el-col :span="6"><div class="grid-content bg-purple"></div></el-col>
     </el-row>
     <!--创建或者修改项目-->
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%" class="limit-width-dialog">
+    <el-dialog :close-on-click-modal="false" :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%" class="limit-width-dialog">
       <div class="img-container"></div>
       <div class="text-container">为不同的产品建立各自的项目</div>
       <el-form :rules="rules" ref="dataForm" :model="temp" style='width: 100%; margin:0 auto;' label-width="70px">
@@ -457,7 +457,7 @@
   import { getLinks } from '@/api/designLinks'
   import store from '../../store'
   import designLink from '@/views/designLinks/index'
-  import { getProjectsTree } from '@/api/pro-design-link'
+  import { getProjectsTree, ifProHasProcessNode } from '@/api/pro-design-link'
   export default {
     components: {PanThumb,designLink},
     name: 'login',
@@ -904,6 +904,9 @@
         })*/
       },
       handleUpSecret(row) {
+        if (this.userName === 'securityGuard'){
+          return
+        }
         this.selectedId = row.id;
         this.temp = Object.assign({}, row)
         this.updateSecretVisible = true
@@ -1005,39 +1008,61 @@
           type: 'warning'
         }).then(() => {
           let qs = require('qs')
-          let data = {
-            'userId': this.userId
-          };
-          let dataPost = qs.stringify(data)
-          deleteProject(id, dataPost).then((res) => {
+          let proData = {
+            projectId: row.id
+          }
+          let proDataPost = qs.stringify(proData)
+          ifProHasProcessNode(proDataPost).then((res) => {
             if(res.data.code === 0) {
-              row.delLoading = false
-              this.$notify({
-                title: '成功',
-                message: '删除成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
-              this.getTrees()
-            } else {
-              row.delLoading = false
-              this.$notify({
-                title: '失败',
-                message: res.data.msg,
-                type: 'error',
-                duration: 2000
-              })
+              if(res.data.data === true) {
+                this.$confirm('当前项目有正在进行的流程，确定删除吗？', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                  let data = {
+                    'userId': this.userId
+                  };
+                  let dataPost = qs.stringify(data)
+                  deleteProject(id, dataPost).then((res) => {
+                    if(res.data.code === 0) {
+                      row.delLoading = false
+                      this.$notify({
+                        title: '成功',
+                        message: '删除成功',
+                        type: 'success',
+                        duration: 2000
+                      })
+                      this.getList()
+                      this.getTrees()
+                    } else {
+                      row.delLoading = false
+                      this.$notify({
+                        title: '失败',
+                        message: res.data.msg,
+                        type: 'error',
+                        duration: 2000
+                      })
+                    }
+                  }).catch(() => {
+                    // this.delLoading = false
+                    row.delLoading = false
+                    this.$notify({
+                      title: '失败',
+                      message: '删除失败',
+                      type: 'error',
+                      duration: 2000
+                    })
+                  })
+                }).catch(() => {
+                  row.delLoading = false
+                  this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                  })
+                })
+              }
             }
-          }).catch(() => {
-            // this.delLoading = false
-            row.delLoading = false
-            this.$notify({
-              title: '失败',
-              message: '删除失败',
-              type: 'error',
-              duration: 2000
-            })
           })
         }).catch(() => {
           row.delLoading = false

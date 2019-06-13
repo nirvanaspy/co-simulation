@@ -59,6 +59,10 @@
                     <span class="username-title">用户名:</span>
                     <span class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</span>
                   </div>
+                  <div class="userName">
+                    <span class="username-title">姓名:</span>
+                    <span class="username-text link-type" @click="handleEditUser(item)">{{item.realName}}</span>
+                  </div>
                   <div class="userSecret">
                     <span class="username-title">部门:</span>
                     <span class="secret-text link-type" @click="handleEditDepa(item)">{{item.department.name}}</span>
@@ -111,7 +115,7 @@
                   <span class="role-icon"><svg-icon icon-class="role"></svg-icon></span>
                   <div style="padding: 14px;position: relative;">
                     <div class="role-name">角色名称: {{item.name}}</div>
-                    <div class="role-description">角色名称: {{item.description}}</div>
+                    <div class="role-description">角色描述: {{item.description}}</div>
                     <div class="bottom clearfix role-edit-box">
                       <span @click="handleEditRole(item)"
                             v-if="item.name !== 'user' && item.name !== 'admin'"
@@ -139,6 +143,9 @@
       <el-form label-position="left" label-width="80px" :model="createUserInfo">
         <el-form-item label="用户名">
           <el-input v-model="createUserInfo.username"></el-input>
+        </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="createUserInfo.realName"></el-input>
         </el-form-item>
         <!--<el-form-item label="用户密级">
           <el-select v-model="createUserInfo.secretClass" style="width: 100%;">
@@ -190,6 +197,9 @@
       <el-form label-position="left" label-width="80px" :model="userInfo">
         <el-form-item label="用户名">
           <el-input v-model="userInfo.username"></el-input>
+        </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="userInfo.realName"></el-input>
         </el-form-item>
         <!--<el-form-item label="用户密级">
           <el-select v-model="userInfo.secretClass" style="width: 100%;">
@@ -251,7 +261,7 @@
       </span>
     </el-dialog>
     <!--新建用户角色-->
-    <el-dialog title="新建用户角色"
+    <el-dialog title="新建角色"
                class="createDialog"
                :visible.sync="createRoleDialog"
                width="30%">
@@ -338,6 +348,7 @@
         userInfo: {
           id: '',
           username: '',
+          realName: '',
           password: '',
           newPassword: '',
           passwordAgain: '',
@@ -347,6 +358,7 @@
         createUserInfo: {
           username: '',
           // secretClass: 0,
+          realName: '',
           password: '',
           passwordAgain: '',
           roleName: '',
@@ -450,6 +462,7 @@
           username: '',
           password: '',
           passwordAgain: '',
+          realName: '',
           // secretClass: 0,
           roleName: ''
         }
@@ -553,13 +566,32 @@
           ifIncharge(postData).then((res) => {
             if(res.data.code === 0) {
               if(res.data.data === true) {
-                this.$notify({
-                  title: '失败',
-                  message: '当前用户可能为项目负责人、子任务负责人、审核员，无法删除!',
-                  type: 'error',
-                  duration: 2000
+                this.$confirm('该用户有正在进行中的项目或审核任务，确认删除吗？', '警告', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'error'
+                }).then(() => {
+                  deleteUser(item.id).then((res) => {
+                    if(res.data.code === 0) {
+                      this.getUserList()
+                      this.$notify({
+                        title: '成功',
+                        message: '删除成功',
+                        type: 'success',
+                        duration: 2000
+                      })
+                    } else {
+                      this.$notify({
+                        title: '失败',
+                        message: res.data.msg,
+                        type: 'error',
+                        duration: 2000
+                      })
+                    }
+                  })
+                }).catch(() => {
+
                 })
-                return
               } else {
                 deleteUser(item.id).then((res) => {
                   if(res.data.code === 0) {
@@ -598,6 +630,7 @@
           deleteRole(id).then((res) => {
             if(res.data.code === 0) {
               this.getRolesList()
+              this.getUserList()
               this.$notify({
                 title: '成功',
                 message: '删除成功',
@@ -621,11 +654,16 @@
         })
       },
       handlAddRole() {
+        this.resetRoleTemp()
         this.createRoleDialog = true
       },
       handleEditRole(item) {
         this.editRoleDialog = true
         this.roleInfo = Object.assign({}, item)
+      },
+      resetRoleTemp() {
+        this.createRoleInfo.name = ''
+        this.createRoleInfo.description = ''
       },
       addRoles() {
         var qs = require('qs')
@@ -642,6 +680,7 @@
               type: 'success',
               duration: 2000
             })
+            this.resetRoleTemp()
             this.getRolesList()
             this.createRoleDialog = false
           } else {
@@ -662,6 +701,7 @@
           // 'password': this.createUserInfo.password,
           // 'secretClass': this.createUserInfo.secretClass,
           'roleName': this.createUserInfo.roleName,
+          'realName': this.createUserInfo.realName,
           'departmentName': this.createUserInfo.departmentName,
         }
         let postData = qs.stringify(data)
@@ -693,6 +733,7 @@
         var qs = require('qs')
         let data = {
           'username': this.userInfo.username,
+          'realName': this.userInfo.realName
           // 'secretClass': this.userInfo.secretClass
         }
         let datapost = qs.stringify(data)
@@ -1021,6 +1062,7 @@
     -ms-overflow-style: none;
     /*火狐下隐藏滚动条*/
     overflow: -moz-scrollbars-none;
+    scrollbar-width: none;
   }
 
   /*Chrome下隐藏滚动条，溢出可以透明滚动*/

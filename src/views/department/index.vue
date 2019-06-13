@@ -13,7 +13,7 @@
           <div style="padding: 14px;position: relative;">
             <div class="department-name">部门名称: {{item.name}}</div>
             <div class="department-name">描述: {{item.description}}</div>
-            <div class="bottom clearfix department-edit-box">
+            <div class="bottom clearfix department-edit-box" v-if="item.name !== '信息化部'">
               <span @click="handleEditDepartment(item)"
                     class="department-edit">
                 <svg-icon icon-class="edit"></svg-icon>

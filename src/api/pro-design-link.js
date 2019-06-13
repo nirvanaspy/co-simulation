@@ -249,3 +249,11 @@ export function getTaskFileVersion(fileId) {
     method: 'get'
   })
 }
+
+export function ifProHasProcessNode(data) {
+  return request({
+    url: '/processNode1/ifHasProcessNode',
+    method: 'post',
+    data
+  })
+}
