@@ -161,13 +161,16 @@ export function getFileTree(fileId) {
 }
 
 // 查询未通过的子库文件
-export function getFailedFiles(userId) {
+export function getFailedFiles(subLibId, userId) {
   return request({
     url: '/sublibraryFiles/getFailedFiles',
     headers: {
       'userId': userId
     },
-    method: 'get'
+    method: 'get',
+    params: {
+      subDepotId: subLibId
+    }
   })
 }
 

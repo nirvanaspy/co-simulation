@@ -52,7 +52,7 @@
       computeLogDes() {
         return function (item) {
           let downloadName = item.fileName
-          let operator = '用户' + item.users.username
+          let operator = '用户' + item.users.realName
           let des = operator + '下载了' + downloadName
           return des
         }

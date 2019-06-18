@@ -142,6 +142,7 @@
                   style="width: 100%"
                   class="fileList"
                   @selection-change="handleSelectionChange"
+                  height="700px"
                   :row-key="getRowKey"
         >
           <el-table-column
@@ -430,7 +431,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -451,7 +452,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -472,7 +473,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -493,7 +494,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -534,6 +535,7 @@
   /*eslint-disable*/
   import {  previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
+  import { findExistLibFiles } from '@/api/library'
   import { getSubLibFiles, uploadSubLibFiles, deleteSubLibFile, editSubLibFileInfo, setLibFileAuditors, applyForModify, modifySubLibFile, revokeModify, getFileHisVersion, versionReplace, getFailedFiles } from '@/api/sublibFiles'
   import { allUser } from '@/api/getUsers'
   import service from '@/utils/request'
@@ -660,7 +662,7 @@
           headers: {
             'Authorization': ''
           },
-          chunkSize: 80* 1024 * 1024,
+          chunkSize: 50* 1024 * 1024,
           simultaneousUploads: 20,
           autoStart: false,
           testChunks: true,
@@ -752,7 +754,7 @@
     },
     methods: {
       refreshFileList() {
-        getFailedFiles(this.userId).then((res) => {
+        getFailedFiles(this.componentId, this.userId).then((res) => {
           if(res.data.code === 0) {
             this.list = res.data.data
           }
@@ -807,7 +809,7 @@
       },
       getList() {
         this.listLoading = true
-        getFailedFiles(this.userId).then((res) => {
+        getFailedFiles(this.componentId, this.userId).then((res) => {
           if(res.data.code === 0) {
             this.list = res.data.data
             this.listLoading = false
@@ -880,7 +882,7 @@
         // 只有在普通的上传文件模式下，才需要对所选文件进行去重>>>
         if(this.uploadType === 'normal') {
           // 防止用户上传文件名称相同的文件，在上传前就去除名称重复的文件
-          this.repeatFiles = []
+          /*this.repeatFiles = []
           for(let j = fileAdded.length - 1; j >= 0; j--) {
             for(let k = 0; k < this.list.length; k++) {
               if(fileAdded[j] !== undefined) {
@@ -895,84 +897,189 @@
                 }
               }
             }
+          }*/
+          let beforeCheckFiles = []
+          for(let i = 0; i < fileAdded.length; i++) {
+            let fileItem = {
+              secretClass: this.fileUpInfo.secretClass,
+              type: this.fileUpInfo.type,
+              productNo: this.fileUpInfo.productNo,
+              fileNo: this.fileUpInfo.fileNo,
+              name: fileAdded[i].name,
+              relativePath: '/' + fileAdded[i].relativePath,
+            }
+            beforeCheckFiles.push(fileItem)
           }
-        }
-
-        if(this.repeatFiles.length > 0) {
-          this.$message({
-            showClose: true,
-            message: '请注意，此次上传的文件中有' + this.repeatFiles.length + '个文件在库中已存在！',
-            type: 'warning',
-            //duration: 0
-          });
-        }
-        // <<<去重的代码
-
-        if(fileAdded.length > 0) {
-          this.hiddenClose = true
-          this.md5Loading = true
-          $('.manage-uploader .uploader-btn').css('display','none')
-        }
-
-        this.fileCompleteLength += fileAdded.length
-        let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
-        let completeFlag = 0
-        let that = this
-        for(var i = 0; i < fileAdded.length; i++) {
-          let fileA = fileAdded[i]
-          this.resolveMd5(fileA, chunkSize).then(function (result) {
-            fileA.md5 = result
-            fileA.uniqueIdentifier = result
-            hasMd5(fileA.md5).then((res) => {
-              if (res.data.data.id) {
-                completeFlag++
-                let infoList = {
-                  fileId: res.data.data.id,
-                  MD5: fileA.md5,
-                  name: fileA.name,
-                  relativePath: '/' + fileA.relativePath,
-                  secretClass: that.fileUpInfo.secretClass,
-                  type: that.fileUpInfo.type,
-                  productNo: that.fileUpInfo.productNo,
-                  fileNo: that.fileUpInfo.fileNo,
-                  sublibraryId: that.fileUpInfo.subLibraryId
-                  // codeName: that.fileUpInfo.codeName
-                }
-                that.fileInfoList.push(infoList)
-                let resVal = ''
-                let val = fileA.size
-                if( val < 1024 ) {
-                  resVal = val + ' B'
-                } else if(val >= 1024 && val < 1048576 ) {
-                  resVal = Math.round(val/1024*10)/10 + ' KB'
-                } else if(val >= 1048576 && val < 1073741824) {
-                  resVal = Math.round(val/1048576*10)/10 + ' MB'
-                } else if(val >= 1073741824) {
-                  resVal = Math.round(val/1073741824*10)/10 + ' G'
-                }
-                $('.manage-uploader .uploader-list ul').prepend('<div status="success" class="uploader-file">' +
-                  '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
-                  '<div class="uploader-file-info">' +
-                  '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
-                  '</div> <div class="uploader-file-size">'+ resVal +
-                  '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
-                that.$refs.uploader.uploader.removeFile(fileA)
-                that.fileCompleteLength += 1 // 中和上传控件触发的removeFile事件的自减1
-                // let notiMes = '文件' + fileA.name + '上传成功！'
-                that.listLoading = false
-                if(completeFlag === fileAdded.length) {
-                  that.md5Loading = false
-                  that.$refs.uploader.uploader.upload()
-                }
-              } else if (res.data.data == false) {
-                completeFlag++
-                if(completeFlag === fileAdded.length) {
-                  that.md5Loading = false
-                  that.$refs.uploader.uploader.upload()
+          let fileInfoPost = JSON.stringify(beforeCheckFiles)
+          findExistLibFiles(this.componentId, this.userId, fileInfoPost).then((res) => {
+            if(res.data.code === 0) {
+              this.repeatFiles = res.data.data
+              for(let j = fileAdded.length - 1; j >= 0; j--) {
+                for(let k = 0; k < this.repeatFiles.length; k++) {
+                  if(fileAdded[j] !== undefined) {
+                    if(fileAdded[j].name === this.repeatFiles[k].name + '.' + this.repeatFiles[k].postfix) {
+                      let fileRepeat = fileAdded[j]
+                      this.$refs.uploader.uploader.removeFile(fileRepeat)
+                      // 中和文件被删除的-1
+                      this.fileCompleteLength += 1
+                      fileAdded.splice(j, 1)
+                      continue
+                    }
+                  }
                 }
               }
-            })
+              if(this.repeatFiles.length > 0) {
+                this.$message({
+                  showClose: true,
+                  message: '请注意，此次上传的文件中有' + this.repeatFiles.length + '个文件在库中已存在！',
+                  type: 'warning',
+                  //duration: 0
+                });
+              }
+              // <<<去重的代码
+
+              if(fileAdded.length > 0) {
+                this.hiddenClose = true
+                this.md5Loading = true
+                $('.manage-uploader .uploader-btn').css('display','none')
+              }
+
+              this.fileCompleteLength += fileAdded.length
+              let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
+              let completeFlag = 0
+              let that = this
+              for(var i = 0; i < fileAdded.length; i++) {
+                let fileA = fileAdded[i]
+                this.resolveMd5(fileA, chunkSize).then(function (result) {
+                  fileA.md5 = result
+                  fileA.uniqueIdentifier = result
+                  hasMd5(fileA.md5).then((res) => {
+                    if (res.data.data.id) {
+                      completeFlag++
+                      let infoList = {
+                        fileId: res.data.data.id,
+                        MD5: fileA.md5,
+                        name: fileA.name,
+                        relativePath: '/' + fileA.relativePath,
+                        secretClass: that.fileUpInfo.secretClass,
+                        type: that.fileUpInfo.type,
+                        productNo: that.fileUpInfo.productNo,
+                        fileNo: that.fileUpInfo.fileNo,
+                        sublibraryId: that.fileUpInfo.subLibraryId
+                        // codeName: that.fileUpInfo.codeName
+                      }
+                      that.fileInfoList.push(infoList)
+                      let resVal = ''
+                      let val = fileA.size
+                      if( val < 1024 ) {
+                        resVal = val + ' B'
+                      } else if(val >= 1024 && val < 1048576 ) {
+                        resVal = Math.round(val/1024*10)/10 + ' KB'
+                      } else if(val >= 1048576 && val < 1073741824) {
+                        resVal = Math.round(val/1048576*10)/10 + ' MB'
+                      } else if(val >= 1073741824) {
+                        resVal = Math.round(val/1073741824*10)/10 + ' G'
+                      }
+                      $('.manage-uploader .uploader-list ul').prepend('<div status="success" class="uploader-file">' +
+                        '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
+                        '<div class="uploader-file-info">' +
+                        '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
+                        '</div> <div class="uploader-file-size">'+ resVal +
+                        '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
+                      that.$refs.uploader.uploader.removeFile(fileA)
+                      that.fileCompleteLength += 1 // 中和上传控件触发的removeFile事件的自减1
+                      // let notiMes = '文件' + fileA.name + '上传成功！'
+                      that.listLoading = false
+                      if(completeFlag === fileAdded.length) {
+                        that.md5Loading = false
+                        that.$refs.uploader.uploader.upload()
+                      }
+                    } else if (res.data.data == false) {
+                      completeFlag++
+                      if(completeFlag === fileAdded.length) {
+                        that.md5Loading = false
+                        that.$refs.uploader.uploader.upload()
+                      }
+                    }
+                  })
+                })
+              }
+            }
           })
+        }
+        // 修改模式下的文件去重
+        else {
+          if(fileAdded.length > 0) {
+            this.hiddenClose = true
+            this.md5Loading = true
+            $('.manage-uploader .uploader-btn').css('display','none')
+          }
+
+          this.fileCompleteLength += fileAdded.length
+          let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
+          let completeFlag = 0
+          let that = this
+          for(var i = 0; i < fileAdded.length; i++) {
+            let fileA = fileAdded[i]
+            this.resolveMd5(fileA, chunkSize).then(function (result) {
+              console.log(result)
+              fileA.md5 = result
+              fileA.uniqueIdentifier = result
+              hasMd5(fileA.md5).then((res) => {
+                if (res.data.data.id) {
+                  completeFlag++
+                  let infoList = {
+                    fileId: res.data.data.id,
+                    MD5: fileA.md5,
+                    name: fileA.name,
+                    relativePath: '/' + fileA.relativePath,
+                    secretClass: that.fileUpInfo.secretClass,
+                    type: that.fileUpInfo.type,
+                    productNo: that.fileUpInfo.productNo,
+                    fileNo: that.fileUpInfo.fileNo,
+                    sublibraryId: that.fileUpInfo.subLibraryId
+                    // codeName: that.fileUpInfo.codeName
+                  }
+                  if(that.uploadType == 'normal') {
+                    infoList.ifDirectModify = false
+                    infoList.ifBackToStart = true
+                  }
+                  that.fileInfoList.push(infoList)
+                  let resVal = ''
+                  let val = fileA.size
+                  if( val < 1024 ) {
+                    resVal = val + ' B'
+                  } else if(val >= 1024 && val < 1048576 ) {
+                    resVal = Math.round(val/1024*10)/10 + ' KB'
+                  } else if(val >= 1048576 && val < 1073741824) {
+                    resVal = Math.round(val/1048576*10)/10 + ' MB'
+                  } else if(val >= 1073741824) {
+                    resVal = Math.round(val/1073741824*10)/10 + ' G'
+                  }
+                  $('.manage-uploader .uploader-list ul').prepend('<div status="success" class="uploader-file">' +
+                    '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
+                    '<div class="uploader-file-info">' +
+                    '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
+                    '</div> <div class="uploader-file-size">'+ resVal +
+                    '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
+                  that.$refs.uploader.uploader.removeFile(fileA)
+                  that.fileCompleteLength += 1 // 中和上传控件触发的removeFile事件的自减1
+                  // let notiMes = '文件' + fileA.name + '上传成功！'
+                  that.listLoading = false
+                  if(completeFlag === fileAdded.length) {
+                    that.md5Loading = false
+                    that.$refs.uploader.uploader.upload()
+                  }
+                } else if (res.data.data == false) {
+                  completeFlag++
+                  if(completeFlag === fileAdded.length) {
+                    that.md5Loading = false
+                    that.$refs.uploader.uploader.upload()
+                  }
+                }
+              })
+            })
+          }
         }
       },
       resolveMd5(zenfile,chunkSize) {
@@ -1114,7 +1221,24 @@
       },
       previewFile(row) {
         previewFiles(row.id).then((res) => {
-
+          if(res.data.code === 0) {
+            if(res.data.data.fileType === 'picture') {
+              const {href} = this.$router.resolve({ path: '/preview',query: {id: res.data.data.pathId, type: res.data.data.fileType}})
+              window.open(href, '_blank')
+            }
+            if(res.data.data.fileType === 'office') {
+              // let href = 'http://192.168.31.69:8080/preview/viewer/document/' + res.data.data.pathId
+              let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
+              window.open(href, '_blank')
+            }
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       exportFile(row) {
@@ -1265,11 +1389,15 @@
         })
       },
       fileAuditSelection(row) {
-        if (row.auditMode !== 0) {
+        /*if (row.auditMode !== 0) {
           return 0
         } else {
-
           return 1
+        }*/
+        if (row.state === 0 || row.state === 8) {
+          return 1
+        } else {
+          return 0
         }
       },
       getRowKey(row) {
@@ -1475,20 +1603,23 @@
           if(row.auditMode === 0 && row.state === 0) {
             return '未提交'
           }
-          if(row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) {
+          if((row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) || row.state === 1) {
             return '审批中'
           }
-          if(row.ifApprove === true && row.state === 5) {
+          if(row.ifApprove === true && row.state === 6) {
             return '已通过'
           }
-          if(row.ifReject === true && row.state === 5) {
+          if(row.ifReject === true && row.state === 6) {
             return '已驳回'
           }
-          if(row.state === 6) {
+          if(row.state === 7) {
             return '修改申请中'
           }
-          if(row.state === 7) {
+          if(row.state === 8) {
             return '二次修改中'
+          }
+          if(row.state === 9) {
+            return '二次修改且提交'
           }
         }
       },
@@ -1496,9 +1627,6 @@
         return function (row) {
           if(row.auditMode === 0 && row.state === 0) {
             return 'notCommit'
-          }
-          if(row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) {
-            return 'auditing'
           }
           if(row.ifApprove === true) {
             return 'approve'
@@ -1568,7 +1696,7 @@
           // 文件删除按钮
           // 修改文件信息
           if (opType === 'delete' || opType === 'modifyInfo') {
-            if ((subState === 0) && (row.auditMode === 0) || (subState === 5 && subApprove !== true) || subState === 7) {
+            if ((subState === 0) && (row.auditMode === 0) || (subState === 6 && subApprove !== true) || subState === 8) {
               return false
             } else {
               return true
@@ -1577,7 +1705,7 @@
           }
           // 文件直接修改按钮
           if (opType === 'edit') {
-            if (subState === 5 && subReject === true) {
+            if (subState === 6 && subReject === true) {
               return false
             } else {
               return true
@@ -1585,7 +1713,7 @@
           }
           // 申请二次修改
           if (opType === 'apply') {
-            if(subState === 5) {
+            if(subState === 6) {
               return false
             } else {
               return true
@@ -1593,7 +1721,7 @@
           }
           // 文件二次修改按钮
           if (opType === 'secondEdit') {
-            if (subState === 7) {
+            if (subState === 8) {
               return false
             } else {
               return true
@@ -1601,7 +1729,7 @@
           }
           // 撤销修改按钮
           if (opType === 'revoke') {
-            if ((subState === 5 && subReject === true) || subState === 7) {
+            if ((subState === 6 && subReject === true) || subState === 8) {
               return false
             } else {
               return true
@@ -1609,7 +1737,7 @@
           }
           // 选择版本
           if (opType === 'changeVersion') {
-            if ((subState === 5 && subReject === true) || subState === 7) {
+            if ((subState === 6 && subReject === true) || subState === 8) {
               return false
             } else {
               return true

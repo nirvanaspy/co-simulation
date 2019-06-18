@@ -250,10 +250,23 @@ export function getTaskFileVersion(fileId) {
   })
 }
 
+// 查询项目是否有流程
 export function ifProHasProcessNode(data) {
   return request({
     url: '/processNode1/ifHasProcessNode',
     method: 'post',
+    data
+  })
+}
+
+// 查询已存在的同名文件
+export function findExistTaskFiles(id, data) {
+  return request({
+    url: '/subtasks/' + id + '/findExistSubtaskFiles',
+    method: 'post',
+    headers: {
+      'content-type': 'application/json;charset=utf-8'
+    },
     data
   })
 }

@@ -122,7 +122,15 @@
               </el-table-column>
               <el-table-column align="center" min-width="200px" label="值">
                 <template slot-scope="scope">
-                  <el-input v-model="scope.row.value"></el-input>
+                  <el-input v-model="scope.row.value" v-if="scope.row.field !== 'secretClass'"></el-input>
+                  <el-select v-model="scope.row.value" v-else placeholder="请选择" clearable>
+                    <el-option
+                      v-for="item in secretClassOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+                  </el-select>
                 </template>
               </el-table-column>
               <el-table-column align="center" width="150px" label="逻辑符">
@@ -154,22 +162,22 @@
             </el-table-column>
             <el-table-column min-width="120" label="令号" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span>{{scope.row.orderNum}}</span>
               </template>
             </el-table-column>
             <el-table-column min-width="120" label="创建者" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span>{{scope.row.creator.realName}}</span>
               </template>
             </el-table-column>
             <el-table-column min-width="120" label="负责人" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span>{{scope.row.pic.realName}}</span>
               </template>
             </el-table-column>
             <el-table-column min-width="120" label="密级" align="center">
               <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
+                <span>{{computeSecretClass(scope.row.secretClass)}}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -224,7 +232,7 @@
       return {
         userId: '',
         activeName: 'first',
-        mainActive: false,
+        mainActive: true,
         seletedRow: [],
         selectedFileRow: [],
         proResultList: [],
@@ -309,6 +317,24 @@
             value: 'endswith'
           }
         ],
+        secretClassOptions: [
+          {
+            label: '非密',
+            value: 0
+          },
+          {
+            label: '秘密',
+            value: 1
+          },
+          {
+            label: '机密',
+            value: 2
+          },
+          {
+            label: '绝密',
+            value: 3
+          }
+        ],
         logicOptions: [
           {
             label: '或者',
@@ -320,7 +346,7 @@
           }
         ],
         secretMap: {
-          '公开': 0,
+          '非密': 0,
           '秘密': 1,
           '机密': 2,
           '绝密': 3,
@@ -336,7 +362,8 @@
         this.mainActive = true
       },
       hideMainSearch() {
-        this.mainActive = false
+        // this.mainActive = false
+        this.$store.dispatch('setIfSearch')
       },
       // 业务逻辑
       tableRowClassName(row) {

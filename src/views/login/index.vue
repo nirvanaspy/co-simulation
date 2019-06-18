@@ -119,7 +119,8 @@ export default {
 
             // if(this.$store.getters.roles.includes('ROLE_ADMIN')) {
             if(this.loginForm.username === 'admin' || this.loginForm.username === 'securityGuard') {
-              this.$router.push({ path: '/user_manage/index' })
+              // this.$router.push({ path: '/user_manage/index' })
+              this.$router.push({ path: '/department/index' })
             } else {
               this.$router.push({ path: '/projectManage' })
             }

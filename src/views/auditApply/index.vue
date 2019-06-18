@@ -15,8 +15,8 @@
         </el-table-column>
         <el-table-column align="center" width="200px" label="操作">
           <template slot-scope="scope">
-            <el-button type="primary" size="mini" @click="handleAuditApply(scope.row, true)" :disabled="scope.row.state !== 6">通过</el-button>
-            <el-button type="danger" size="mini"  @click="handleAuditApply(scope.row, false)" :disabled="scope.row.state !== 6">驳回</el-button>
+            <el-button type="primary" size="mini" @click="handleAuditApply(scope.row, true)" :disabled="scope.row.state !== 7">通过</el-button>
+            <el-button type="danger" size="mini"  @click="handleAuditApply(scope.row, false)" :disabled="scope.row.state !== 7">驳回</el-button>
           </template>
         </el-table-column>
       </el-table>

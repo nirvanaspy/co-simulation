@@ -23,7 +23,7 @@
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 2)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 3)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -32,7 +32,7 @@
               <el-tag type="success" v-if="scope.row.ifApprove === true && scope.row.state >= 7 && scope.row.ifReject === false">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.ifReject === true && scope.row.state >= 7">已驳回</el-tag>
               <!--<el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>-->
-              <el-tag type="warning" v-if="scope.row.state < 7">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.state < 7 || scope.row.state === 10">处理中</el-tag>
             </template>
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="审批意见">
@@ -47,16 +47,16 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state > 3||scope.row.state==3 || scope.row.ifReject == true">
+                  <el-button size="mini" type="warning" :disabled="(scope.row.state > 3 && scope.row.state!== 10) || scope.row.state == 3 || scope.row.ifReject == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item :disabled="scope.row.state > 3||scope.row.state==3 || scope.row.ifReject == true || scope.row.ifApprove == true">
+                  <el-dropdown-item :disabled="(scope.row.state > 3 && scope.row.state!== 10) || scope.row.state==3 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handlePassApply(scope.row, 3)">通过</span>
                   </el-dropdown-item>
-                  <el-dropdown-item :disabled="scope.row.state > 3||scope.row.state==3 || scope.row.ifReject == true || scope.row.ifApprove == true">
+                  <el-dropdown-item :disabled="(scope.row.state > 3 && scope.row.state!== 10) || scope.row.state==3 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     <span style="display:inline-block;padding:0 10px;" @click="handleDenyApply(scope.row, 3)">不通过</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -87,7 +87,7 @@
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 3)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 4)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -98,7 +98,7 @@
               <el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>-->
               <el-tag type="success" v-if="scope.row.ifApprove === true && scope.row.state >= 7 && scope.row.ifReject === false">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.ifReject === true && scope.row.state >= 7">已驳回</el-tag>
-              <el-tag type="warning" v-if="scope.row.state < 7">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.state < 7 || scope.row.state === 10">处理中</el-tag>
             </template>
           </el-table-column>
           <!--<el-table-column align="center" min-width="200px" label="是否通过">
@@ -168,7 +168,7 @@
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 4)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 5)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -179,7 +179,7 @@
               <el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>-->
               <el-tag type="success" v-if="scope.row.ifApprove === true && scope.row.state >= 7 && scope.row.ifReject === false">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.ifReject === true && scope.row.state >= 7">已驳回</el-tag>
-              <el-tag type="warning" v-if="scope.row.state < 7">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.state < 7 || scope.row.state === 10">处理中</el-tag>
             </template>
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="审批意见">
@@ -194,7 +194,7 @@
               <el-button size="mini" type="primary" @click="checkAuditDetail(scope.row)">查看文件</el-button>
               <el-dropdown trigger="click">
                 <span class="el-dropdown-link">
-                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 5||computedAssessState(scope.row) || scope.row.state > 5 || scope.row.ifReject == true || scope.row.ifApprove == true">
+                  <el-button size="mini" type="warning" :disabled="scope.row.state !== 5 || computedAssessState(scope.row) || scope.row.state > 5 || scope.row.ifReject == true || scope.row.ifApprove == true">
                     审批
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </el-button>
@@ -235,7 +235,7 @@
           >
             <template slot-scope="scope">
               <span>
-                <el-tag type="info">{{computeMyPassState(scope.row, 5)}}</el-tag>
+                <el-tag type="info">{{computeMyPassState(scope.row, 6)}}</el-tag>
               </span>
             </template>
           </el-table-column>
@@ -246,7 +246,7 @@
               <el-tag type="warning" v-if="scope.row.ifApprove === false && scope.row.ifReject === false">处理中</el-tag>-->
               <el-tag type="success" v-if="scope.row.ifApprove === true && scope.row.state >= 7 && scope.row.ifReject === false">已通过</el-tag>
               <el-tag type="danger" v-if="scope.row.ifReject === true && scope.row.state >= 7">已驳回</el-tag>
-              <el-tag type="warning" v-if="scope.row.state < 7">处理中</el-tag>
+              <el-tag type="warning" v-if="scope.row.state < 7 || scope.row.state === 10">处理中</el-tag>
             </template>
           </el-table-column>
           <el-table-column align="center" min-width="200px" label="审批意见">

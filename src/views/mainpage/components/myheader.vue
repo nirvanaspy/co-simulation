@@ -161,6 +161,7 @@
               </div>
               <div class="detail-body">
                 {{selectedMesObj.description}}
+                <el-button type="primary" size="mini" @click="handleCheckMes(selectedMesObj)" v-if="selectedMesObj.messageOperate == 4" style="position: relative;top: -3px;">点击查看</el-button>
               </div>
               <div class="detail-footer">
                 <div style="height: 40px;line-height: 40px;" v-if="selectedMesObj">
@@ -525,6 +526,20 @@
           this.selectedMesObj = item
           console.log(this.selectedMesObj)
         }
+      },
+      handleCheckMes(data) {
+        if(data.messageOperate == 4) {
+          // 子任务审核
+          if(data.mainBody == 3) {
+            this.$router.push({ path: '/audit_tasks/index' })
+            this.noticeDialogVisible = false
+          }
+          // 子库文件审核
+          if(data.mainBody == 4) {
+            this.$router.push({ path: '/audit_subLibFile/index' })
+          }
+        }
+
       },
       checkTypeChange(val) {
       }

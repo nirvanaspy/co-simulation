@@ -77,7 +77,7 @@
       <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
       <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="关键字" v-model="searchQuery">
       </el-input>
-      <el-dropdown trigger="click" placement="bottom-start">
+      <!--<el-dropdown trigger="click" placement="bottom-start">
           <span class="add-item">
             <svg-icon icon-class="add"></svg-icon>
           </span>
@@ -89,7 +89,7 @@
             <span @click="handleMangeDesignLinks"><svg-icon icon-class="tree-task" class="add-item-icon"></svg-icon>设计环节</span>
           </el-dropdown-item>
         </el-dropdown-menu>
-      </el-dropdown>
+      </el-dropdown>-->
     </div>
     <div class="title-container">
       <h3 class="title" style="margin-bottom:30px">
@@ -266,7 +266,7 @@
               :loading="getMaLoading"
               v-for="item in proManagerOptions"
               :key="item.id"
-              :label="item.username"
+              :label="item.realName"
               :value="item.id">
             </el-option>
           </el-select>
@@ -321,7 +321,7 @@
               <el-input v-model="temp.description" :disabled="!hasPermission" type="textarea"></el-input>
             </el-form-item>
             <el-form-item label="项目负责人" :label-width="formLabelWidth">
-              <span v-if="temp.pic">{{temp.pic.username}}</span>
+              <span v-if="temp.pic">{{temp.pic.realName}}</span>
               <el-dropdown placement="bottom-start" trigger="click" @click.native="getAbleUser" @command="setPersonInC" v-if="hasPermission">
                 <span class="switPic">
                   <el-tooltip content="修改负责人" placement="top">
@@ -332,7 +332,7 @@
                   <el-dropdown-item v-for="(item, index) in proManagerOptions"
                                     :key="index"
                                     :loading="getMaLoading"
-                                    :command="item">{{item.username}}</el-dropdown-item>
+                                    :command="item">{{item.realName}}</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-form-item>

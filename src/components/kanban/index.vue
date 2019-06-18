@@ -26,7 +26,7 @@
             {{copmutedDate(element.finishTime)}}
           </span>
           <span class="link-type taskPic" v-if="element.users">
-            <svg-icon icon-class="people"></svg-icon>{{element.users.username}}
+            <svg-icon icon-class="people"></svg-icon>{{element.users.realName}}
           </span>
         </div>
       </div>
@@ -61,7 +61,7 @@
             <el-option
               v-for="item in taskPicOptions"
               :key="item.id"
-              :label="item.username"
+              :label="item.realName"
               :value="item">
             </el-option>
           </el-select>

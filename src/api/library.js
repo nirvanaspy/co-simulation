@@ -37,3 +37,14 @@ export function deleteSubLibrary(id) {
     method: 'delete'
   })
 }
+// 查询子库中是否已存在的同名文件
+export function findExistLibFiles(id, userId, data) {
+  return request({
+    url: '/sublibraries/' + id + '/findExistSubDepotFiles/byUser/' + userId,
+    method: 'post',
+    headers: {
+      'content-type': 'application/json;charset=utf-8'
+    },
+    data
+  })
+}

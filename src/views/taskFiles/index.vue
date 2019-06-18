@@ -34,7 +34,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="会签模式">
+        <el-form-item label="会签模式" v-if="!(commitType === 'editCommit' && ifBackToStart === false)">
           <el-radio-group v-model="signType">
             <el-radio :label="1">无会签</el-radio>
             <el-radio :label="2">一人会签通过</el-radio>
@@ -42,7 +42,7 @@
           </el-radio-group>
         </el-form-item>
       </el-form>
-      <el-collapse v-model="activeNames" accordion class="audit-collapse">
+      <el-collapse v-model="activeNames" accordion class="audit-collapse" v-if="!(commitType === 'editCommit' && ifBackToStart === false)">
         <el-collapse-item title="选择校对人" name="1">
           <div>
             <el-table
@@ -59,7 +59,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -80,7 +80,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -101,7 +101,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -122,7 +122,7 @@
               <el-table-column
                 label="用户名"
                 min-width="120">
-                <template slot-scope="scope">{{ scope.row.username }}</template>
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -210,6 +210,11 @@
             let subtaskObj = res.data.data
             this.taskState = subtaskObj.state
             this.taskIfPass = subtaskObj.ifApprove
+            if(subtaskObj.state === 9) {
+              this.$refs.fileComp.onSecondEditing = true
+            } else {
+              this.$refs.fileComp.onSecondEditing = false
+            }
             if(subtaskObj.state === 7 && (subtaskObj.ifApprove === true || subtaskObj.ifReject === true)) {
               this.showSecondEditApply = true
             } else {
@@ -242,6 +247,11 @@
               this.$refs.fileComp.showUploadFlag = false
               this.ableToCommit = false
               return
+            }
+            if(subtaskObj.state === 9) {
+              this.$refs.fileComp.onSecondEditing = true
+            } else {
+              this.$refs.fileComp.onSecondEditing = false
             }
             if(subtaskObj.state === 7 && (subtaskObj.ifApprove === true || subtaskObj.ifReject === true)) {
               this.showSecondEditApply = true
@@ -361,36 +371,37 @@
           myApproveIds.push(item.id)
         })
 
-        // 校验四类人员选择是否正确
-        if(myCollatorIds.length === 0) {
-          this.$message({
-            message: '请选择校对人',
-            type: 'warning'
-          })
-          return
+        if(this.ifBackToStart === true) {
+          // 校验四类人员选择是否正确
+          if(myCollatorIds.length === 0) {
+            this.$message({
+              message: '请选择校对人',
+              type: 'warning'
+            })
+            return
+          }
+          if(myAuditIds.length === 0) {
+            this.$message({
+              message: '请选择审核人',
+              type: 'warning'
+            })
+            return
+          }
+          if(myCountersignIds.length === 0 && this.signType !== 1) {
+            this.$message({
+              message: '请选择会签人',
+              type: 'warning'
+            })
+            return
+          }
+          if(myApproveIds.length === 0) {
+            this.$message({
+              message: '请选择批准人',
+              type: 'warning'
+            })
+            return
+          }
         }
-        if(myAuditIds.length === 0) {
-          this.$message({
-            message: '请选择审核人',
-            type: 'warning'
-          })
-          return
-        }
-        if(myCountersignIds.length === 0 && this.signType !== 1) {
-          this.$message({
-            message: '请选择会签人',
-            type: 'warning'
-          })
-          return
-        }
-        if(myApproveIds.length === 0) {
-          this.$message({
-            message: '请选择批准人',
-            type: 'warning'
-          })
-          return
-        }
-
         let collatorIds = (myCollatorIds + '').replace(/\[|]/g, '')
         let auditIds = (myAuditIds + '').replace(/\[|]/g, '')
         let countersignIds = (myCountersignIds + '').replace(/\[|]/g, '')
@@ -525,6 +536,9 @@
         }
         if(this.taskState === 9) {
           return '二次修改中'
+        }
+        if(this.taskState === 10) {
+          return '二次修改审批中'
         }
       },
       computeShowBtn() {

@@ -260,6 +260,7 @@
               style="width: 100%;"
               @selection-change="handleSelectionChange"
               :row-key="getRowKey"
+              height="700px"
     >
       <el-table-column
         type="selection"
@@ -768,7 +769,7 @@
           headers: {
             'Authorization': ''
           },
-          chunkSize: 80* 1024 * 1024,
+          chunkSize: 50* 1024 * 1024,
           simultaneousUploads: 20,
           autoStart: false,
           testChunks: true,
@@ -1261,7 +1262,24 @@
       },
       previewFile(row) {
         previewFiles(row.id).then((res) => {
-
+          if(res.data.code === 0) {
+            if(res.data.data.fileType === 'picture') {
+              const {href} = this.$router.resolve({ path: '/preview',query: {id: res.data.data.pathId, type: res.data.data.fileType}})
+              window.open(href, '_blank')
+            }
+            if(res.data.data.fileType === 'office') {
+              // let href = 'http://192.168.31.69:8080/preview/viewer/document/' + res.data.data.pathId
+              let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
+              window.open(href, '_blank')
+            }
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
         })
       },
       exportFile(row) {
