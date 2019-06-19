@@ -874,13 +874,25 @@
         })
       },
 
+      // 检查要修改的文件是否和当前要上传的文件信息完全一致
+      checkFileIfSame(fileInfo) {
+        if (this.targetEditFile.name + '.' + this.targetEditFile.postfix !== fileInfo.name || this.targetEditFile.secretClass !== this.fileUpInfo.secretClass
+          || this.targetEditFile.type !== this.fileUpInfo.type || this.targetEditFile.productNo !== this.fileUpInfo.productNo
+          || this.targetEditFile.fileNo !== this.fileUpInfo.fileNo) {
+          return false
+        } else {
+          return true
+        }
+      },
+
       // 上传文件的几个方法
       // 添加文件时触发
       checkMd5 (fileAdded, fileList) {
         // console.log(this.$refs.uploader.uploader.files)
-
-        // 只有在普通的上传文件模式下，才需要对所选文件进行去重>>>
-        if(this.uploadType === 'normal') {
+        // 在普通的上传文件模式下
+        // 在修改模式下，上传的新文件与目标修改文件文件信息不一致时
+        // 需要对所选文件进行去重  >>>
+        if(this.uploadType === 'normal' || (this.uploadType !== 'normal' && !this.checkFileIfSame(fileAdded[0]))) {
           // 防止用户上传文件名称相同的文件，在上传前就去除名称重复的文件
           /*this.repeatFiles = []
           for(let j = fileAdded.length - 1; j >= 0; j--) {
@@ -1631,7 +1643,7 @@
           if(row.ifApprove === true) {
             return 'approve'
           }
-          if(row.ifReject === true) {
+          if(row.ifReject === true || row.state === 8) {
             return 'reject'
           }
         }
