@@ -19,9 +19,27 @@
         <!--<el-button type="primary" size="small">直接修改</el-button>-->
     </span>
       <div style="height: 100%;overflow: auto;width: 100%;padding:5px 0 10px 10px;">
-        <comFileManage :selectCompId="selectedId" :selectCompName="selectdName" :proClass="proSecretClass" ref="fileComp"></comFileManage>
+        <comFileManage :selectCompId="selectedId" :selectCompName="selectdName" :proClass="proSecretClass" :taskInfo="currentSubtask" ref="fileComp"></comFileManage>
       </div>
     </div>
+    <el-dialog title="申请二次修改" :visible.sync="applyForEditDialog" append-to-body width="60%" class="limit-width-dialog audit-dialog">
+      <el-form label-position="left" label-width="80px" :rules="rules" ref="applyForm" :model="applyForm">
+        <el-form-item label="审批流程" prop="applyVersion">
+          <el-select v-model="applyForm.applyVersion" placeholder="请选择要修改至何版本" style="width: 100%">
+            <el-option
+              v-for="item in computeVersionOption"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div style="text-align: right" slot="footer" class="dialog-footer">
+        <el-button @click="resetApplyForm" style="margin-top: 10px;">取消</el-button>
+        <el-button type="primary" @click="applyForEdit" style="margin-top: 10px;">确定</el-button>
+      </div>
+    </el-dialog>
     <el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="60%" class="limit-width-dialog audit-dialog">
       <el-form label-position="left" label-width="80px">
         <el-form-item label="审批流程" v-if="commitType === 'editCommit'">
@@ -148,7 +166,9 @@
         signType: 0,
         selectedId: '',
         userId: '',
+        currentSubtask: null,
         selectdName: '',
+        applyForEditDialog: false,
         commitDialog: false,
         getMaLoading: false,
         userList: [],
@@ -164,6 +184,12 @@
         ableToCommit: false,
         subtaskName: '',
         commitType: '',
+        rules: {
+          applyVersion: [{ required: true, message:'请选择版本', trigger: 'change' }]
+        },
+        applyForm: {
+          applyVersion: ''
+        },
         ifToStartOptions: [
           {
             label: '提交到初始审核流程',
@@ -208,6 +234,7 @@
         getSubtaskDetail(this.selectedId).then((res) => {
           if(res.data.code === 0) {
             let subtaskObj = res.data.data
+            this.currentSubtask = res.data.data
             this.taskState = subtaskObj.state
             this.taskIfPass = subtaskObj.ifApprove
             if(subtaskObj.state === 9) {
@@ -241,6 +268,7 @@
         getSubtaskDetail(this.selectedId).then((res) => {
           if(res.data.code === 0) {
             let subtaskObj = res.data.data
+            this.currentSubtask = res.data.data
             this.taskState = subtaskObj.state
             this.taskIfPass = subtaskObj.ifApprove
             if(this.userId !== subtaskObj.users.id) {
@@ -457,7 +485,7 @@
         })
       },
       handleApplySecondEdit() {
-        this.$confirm('确认申请二次修改吗？', '提示', {
+        /*this.$confirm('确认申请二次修改吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -485,6 +513,43 @@
             type: 'info',
             message: '已取消申请'
           })
+        })*/
+        this.applyForm.applyVersion = ''
+        this.applyForEditDialog = true
+        this.$nextTick(() => {
+          this.$refs.applyForm.clearValidate
+        })
+      },
+      resetApplyForm() {
+        this.applyForEditDialog = false
+        this.applyForm.applyVersion = ''
+        this.$refs.applyForm.clearValidate
+      },
+      applyForEdit() {
+        this.$refs.applyForm.validate((valid) => {
+          if(valid) {
+            let qs = require('qs')
+            let data = qs.stringify({version: this.applyForm.applyVersion})
+            applyForTaskAudit(this.selectedId, data).then((res) => {
+              if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '申请成功',
+                  type: 'success',
+                  duration: 2000
+                })
+                this.resetApplyForm()
+                this.getSubtaskDetails()
+              } else {
+                this.$notify({
+                  title: '失败',
+                  message: res.data.msg,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
+            })
+          }
         })
       }
     },
@@ -497,6 +562,48 @@
           list = this.userList
         }
         return list
+      },
+      computeVersionOption() {
+        let optionComputed = []
+        if(this.currentSubtask) {
+          if(this.currentSubtask.version) {
+            let versionState = this.currentSubtask.version.substring(0, 1)
+            let versionNum
+            if(this.currentSubtask.ifApprove === true) {
+              versionNum = parseInt(this.currentSubtask.version.substring(1, this.currentSubtask.version.length)) + 1
+              if(versionState === 'M') {
+                optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
+              }
+              if(versionState === 'C') {
+                optionComputed = [{value: 'C' + versionNum},{value: 'S1'}]
+              }
+              if(versionState === 'S') {
+                optionComputed = [{value: 'S' + versionNum},{value: 'D1'}]
+              }
+              if(versionState === 'D') {
+                optionComputed = [{value: 'D' + versionNum}]
+              }
+            } else {
+              versionNum = parseInt(this.currentSubtask.version.substring(1, this.currentSubtask.version.length))
+              if(versionState === 'M') {
+                optionComputed = [{value: 'M' + versionNum}]
+              }
+              if(versionState === 'C') {
+                optionComputed = [{value: 'C' + versionNum}]
+              }
+              if(versionState === 'S') {
+                optionComputed = [{value: 'S' + versionNum}]
+              }
+              if(versionState === 'D') {
+                optionComputed = [{value: 'D' + versionNum}]
+              }
+            }
+          } else {
+            optionComputed = [{value: 'M2'}]
+          }
+        }
+        return optionComputed
+
       },
       computeCurrentState() {
         if(this.taskState === null) {

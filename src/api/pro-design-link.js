@@ -167,10 +167,11 @@ export function getAllOpinion(id, state) {
 }
 
 // 申请二次修改子任务
-export function applyForTaskAudit(id) {
+export function applyForTaskAudit(id, data) {
   return request({
     url: '/subtasks/' + id + '/applyForModify',
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
@@ -267,6 +268,15 @@ export function findExistTaskFiles(id, data) {
     headers: {
       'content-type': 'application/json;charset=utf-8'
     },
+    data
+  })
+}
+
+// 批量删除文件
+export function deleteFileInBranch(data) {
+  return request({
+    url: '/subtaskFiles/deleteFilesInBatch',
+    method: 'patch',
     data
   })
 }

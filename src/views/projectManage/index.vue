@@ -504,9 +504,7 @@
         selectedId: '',
         hasPermission: false,
         tableKey: 0,
-        list: [
-          {name: 'pro1', secretClass: 1, state: 2 }
-        ],
+        list: [],
         proTreeList: [],
         proManagerOptions: [],
         listQuery: {

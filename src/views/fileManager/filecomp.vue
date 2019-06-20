@@ -7,9 +7,12 @@
         </el-breadcrumb>
       </div>
       <div style="float: right;color:rgb(0, 171, 235);cursor: pointer;padding-right: 20px;">
+        <span @click="deleteInBatches" v-if="showUploadFlag">
+          <span style="font-size: 14px;margin-right: 4px;">批量删除</span>
+        </span>
         <span @click="handleuploadFile" v-if="showUploadFlag">
           <svg-icon icon-class="upload1"></svg-icon>
-          <span style="font-size: 14px;margin-left: 6px;">上传文件</span>
+          <span style="font-size: 14px;margin-left: 2px;">上传文件</span>
         </span>
       </div>
     </div>
@@ -18,7 +21,14 @@
               style="width: 100%"
               class="fileList"
               height="700px"
+              :row-key="getRowKey"
+              @selection-change="handleSelectionChange"
     >
+      <el-table-column
+        type="selection"
+        :reserve-selection="true"
+        width="55">
+      </el-table-column>
       <el-table-column label="文件名" min-width="100">
         <template slot-scope="scope">
           <span>
@@ -128,9 +138,9 @@
               <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'revoke')">
                 <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销修改</span>
               </el-dropdown-item>
-              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'changeVersion')">
+              <!--<el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'changeVersion')">
                 <span style="display:inline-block;padding:0 10px;" @click="handleChangeVersion(scope.row)">更换版本</span>
-              </el-dropdown-item>
+              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -186,7 +196,7 @@
           <!--:props="libProps"-->
         </el-form-item>
         <!--二次修改文件的一些选项-->
-        <el-form label-position="left" label-width="70px" v-if="uploadType === 'secondEdit' || onSecondEditing === true">
+        <!--<el-form label-position="left" label-width="70px" v-if="uploadType === 'secondEdit' || onSecondEditing === true">
           <el-form-item label="版本号">
             <el-select v-model="fileModify.version" placeholder="请选择版本号" style="width: 100%">
               <el-option
@@ -196,9 +206,9 @@
                 :value="item.value">
               </el-option>
             </el-select>
-            <!--<el-input-number v-model="fileModify.versionNum" :step="1" :min="computeVersionNum" style="width: 49%"></el-input-number>-->
+            &lt;!&ndash;<el-input-number v-model="fileModify.versionNum" :step="1" :min="computeVersionNum" style="width: 49%"></el-input-number>&ndash;&gt;
           </el-form-item>
-        </el-form>
+        </el-form>-->
         <!--直接修改文件的一些选项-->
         <!--<el-form label-position="left" label-width="70px" v-if="uploadType === 'edit'">
           <el-form-item label="版本号">
@@ -329,7 +339,7 @@
   /*eslint-disable*/
   import { getCompFiles, saveFiles, deleteCompFiles, previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo } from '@/api/component'
-  import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo, modifyTaskFile, revokeTaskFileModify, taskFileVersionReplace, getTaskFileVersion, findExistTaskFiles } from '@/api/pro-design-link'
+  import { getTaskFiles, downloadtaskFile, deleteTaskFile, editFileInfo, modifyTaskFile, revokeTaskFileModify, taskFileVersionReplace, getTaskFileVersion, findExistTaskFiles, deleteFileInBranch } from '@/api/pro-design-link'
   import { libraryList, subLibraryList } from "@/api/library"
   import service from '@/utils/request'
   import maniFile from '@/views/fileManager/maniFile'
@@ -352,6 +362,9 @@
       },
       proClass: {
         type: Number
+      },
+      taskInfo: {
+        type: Object
       }
     },
     components: {
@@ -548,7 +561,8 @@
         switchVersion: '',
         switchVersionOptions: [],
         viewLoading: false,
-        repeatFiles: []
+        repeatFiles: [],
+        selectedFiles: []
       }
     },
     created() {
@@ -1313,7 +1327,7 @@
         })
       },
       handleRevoke(row) {
-        this.$confirm('确认撤销上次的修改吗吗？', '提示', {
+        this.$confirm('确认撤销上次的修改吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -1392,6 +1406,60 @@
             duration: 2000
           })
         })
+      },
+      deleteInBatches() {
+        this.$confirm('确认进行批量删除操作吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let myFileIds = []
+          this.selectedFiles.forEach((item) => {
+            myFileIds.push(item.id)
+          })
+          let fileIds = (myFileIds + '').replace(/\[|]/g, '')
+          let qs = require('qs')
+          let data = {
+            'ids': fileIds
+          }
+          let datapost = qs.stringify(data)
+          deleteFileInBranch(datapost).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '批量删除成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: '删除失败',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消撤销操作'
+          })
+        })
+      },
+      getRowKey(row) {
+        return row.id
+      },
+      handleSelectionChange(val) {
+        this.selectedFiles = val
       }
     },
     computed: {
@@ -1564,8 +1632,10 @@
           }
         }
         if(this.uploadType === 'secondEdit') { // 二次修改模式下用户必填参数 密级、类型、产品型号、文件图号、目标库、新版本
-          if(this.fileUpInfo.secretClass !== null && this.fileInfo.type !== null && this.fileUpInfo.productNo !== null && this.fileUpInfo.fileNo !== null && this.fileUpInfo.subLibraryId !== null && this.fileModify.version !== null &&
-            this.fileUpInfo.secretClass !== '' && this.fileInfo.type !== '' && this.fileUpInfo.productNo !== '' && this.fileUpInfo.fileNo !== '' && this.fileUpInfo.subLibraryId !== '' && this.fileModify.version !== '')
+          /*if(this.fileUpInfo.secretClass !== null && this.fileInfo.type !== null && this.fileUpInfo.productNo !== null && this.fileUpInfo.fileNo !== null && this.fileUpInfo.subLibraryId !== null && this.fileModify.version !== null &&
+            this.fileUpInfo.secretClass !== '' && this.fileInfo.type !== '' && this.fileUpInfo.productNo !== '' && this.fileUpInfo.fileNo !== '' && this.fileUpInfo.subLibraryId !== '' && this.fileModify.version !== '')*/
+          if(this.fileUpInfo.secretClass !== null && this.fileInfo.type !== null && this.fileUpInfo.productNo !== null && this.fileUpInfo.fileNo !== null && this.fileUpInfo.subLibraryId !== null &&
+            this.fileUpInfo.secretClass !== '' && this.fileInfo.type !== '' && this.fileUpInfo.productNo !== '' && this.fileUpInfo.fileNo !== '' && this.fileUpInfo.subLibraryId !== '')
           {
             return true
           }
@@ -1577,6 +1647,9 @@
             return true
           }
         }
+      },
+      listenTaskInfo() {
+        return this.taskInfo
       }
       /*computeVersionNum() {
         if(this.uploadType === 'secondEdit') {
@@ -1593,6 +1666,9 @@
       }*/
     },
     watch: {
+      /*listenTaskInfo() {
+        console.log(this.taskInfo.version)
+      },*/
       selectCompId(newValue, oldValue) {
         this.componentId = this.selectCompId,
         this.parentNodeId = ''
@@ -1609,6 +1685,9 @@
       },
       fileInfoListLength(newValue, oldValue) {
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
+          this.fileInfoList.forEach((item) => {
+            item.version = this.taskInfo.version ? this.taskInfo.version : 'M1'
+          })
           let datapost = JSON.stringify(this.fileInfoList)
           this.statusText.success = '正在合并文件'
 
@@ -1654,7 +1733,7 @@
               this.fileInfoList.forEach((item) => {
                 item.ifDirectModify = false
                 item.ifBackToStart = true
-                item.version = this.fileModify.version
+                // item.version = this.fileModify.version
               })
               postData = JSON.stringify(this.fileInfoList[0])
 
@@ -1699,7 +1778,6 @@
               this.getList()
             })
           }
-
         }
       }
     }
