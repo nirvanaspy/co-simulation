@@ -4,17 +4,9 @@ import axios from 'axios'
 import store from '@/store'
 import { getToken, getRefreshToken, setToken, setRefreshToken, getIp, getPort, getExpire, getExpire2, setExpire, setExpire2, removeExpire, removeExpire2 } from '@/utils/auth'
 // create an axios instance
-let ipConfig = getIp()
-let portConfig = getPort()
-// let serviceConfig = 'http://' + ipConfig + ':' + portConfig + '/apis'
-// let serviceConfig = 'http://127.0.0.1:8080' + '/apis'
-let serviceConfig = 'http://192.168.31.134:8080'
+let serviceConfig = 'http://127.0.0.1:8080'
 // let serviceConfig = 'http://10.120.111.1:8080'
 // let serviceConfig = 'http://10.120.112.1:8080'
-// let serviceConfig = 'http://192.168.31.88:8080'
-// let serviceConfig = 'http://192.168.43.243:8080'
-// let serviceConfig = 'http://127.0.0.1:8080'
-// let serviceConfig = 'http://192.168.31.13:8080' + '/apis'
 
 let timeStamp = getExpire()
 let refreshTimeStamp = getExpire2()

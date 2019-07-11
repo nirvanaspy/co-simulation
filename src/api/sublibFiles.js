@@ -79,10 +79,11 @@ export function getFileAudits(fileId, time) {
 }
 
 // 申请二次修改
-export function applyForModify(fileId) {
+export function applyForModify(fileId, data) {
   return request({
     url: '/sublibraryFiles/' + fileId + '/applyForModify',
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
@@ -174,3 +175,21 @@ export function getFailedFiles(subLibId, userId) {
   })
 }
 
+// 查询子库文件历史版本
+export function getSubHisFiles(fileId) {
+  return request({
+    url: '/sublibraryFiles/' + fileId + '/getSublibraryHistoriesFiles',
+    method: 'get'
+  })
+}
+
+// 根据二次修改申请者查询待二次修改的文件
+export function getSubFilesByApplicant(subLibId, userId) {
+  return request({
+    url: '/sublibraryFiles/modifyFilesByApplicant/' + userId,
+    method: 'get',
+    params: {
+      subdepotId: subLibId
+    }
+  })
+}

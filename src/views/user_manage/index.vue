@@ -837,7 +837,6 @@
       },
       editDepa() {
         var qs = require('qs')
-        console.log(this.userInfo)
         let data = {
           'departmentId': this.userInfo.department.id
         }
@@ -1228,7 +1227,7 @@
     width: 32px;
     line-height: 32px;
     position: relative;
-    top: 2px;
+    top: 1px;
     left: -10px;
     display: inline-block;
     // background: #3f7b5f;

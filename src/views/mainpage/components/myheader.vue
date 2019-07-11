@@ -402,7 +402,7 @@
         let url = service.defaults.baseURL + '/COSIMULATION';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
-        // stompClient.debug=null
+        stompClient.debug=null
         let that = this;
         let username = this.getCookie('username')
         stompClient.connect({}, function (frame) {
@@ -514,7 +514,7 @@
           readMes(dataPost).then((res) => {
             if(res.data.code === 0) {
               this.selectedMesObj = item
-              console.log(this.selectedMesObj)
+              // console.log(this.selectedMesObj)
               item.ifRead = true
               this.unReadMesCount -= 1
             }
@@ -524,7 +524,7 @@
           })
         } else {
           this.selectedMesObj = item
-          console.log(this.selectedMesObj)
+          // console.log(this.selectedMesObj)
         }
       },
       handleCheckMes(data) {

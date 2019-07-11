@@ -1,18 +1,8 @@
 <template>
   <div class="app-container calendar-list-container">
     <div class="filter-container">
-      <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
-        设备回收站
-      </div>
       <el-input style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
       </el-input>
-      <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
-      <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
-        回收站
-      </el-button>
-      <el-button type="primary" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
-        返回
-      </el-button>
     </div>
     <el-table :key='tableKey' :data="listA" v-if="!isHistory" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
               style="width: 100%">
@@ -31,12 +21,12 @@
           <span style="font-size: 28px"><svg-icon :icon-class="computedOs(scope.row.ostype)"></svg-icon></span>
         </template>
       </el-table-column>
-      <el-table-column min-width="100px" align="center" :label="$t('table.devicePath')">
-        <template slot-scope="scope">
-          <span v-if="scope.row.deployPath">{{scope.row.deployPath}}</span>
-          <span v-else>--</span>
-        </template>
-      </el-table-column>
+      <!--<el-table-column min-width="100px" align="center" :label="$t('table.devicePath')">-->
+        <!--<template slot-scope="scope">-->
+          <!--<span v-if="scope.row.deployPath">{{scope.row.deployPath}}</span>-->
+          <!--<span v-else>&#45;&#45;</span>-->
+        <!--</template>-->
+      <!--</el-table-column>-->
       <el-table-column min-width="90px" align="center" label="CPU">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
@@ -57,18 +47,18 @@
           <span v-else-if="scope.row.ifChangeColor >= 85" style="color: #FF0000;">{{computedRamSize(scope.row)}}%</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="90px" align="center" label="上行速度">
-        <template slot-scope="scope">
-          <span v-if="!scope.row.online">--</span>
-          <span v-else>{{computedUpStream(scope.row.upLoadSpeed)}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="90px" align="center" label="下行速度">
-        <template slot-scope="scope">
-          <span v-if="!scope.row.online">--</span>
-          <span v-else>{{computedDownStream(scope.row.downLoadSpeed)}}</span>
-        </template>
-      </el-table-column>
+      <!--<el-table-column min-width="90px" align="center" label="上行速度">-->
+        <!--<template slot-scope="scope">-->
+          <!--<span v-if="!scope.row.online">&#45;&#45;</span>-->
+          <!--<span v-else>{{computedUpStream(scope.row.upLoadSpeed)}}</span>-->
+        <!--</template>-->
+      <!--</el-table-column>-->
+      <!--<el-table-column min-width="90px" align="center" label="下行速度">-->
+        <!--<template slot-scope="scope">-->
+          <!--<span v-if="!scope.row.online">&#45;&#45;</span>-->
+          <!--<span v-else>{{computedDownStream(scope.row.downLoadSpeed)}}</span>-->
+        <!--</template>-->
+      <!--</el-table-column>-->
       <el-table-column align="center" :label="$t('table.deviceState')">
         <template slot-scope="scope">
           <span class="el-tag el-tag--danger" v-if="scope.row.online == false">离线</span>
@@ -79,89 +69,57 @@
         <template slot-scope="scope">
           <el-button type="primary" size="mini" v-if="scope.row.online && !scope.row.virtual" @click="handleProcess(scope.row)">{{$t('table.deviceProcess')}}</el-button>
           <el-button size="mini" type="success" v-if="scope.row.online && !scope.row.virtual" @click="handleDisk(scope.row)">{{$t('table.disk')}}</el-button>
-          <el-button size="mini" type="warning" v-if="!scope.row.virtual && scope.row.online" @click="handleRouter(scope.row)">
-            远程
-          </el-button>
+          <!--<el-button size="mini" type="warning" v-if="!scope.row.virtual && scope.row.online" @click="handleRouter(scope.row)">-->
+            <!--远程-->
+          <!--</el-button>-->
           <el-button type="primary" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" size="mini">{{$t('table.deviceProcess')}}</el-button>
           <el-button size="mini" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" type="success">{{$t('table.disk')}}</el-button>
-          <el-button type="warning" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" size="mini">远程</el-button>
+          <!--<el-button type="warning" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" size="mini">远程</el-button>-->
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="预约人">
+        <template slot-scope="scope">
+          <span v-if="scope.row.users">{{scope.row.users.realName}}</span>
+          <span v-else>--</span>
         </template>
       </el-table-column>
       <el-table-column align="center" :label="$t('table.actions')" width="140" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-dropdown trigger="click" v-if="!scope.row.virtual">
             <span class="el-dropdown-link">
-              <el-button type="success" plain>更多操作</el-button>
+              <el-button type="success" plain size="small">更多操作</el-button>
             </span>
             <el-dropdown-menu slot="dropdown" v-if="!scope.row.deleted">
+              <!--<el-dropdown-item>-->
+                <!--<span style="display:inline-block;padding:0 10px;" @click="handleUpdate(scope.row, scope.$index)">编辑</span>-->
+              <!--</el-dropdown-item>-->
+              <!--<el-dropdown-item divided>-->
+                <!--<span style="display:inline-block;padding:0 10px;" @click="copyDevice(scope.row)">复制</span>-->
+              <!--</el-dropdown-item>-->
               <el-dropdown-item>
-                <span style="display:inline-block;padding:0 10px;" @click="handleUpdate(scope.row, scope.$index)">编辑</span>
+                <span style="display:inline-block;padding:0 10px;" @click="checkBooking(scope.row)">查看预约详情</span>
               </el-dropdown-item>
               <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="copyDevice(scope.row)">复制</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="deleteDevice(scope.row)">删除</span>
+                <span style="display:inline-block;padding:0 10px;" @click="deleteDevice(scope.row)" v-if="userId === scope.row.users.id">取消预约</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <el-button type="primary" size="mini" v-if="scope.row.virtual" @click="handleReport(scope.row)">{{$t('table.report')}}</el-button>
+          <el-button type="primary" size="mini" v-if="scope.row.virtual" @click="handleReport(scope.row)">预约</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-table :key='tableKey'
-              :data="listA"
-              v-if="isHistory === true"
-              border fit highlight-current-row
-              style="width: 100%"
-
-    >
-      <el-table-column align="center" :label="$t('table.deviceName')" width="130">
-        <template slot-scope="scope">
-          <span>{{scope.row.name}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column width="140px" align="center" :label="$t('table.deviceIP')">
-        <template slot-scope="scope">
-          <span>{{scope.row.hostAddress}}</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="100px" :label="$t('table.devicePath')">
-        <template slot-scope="scope">
-          <span v-if="scope.row.deployPath">{{scope.row.deployPath}}</span>
-          <span v-else>--</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" :label="$t('table.actions')" width="140" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
-          <el-dropdown trigger="click" v-if="!scope.row.virtual && scope.row.deleted">
-            <span class="el-dropdown-link">
-              <el-button type="success" plain>更多操作</el-button>
-            </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>
-                <span style="display:inline-block;padding:0 10px;" @click="handleClean(scope.row)">清除</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="handleRestore(scope.row)">恢复</span>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="currentPage"
-      :page-sizes="[20,50,100]"
-      :page-size="10"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="this.total"
-      background
-      style="text-align: center;margin-top:20px"
-    >
-    </el-pagination>
+    <!--<el-pagination-->
+      <!--@size-change="handleSizeChange"-->
+      <!--@current-change="handleCurrentChange"-->
+      <!--:current-page="currentPage"-->
+      <!--:page-sizes="[20,50,100]"-->
+      <!--:page-size="10"-->
+      <!--layout="total, sizes, prev, pager, next, jumper"-->
+      <!--:total="this.total"-->
+      <!--background-->
+      <!--style="text-align: center;margin-top:20px"-->
+    <!--&gt;-->
+    <!--</el-pagination>-->
 
     <!--修改对话窗口：包含动态图-->
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="40%" class="modDeviceDialog" v-if="!isHistory">
@@ -169,7 +127,7 @@
                ref="dataForm"
                :model="temp"
                label-width="100px"
-               :disabled="temp.virtual"
+               :disabled="true"
                style='width: 80%; margin:0 auto;'>
         <el-form-item :label="$t('table.deviceName')" prop="name">
           <el-input v-model="temp.name"></el-input>
@@ -177,21 +135,10 @@
         <el-form-item :label="$t('table.deviceIP')" prop="hostAddress">
           <el-input v-model="temp.hostAddress"></el-input>
         </el-form-item>
-        <el-form-item :label="$t('table.devicePath')" prop="deployPath">
-          <el-tooltip placement="top">
-            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows:  C:/test<br/>Linux:  /test<br/>Vxworks:  /test</div>
-            <el-input v-model="temp.deployPath" placeholder="例如：D:/test"></el-input>
-          </el-tooltip>
-        </el-form-item>
         <el-form-item :label="$t('table.deviceDesc')" prop="description">
           <el-input v-model="temp.description"></el-input>
         </el-form-item>
       </el-form>
-      <div class="mydialogFooter">
-        <el-button v-if="dialogStatus=='create'" type="primary" @click="createData" style="float: right;" :loading="creDevLoading">{{$t('table.confirm')}}</el-button>
-        <el-button v-else type="primary" @click="updateData" :disabled="temp.virtual" style="float: right;" :loading="upDevLoading">{{$t('table.confirm')}}</el-button>
-        <el-button @click="dialogFormVisible = false" style="float: right;margin-right: 10px">{{$t('table.cancel')}}</el-button>
-      </div>
       <lineMarker ref="lineMarker"
                   v-if="!isHistory && dialogStatus === 'update' && list[currentDeviceIndex].online == true"
                   :countTime="list[currentDeviceIndex].countTime"
@@ -232,8 +179,6 @@
                 height="100%"
                 style="width: 100%"
                 @selection-change="handleCheckedProcess">
-        <!-- <el-table :data="list" row-key="id"  v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">-->
-
         <el-table-column
           type="selection"
           width="55"
@@ -276,14 +221,10 @@
         </el-table-column>
       </el-table>
     </el-dialog>
-    <el-dialog title="请填写路径" :visible.sync="reportDialogVisible" width="40%">
-      <el-form :rules="pathRules" ref="reportForm" :model="pathTemp"  label-width="100px" style='width: 80%; margin:0 auto;'>
-        <el-form-item label="部署路径" prop="reportPath">
-          <el-input style="display: none;"></el-input>
-          <el-tooltip placement="top">
-            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows:  C:/test<br/>Linux:  /test<br/>Vxworks:  /test</div>
-            <el-input v-model="pathTemp.reportPath" @keyup.enter.native.prevent="reportDevice" placeholder="例如：D:/test"/>
-          </el-tooltip>
+    <el-dialog title="请填写预约信息" :visible.sync="reportDialogVisible" width="40%">
+      <el-form :rules="bookingRules" ref="reportForm" :model="bookingTemp"  label-width="100px" style='width: 80%; margin:0 auto;'>
+        <el-form-item label="预约时间（小时）" label-width="140px">
+          <el-input-number size="small" v-model="bookingTemp.bookingTime" controls-position="right" step-strictly></el-input-number>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -291,11 +232,33 @@
         <el-button type="primary" @click="reportDevice">{{$t('table.confirm')}}</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="预约详情" :visible.sync="bookingInfoDialog" width="40%">
+      <el-form :model="bookingInfo"  label-position="left" label-width="100px" style='width: 80%; margin:0 auto;'>
+        <el-form-item label="预约人" label-width="140px">
+          <span>{{bookingInfo.realName}}</span>
+        </el-form-item>
+        <el-form-item label="项目名称" label-width="140px">
+          <span>{{bookingInfo.proName}}</span>
+        </el-form-item>
+        <el-form-item label="任务名称" label-width="140px">
+          <span>{{bookingInfo.taskName}}</span>
+        </el-form-item>
+        <el-form-item label="开始时间" label-width="140px">
+          <span>{{bookingInfo.startTime}}</span>
+        </el-form-item>
+        <el-form-item label="预约时长" label-width="140px">
+          <span>{{bookingInfo.bookingTime}}小时</span>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="bookingInfoDialog = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-  import { getDevices, saveDevices, updateDevice, deleteDevice, copyDevices, getDisks, getProcess, reportDevices, getHisDevices, cleanDevice, restoreDev } from '@/api/device'
+  import { getDevices, saveDevices, updateDevice, copyDevices, getDisks, getProcess, reportDevices, getHisDevices, cleanDevice, restoreDev } from '@/api/device'
   import waves from '@/directive/waves' // 水波纹指令
   import service from '@/utils/request'
   import Stomp from 'stompjs'
@@ -352,10 +315,6 @@
         listLoading: true,
         currentDeviceIndex: 0,
         searchQuery: '',
-        userData:{
-          username: '',
-          password: ''
-        },
         reportData: {
           name: '',
           hostAddress: '',
@@ -381,8 +340,9 @@
           deployPath: '',
           description: ''
         },
-        pathTemp: {
-          reportPath: ''
+        bookingTemp: {
+          reportPath: '',
+          bookingTime: 1
         },
         disks: [],
         taskprocess: [],
@@ -402,21 +362,20 @@
         },
         dialogPvVisible: false,
         pvData: [],
-        rules: {
-          type: [{ required: true, message: 'type is required', trigger: 'change' }],
-          timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-          title: [{ required: true, message: 'title is required', trigger: 'blur' }]
-        },
         deviceRules: {
           name: [{ required: true, message: '请输入设备名', trigger: 'blur' }],
           hostAddress: [{ required: true, trigger: 'blur', validator: validateIP }],
           deployPath: [{ required: true, trigger: 'blur', validator: validatePath }]
         },
-        pathRules: {
+        bookingRules: {
           reportPath: [{ required: true, message: '请填写部署路径', trigger: 'blur' }]
         },
         downloadLoading: false,
-        errorMessage: '操作失败！'
+        errorMessage: '操作失败！',
+        currentTaskId: '',
+        userId: '',
+        bookingInfoDialog: false,
+        bookingInfo: {}
       }
     },
     filters: {
@@ -429,57 +388,85 @@
       }
     },
     created() {
+      this.currentTaskId = this.$route.params.id
+      this.userId = this.getCookie('userId')
       this.isHistory = false
-      this.userData.username = this.getCookie('username')
-      this.userData.password = this.getCookie('password')
       this.proId = this.getCookie('projectId')
-      this.getList()
-      this.getList2()
-
+      this.getListAndSubscribe()
     },
     methods: {
       getList() {
         this.listLoading = true
         getDevices(this.proId, this.listQuery).then(response => {
-          this.isHistory = false
-          this.list = response.data.data.content
-          this.total = response.data.total
-          this.listLoading = false
-          for(let i=0;i<this.list.length;i++){
-            this.list[i].online = false;
-            this.list[i].virtual = false;
+          if(response.data.code === 0) {
+            this.isHistory = false
+            this.list = response.data.data
+            // this.total = response.data.total
+            this.listLoading = false
+            for(let i=0;i<this.list.length;i++){
+              this.list[i].online = false;
+              this.list[i].virtual = false;
+            }
           }
-          this.listLength = response.data.data.length
-          this.total = response.data.data.totalElements
-          this.getList2()
+        })
+      },
+      getListAndSubscribe() {
+        this.listLoading = true
+        getDevices(this.proId, this.listQuery).then(response => {
+          if(response.data.code === 0) {
+            this.isHistory = false
+            this.list = response.data.data
+            // this.total = response.data.total
+            this.listLoading = false
+            for(let i=0;i<this.list.length;i++){
+              this.list[i].online = false;
+              this.list[i].virtual = false;
+            }
+            this.getList2()
+          }
         })
       },
       getHis() {
         this.listLoading = true
         getHisDevices(this.proId, this.listQuery).then((response) => {
-          this.isHistory = true
-          this.list = response.data.data.content
-          this.total = response.data.total
-          this.listLoading = false
-          this.listLength = response.data.data.length
-          this.total = response.data.data.totalElements
+          if(response.data.code === 0) {
+            this.isHistory = true
+            this.list = response.data.data.content
+            this.total = response.data.total
+            this.listLoading = false
+            this.listLength = response.data.data.length
+            this.total = response.data.data.totalElements
+          }
         })
       },
       getList2() {
         let url = service.defaults.baseURL + '/COSIMULATION';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
-        // stompClient.debug=null
+        stompClient.debug=null
         let that = this;
         stompClient.connect({}, function (frame) {
-          stompClient.subscribe('/personalInfo/' + that.userData.username, function (response) {
+          stompClient.subscribe('/onlineDevice', function (response) {
             let resBody = response.body;
             let resBody2 = resBody.replace(/[\\]/g, '');
             that.webResBody = JSON.parse(resBody2);
-            $("#onlineheartbeatmessages").html(resBody);
 
             if(that.list.length > 0){
               for(let i=0;i<that.list.length;i++){
+                // if(that.list[i].createTime)
+                if(that.list[i].createTime) {
+                  let bootTime = Date.parse(that.list[i].createTime) + that.list[i].interval * 3600 * 1000
+                  let nowTime = new Date().getTime()
+                  if(bootTime < nowTime) {
+                    cleanDevice(that.list[i].id).then((res) => {
+                      if(res.data.code === 0) {
+                        that.getList()
+                        return
+                      }
+                    })
+
+                  }
+                }
                 that.list[i].online = false;
 
                 if(that.list[i].online === false && that.list[i].virtual === true){
@@ -490,7 +477,7 @@
             }
 
             if(that.webResBody){
-              /*$.each(that.webResBody, function (key, value) {
+              $.each(that.webResBody, function (key, value) {
                 let listIfExist = false;
                 let tempList = [];
                 if(that.list.length > 0){
@@ -538,7 +525,7 @@
                   tempList.ostype = value.ostype;
                   that.list.push(tempList);
                 }
-              })*/
+              })
             }
 
             if(that.list.length > 0) {
@@ -694,21 +681,23 @@
       },
       deleteDevice(row) {
         this.delLoading = true
-        this.$confirm('确认删除吗？', '提示', {
+        this.$confirm('确认取消预约吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
           let deleteId = row.id
-          deleteDevice(deleteId).then(() => {
-            this.delLoading = false
-            this.$notify({
-              title: '成功',
-              message: '删除成功',
-              type: 'success',
-              duration: 2000
-            })
-            this.getList()
+          cleanDevice(deleteId).then((res) => {
+            if(res.data.code === 0) {
+              this.delLoading = false
+              this.$notify({
+                title: '成功',
+                message: '取消成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+            }
           }).catch(() =>{
             this.delLoading = false
             this.$notify({
@@ -794,6 +783,18 @@
         })
       },
       handleReport(row) {
+        for(let i = 0; i < this.list.length; i++) {
+          let item = this.list[i]
+          if(item.subtask) {
+            if(item.subtask.id === this.currentTaskId) {
+              this.$message({
+                type: 'warning',
+                message: '当前子任务已预约设备 ' + item.name + '，请勿重复预约'
+              })
+              return
+            }
+          }
+        }
         this.reportDialogVisible = true
         this.reportData.name = row.name
         this.reportData.hostAddress = row.hostAddress
@@ -805,39 +806,46 @@
         this.reportData.name = ''
         this.reportData.hostAddress = ''
         this.reportData.deployPath = ''
-        this.pathTemp.reportPath = ''
+        this.bookingTemp.reportPath = ''
+        this.bookingTemp.bookingTime = 1
       },
       reportDevice() {
-        this.$refs['reportForm'].validate((valid) => {
-          if (valid) {
-            this.reportData.deployPath = this.pathTemp.reportPath
-            let qs = require('qs')
-            let RpData = qs.stringify({
-              "name": this.reportData.name,
-              "hostAddress": this.reportData.hostAddress,
-              "deployPath": this.reportData.deployPath,
-              "description": ''
+        let qs = require('qs')
+        let RpData = qs.stringify({
+          'name': this.reportData.name,
+          'hostAddress': this.reportData.hostAddress,
+          'description': '',
+          'userId': this.userId,
+          'subtaskId': this.currentTaskId,
+          'interval': this.bookingTemp.bookingTime
+        })
+        reportDevices(RpData).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '预约成功',
+              type: 'success',
+              duration: 2000
             })
-            reportDevices(this.proId, RpData).then((res) => {
-              this.resetReport()
-              this.reportDialogVisible = false
-              this.$notify({
-                title: '成功',
-                message: '上报成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
-            }).catch(() => {
-              this.resetReport()
-              this.$notify({
-                title: '失败',
-                message: '上报失败',
-                type: 'error',
-                duration: 2000
-              })
+            this.getList()
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
             })
           }
+          this.resetReport()
+          this.reportDialogVisible = false
+        }).catch(() => {
+          this.resetReport()
+          this.$notify({
+            title: '失败',
+            message: '预约失败',
+            type: 'error',
+            duration: 2000
+          })
         })
       },
       handleCheckedProcess(val) {          //所选的进程，checkbox
@@ -926,6 +934,16 @@
             message: '已取消恢复'
           })
         })
+      },
+      checkBooking(row) {
+        this.bookingInfo = {
+          realName: row.users.realName,
+          startTime: row.createTime,
+          bookingTime: row.interval,
+          taskName: row.subtask.name,
+          proName: row.subtask.project.name
+        }
+        this.bookingInfoDialog = true
       }
     },
     computed: {

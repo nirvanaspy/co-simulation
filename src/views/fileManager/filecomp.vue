@@ -8,6 +8,7 @@
       </div>
       <div style="float: right;color:rgb(0, 171, 235);cursor: pointer;padding-right: 20px;">
         <span @click="deleteInBatches" v-if="showUploadFlag">
+          <svg-icon icon-class="deleteFiles"></svg-icon>
           <span style="font-size: 14px;margin-right: 4px;">批量删除</span>
         </span>
         <span @click="handleuploadFile" v-if="showUploadFlag">
@@ -676,7 +677,7 @@
           this.md5Loading = false
         })
       },*/
-      handleuploadFile() {
+      handleuploadFile()  {
         this.repeatFiles = []
         this.uploadType = 'normal'
         this.uploadDialog = true
@@ -723,6 +724,7 @@
         // 在普通的上传文件模式下
         // 在修改模式下，上传的新文件与目标修改文件文件信息不一致时
         // 需要对所选文件进行去重  >>>
+        this.repeatFiles = []
         if(this.uploadType === 'normal' || (this.uploadType !== 'normal' && !this.checkFileIfSame(fileAdded[0]))) {
           let beforeCheckFiles = []
           for(let i = 0; i < fileAdded.length; i++) {
@@ -780,7 +782,6 @@
             for(var i = 0; i < fileAdded.length; i++) {
               let fileA = fileAdded[i]
               this.resolveMd5(fileA, chunkSize).then(function (result) {
-                console.log(result)
                 fileA.md5 = result
                 fileA.uniqueIdentifier = result
                 hasMd5(fileA.md5).then((res) => {
@@ -932,10 +933,9 @@
             fileReader.onload = e => {
               spark.appendBinary(e.target.result)
               currentChunk++
-              console.log(currentChunk)
               if (currentChunk < chunks) {
-                let a = 'deal with' + currentChunk + '剩余' + (chunks - currentChunk)
-                console.log(a)
+                // let a = 'deal with' + currentChunk + '剩余' + (chunks - currentChunk)
+                // console.log(a)
                 load()
               } else {
                 resolve(spark.end())
@@ -1307,6 +1307,7 @@
         this.fileUpInfo.subLibraryId = val[1]
       },
       handleEditFile(row, editType) {
+        this.repeatFiles = []
         this.selectedFileId = row.id
         this.uploadType = editType
         this.currentVersion = row.version
@@ -1408,6 +1409,13 @@
         })
       },
       deleteInBatches() {
+        if(this.selectedFiles.length === 0) {
+          this.$message({
+            type: 'warning',
+            message: '请选择文件'
+          })
+          return
+        }
         this.$confirm('确认进行批量删除操作吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',

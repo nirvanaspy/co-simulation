@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import uploader from 'vue-simple-uploader'
 import axios from 'axios'
-import Cookies from 'js-cookie'
+// import Cookies from 'js-cookie'
+import service from '@/utils/request'
 Vue.prototype.$axios = axios
 /* eslint-disable */
 Vue.use(uploader)
@@ -16,14 +17,13 @@ import '@/styles/index.scss' // global css
 import App from './App'
 import router from './router'
 import store from './store'
-import Stomp from 'stompjs'
-import SockJS from 'sockjs-client'
 
 import i18n from './lang' // Internationalization
 import './icons' // icon
 import './errorLog'// error log
 import './permission' // permission control
 import '@/ztree/js/jquery-1.4.4.min.js'
+
 
 
 // visio图表
@@ -116,11 +116,29 @@ Object.keys(filters).forEach(key => {
 
 Vue.config.productionTip = false
 
-new Vue({
-  el: '#app',
-  router,
-  store,
-  i18n,
-  template: '<App/>',
-  components: { App }
-})
+function getServerConfig () {
+  return new Promise((resolve, reject) => {
+    axios.get('./static/serverConfig.json').then(result => {
+      let config = result.data;
+      for (let key in config) {
+        Vue.prototype[key] = config[key];
+      }
+      resolve();
+    })
+  })
+}
+
+async function main () {
+  await getServerConfig();
+  service.defaults.baseURL = Vue.prototype.baseUrl
+  new Vue({
+    el: '#app',
+    router,
+    store,
+    i18n,
+    template: '<App/>',
+    components: { App }
+  })
+}
+
+main()

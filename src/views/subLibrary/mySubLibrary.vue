@@ -264,7 +264,8 @@
             id: item.id
           },
           query: {
-            name: item.type
+            name: item.type,
+            libType: item.depot.type
           }
         })
       }

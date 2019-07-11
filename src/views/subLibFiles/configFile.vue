@@ -350,14 +350,14 @@
               <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'modifyInfo')">
                 <span style="display:inline-block;padding:0 10px;" @click="handleEditInfo(scope.row)">修改文件信息</span>
               </el-dropdown-item>
-              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'edit')">
-                <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'edit')">修改文件</span>
+              <!--<el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'edit')">-->
+                <!--<span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'edit')">修改文件</span>-->
+              <!--</el-dropdown-item>-->
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="applyToEdit(scope.row)">申请二次修改</span>
               </el-dropdown-item>
               <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'secondEdit')">
                 <span style="display:inline-block;padding:0 10px;" @click="handleEditFile(scope.row, 'secondEdit')">二次修改文件</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'apply')">
-                <span style="display:inline-block;padding:0 10px;" @click="applyToEdit(scope.row)">申请二次修改</span>
               </el-dropdown-item>
               <el-dropdown-item divided :disabled="computeBtnDisable(scope.row, 'revoke')">
                 <span style="display:inline-block;padding:0 10px;" @click="handleRevoke(scope.row)">撤销修改</span>
@@ -468,6 +468,7 @@
         </div>
       </uploader>
       <span slot="footer" class="dialog-footer">
+        <el-button type="primary" v-if="uploadType !== 'normal' && showOnlyEdit" @click="onlyModifyFileInfo">仅修改信息</el-button>
         <el-button v-if="!hiddenClose" @click="uploadDialog = false">关 闭</el-button>
         <!--<el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>-->
       </span>
@@ -846,7 +847,8 @@
         switchVersion: '',
         switchVersionOptions: [],
         commitLoading: false,
-        targetEditFile: {}
+        targetEditFile: {},
+        showOnlyEdit: false
       }
     },
     created() {
@@ -993,7 +995,7 @@
           this.$refs.uploader.uploader.cancel() //清空文件上传列表
           this.$refs.uploader.uploader.opts.target = this.target
           this.$refs.uploader.uploader.opts.headers.Authorization = this.token
-          this.$refs.uploader.uploader.opts.singleFile = false
+          this.$refs.uploader.uploader.opts.singleFile = true
           $('.uploader-list ul').html('')
           this.fileCompleteLength = 0
           this.fileInfoList = []
@@ -1003,6 +1005,7 @@
       handleEditFile(row, editType) {
         this.selectedFileId = row.id
         this.uploadType = editType
+        this.showOnlyEdit = true
         this.currentVersion = row.version
         this.targetEditFile = row
         this.uploadDialog = true
@@ -1023,6 +1026,7 @@
       // 上传文件的几个方法
       // 添加文件时触发
       checkMd5 (fileAdded, fileList) {
+        this.showOnlyEdit = false
         // console.log(this.$refs.uploader.uploader.files)
 
         // 只有在普通的上传文件模式下，才需要对所选文件进行去重>>>
@@ -1462,7 +1466,12 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          applyForModify(row.id).then((res) => {
+          let data = {
+            userId: this.userId
+          }
+          let qs = require('qs')
+          let dataPost = qs.stringify(data)
+          applyForModify(row.id, dataPost).then((res) => {
             if(res.data.code === 0) {
               this.$notify({
                 title: '成功',
@@ -1571,6 +1580,62 @@
             duration: 2000
           })
         })
+      },
+      // 驳回后只修改文件信息即可上传
+      onlyModifyFileInfo() {
+        this.$confirm('确认仅修改文件信息吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let infoData = {
+            fileId: this.targetEditFile.files.id,
+            MD5: this.targetEditFile.files.md5,
+            name: this.targetEditFile.name,
+            relativePath: '/' + this.targetEditFile.name + '.' + this.targetEditFile.postfix,
+            secretClass: this.fileUpInfo.secretClass,
+            type: this.fileUpInfo.type,
+            productNo: this.fileUpInfo.productNo,
+            fileNo: this.fileUpInfo.fileNo,
+            sublibraryId: this.targetEditFile.subDepot.id,
+          }
+          if (this.uploadType === 'edit') {
+            infoData.ifDirectModify = true // 直接修改：true， 二次修改：false
+            infoData.ifBackToStart = this.fileModify.ifToStart
+            infoData.version = ''
+          }
+          if (this.uploadType === 'secondEdit') {
+            item.ifDirectModify = false // 直接修改：true， 二次修改：false
+            item.ifBackToStart = true
+            item.version = this.fileModify.version
+          }
+          let editData = JSON.stringify(infoData)
+          modifySubLibFile(this.selectedFileId, editData).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '文件信息修改并提交成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+            this.uploadDialog = false
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: '文件信息修改失败',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        })
       }
     },
     computed: {
@@ -1637,23 +1702,47 @@
       },
       computeAuditState() {
         return function (row) {
+          // if(row.auditMode === 0 && row.state === 0) {
+          //   return '未提交'
+          // }
+          // if(row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) {
+          //   return '审批中'
+          // }
+          // if(row.ifApprove === true && row.state === 5) {
+          //   return '已通过'
+          // }
+          // if(row.ifReject === true && row.state === 5) {
+          //   return '已驳回'
+          // }
+          // if(row.state === 6) {
+          //   return '修改申请中'
+          // }
+          // if(row.state === 7) {
+          //   return '二次修改中'
+          // }
           if(row.auditMode === 0 && row.state === 0) {
             return '未提交'
           }
-          if(row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) {
+          if((row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false && row.state !== 8) || row.state === 1) {
             return '审批中'
           }
-          if(row.ifApprove === true && row.state === 5) {
+          if(row.ifApprove === true && row.state === 6) {
             return '已通过'
           }
-          if(row.ifReject === true && row.state === 5) {
+          if(row.ifReject === true && row.state === 6) {
             return '已驳回'
           }
-          if(row.state === 6) {
+          if(row.state === 7) {
             return '修改申请中'
           }
-          if(row.state === 7) {
+          if(row.state === 8) {
             return '二次修改中'
+          }
+          if(row.state === 9) {
+            return '二次修改中'
+          }
+          if(row.state === 10) {
+            return '二次修改审批中'
           }
         }
       },

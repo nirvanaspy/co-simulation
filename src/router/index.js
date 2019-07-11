@@ -101,7 +101,7 @@ export const asyncRouterMap = [
   {
     path: '/myProject',
     component: MainPage,
-    children: [{ path: '', component: _import('projectManage/myProject'), name: 'project_manage', meta: { title: '项目管理', icon: 'user' }}],
+    children: [{ path: '', component: _import('projectManage/myProject'), name: 'my_project_manage', meta: { title: '项目管理', icon: 'user' }}],
     hidden: true
   },
   {
@@ -138,7 +138,14 @@ export const asyncRouterMap = [
     component: Layout,
     children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'user-icon' }}],
     meta: {
-      roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
+      roles: ['ROLE_ADMIN']
+    }
+  },
+  { path: '/user_manage_guard',
+    component: Layout,
+    children: [{ path: 'index', component: _import('user_manage/security'), name: 'user_manage', meta: { title: '用户管理', icon: 'user-icon' }}],
+    meta: {
+      roles: ['ROLE_SECURITY_GUARD']
     }
   },
   {
@@ -176,7 +183,8 @@ export const asyncRouterMap = [
   {
     path: '/device',
     component: Layout,
-    children: [{ path: 'device', component: _import('device/index'), name: 'device', meta: { title: 'device', icon: 'computer-icon' }}]
+    hidden: true,
+    children: [{ path: 'device/:id', component: _import('device/index'), name: 'device', meta: { title: 'device', icon: 'computer-icon' }}]
   },
   {
     path: '/audit_tasks',

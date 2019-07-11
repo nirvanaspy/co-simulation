@@ -1134,8 +1134,6 @@
                 duration: 2000
               })
               this.temp.pic.username = pic.username
-              console.log(this.temp)
-              console.log(this.saveTemp)
               this.getList()
             } else {
               this.$notify({

@@ -281,7 +281,6 @@
     created() {
       this.userName = this.getCookie('username')
       this.role = store.getters.roles
-      console.log(this.userName, this.role)
       this.getList()
     },
     methods: {

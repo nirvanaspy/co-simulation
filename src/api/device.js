@@ -12,7 +12,7 @@ export function getDevice(proId) {
 
 export function getDevices(proId, listQuery) {
   return request({
-    url: '/projects/' + proId + '/devices',
+    url: '/devices',
     method: 'get',
     params: {
       size: listQuery.size,
@@ -90,9 +90,10 @@ export function getProcess(id) {
   })
 }
 
-export function reportDevices(proId, data) {
+export function reportDevices(data) {
   return request({
-    url: '/projects/' + proId + '/device',
+    // url: '/projects/' + proId + '/device',
+    url: '/devices',
     method: 'post',
     data
   })

@@ -14,8 +14,9 @@
         <span class="text">{{taskName}}</span>
         <span class="text" style="color: #e6a23c;font-size: 12px;">{{computeCurrentState}}</span>
       </div>-->
-      <el-button type="primary" size="small" @click="handleCommit" :disabled="!ableToCommit">提交审核</el-button>
-      <el-button type="primary" size="small" @click="handleApplySecondEdit" v-if="showSecondEditApply">申请二次修改</el-button>
+      <el-button type="primary" size="mini" @click="handleCommit" :disabled="!ableToCommit">提交审核</el-button>
+      <el-button type="primary" size="mini" @click="handleApplySecondEdit" v-if="showSecondEditApply">申请二次修改</el-button>
+      <el-button type="success" size="mini" @click="routerToDevice" v-if="taskState > 0">预定设备</el-button>
         <!--<el-button type="primary" size="small">直接修改</el-button>-->
     </span>
       <div style="height: 100%;overflow: auto;width: 100%;padding:5px 0 10px 10px;">
@@ -230,6 +231,15 @@
       }
     },
     methods: {
+      routerToDevice() {
+        this.$router.push({
+          path: '/device/device',
+          name: 'device',
+          params: {
+            id: this.selectedId
+          }
+        })
+      },
       refreshSubTaskDetail() {
         getSubtaskDetail(this.selectedId).then((res) => {
           if(res.data.code === 0) {
@@ -529,7 +539,7 @@
         this.$refs.applyForm.validate((valid) => {
           if(valid) {
             let qs = require('qs')
-            let data = qs.stringify({version: this.applyForm.applyVersion})
+            let data = qs.stringify({version: this.applyForm.applyVersion, userId: this.userId})
             applyForTaskAudit(this.selectedId, data).then((res) => {
               if(res.data.code === 0) {
                 this.$notify({
@@ -599,7 +609,7 @@
               }
             }
           } else {
-            optionComputed = [{value: 'M2'}]
+            optionComputed = [{value: 'M2'}, {value: 'C1'}]
           }
         }
         return optionComputed

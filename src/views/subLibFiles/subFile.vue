@@ -64,6 +64,11 @@
               <span>{{scope.row.fileNo}}</span>
             </template>
           </el-table-column>
+          <el-table-column width="100" label="文件类型">
+            <template slot-scope="scope">
+              <span>{{typeMap[scope.row.type]}}</span>
+            </template>
+          </el-table-column>
           <el-table-column width="140" label="创建时间">
             <template slot-scope="scope">
               <span>{{scope.row.createTime}}</span>
@@ -100,6 +105,9 @@
                   </el-dropdown-item>-->
                   <el-dropdown-item>
                     <span style="display:inline-block;padding:0 10px;" @click="exportFile(scope.row)">下载</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item divided>
+                    <span style="display:inline-block;padding:0 10px;" @click="checkFileVersion(scope.row)">查看历史版本</span>
                   </el-dropdown-item>
                   <!--<el-dropdown-item divided>
                     <span style="display:inline-block;padding:0 10px;" @click="handleEditInfo(scope.row)">修改文件信息</span>
@@ -203,6 +211,11 @@
               <span>{{scope.row.fileNo}}</span>
             </template>
           </el-table-column>
+          <el-table-column width="100" label="文件类型">
+            <template slot-scope="scope">
+              <span>{{typeMap[scope.row.type]}}</span>
+            </template>
+          </el-table-column>
           <el-table-column width="140" label="创建时间">
             <template slot-scope="scope">
               <span>{{scope.row.createTime}}</span>
@@ -278,9 +291,9 @@
       <el-form label-position="left" label-width="70px">
         <el-form-item label="密级">
           <!--<el-input v-model="fileUpInfo.secretClass"></el-input>-->
-          <el-select v-model="fileUpInfo.secretClass" placeholder="请选择密级" style="width: 100%">
+          <el-select v-model="fileUpInfo.secretClass" placeholder="请选择密级" style="width: 100%" @focus="checkUserInfo">
             <el-option
-              v-for="item in secretClassOptions"
+              v-for="item in computeSecretOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -333,6 +346,12 @@
           </el-select>
         </el-form-item>
       </el-form>
+
+      <!--<el-switch-->
+        <!--v-model="ifOnlyEditInfo"-->
+        <!--active-text="仅修改文件信息"-->
+        <!--inactive-text="按年付费">-->
+      <!--</el-switch>-->
       <uploader :options="options"
                 :autoStart="autoStart"
                 :file-status-text="statusText"
@@ -363,6 +382,7 @@
         </div>
       </uploader>
       <span slot="footer" class="dialog-footer">
+        <el-button type="primary" v-if="uploadType !== 'normal' && showOnlyEdit" @click="onlyModifyFileInfo">仅修改信息</el-button>
         <el-button v-if="!hiddenClose" @click="uploadDialog = false">关 闭</el-button>
         <!--<el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>-->
       </span>
@@ -378,7 +398,7 @@
         <el-form-item label="密级">
           <el-select v-model="fileEditInfo.secretClass" placeholder="请选择密级" style="width: 100%">
             <el-option
-              v-for="item in secretClassOptions"
+              v-for="item in computeSecretOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -528,6 +548,76 @@
         <el-button type="primary" @click="revokeSecondEdit">确 定</el-button>
       </span>
     </el-dialog>
+    <!--查看已通过文件版本-->
+    <el-dialog class="maniFileDialog"
+               title="文件信息修改"
+               :visible.sync="historyFileDialog"
+               width="60%"
+               append-to-body>
+      <el-table :data="historyFiles"
+                v-loading="historyLoading"
+                element-loading-text="正在加载文件历史版本"
+                fit
+                highlight-current-row
+                style="width: 100%"
+                class="fileList">
+        <el-table-column label="文件名" min-width="200">
+          <template slot-scope="scope">
+              <span>
+                <svg-icon :icon-class="classifyIcon(scope.row)" style="font-size: 30px;margin-right: 10px;cursor: pointer;color:  #26bada;"></svg-icon>
+                <el-tooltip class="item" effect="dark" :content="scope.row.name" placement="top">
+                  <span v-if="!scope.row.newFolder" class="link-type" :class="{'repeatFile': scope.row.repeat}"
+                        style="position:relative;top:2px;display:inline-block;width:70%;white-space:nowrap;overflow:hidden;text-overflow: ellipsis">
+                    {{scope.row.name}}
+                  </span>
+                </el-tooltip>
+              </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="种类" width="100">
+          <template slot-scope="scope">
+            <span>
+              {{scope.row.files.postfix}}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column width="100" :label="$t('table.compSize')">
+          <template slot-scope="scope">
+            <span>{{computedSize(scope.row.files.fileSize)}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="100" label="密级">
+          <template slot-scope="scope">
+            <span>{{computedSecret(scope.row.secretClass)}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="100" label="版本">
+          <template slot-scope="scope">
+            <span>{{scope.row.version}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="120" label="产品型号">
+          <template slot-scope="scope">
+            <span>{{scope.row.productNo}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="120" label="文件图号">
+          <template slot-scope="scope">
+            <span>{{scope.row.fileNo}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="140" label="创建时间">
+          <template slot-scope="scope">
+            <span>{{scope.row.createTime}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="140" label="操作">
+          <template slot-scope="scope">
+            <el-button type="primary" size="mini" @click="exportFile(scope.row)">下载</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -536,8 +626,8 @@
   import {  previewFiles } from '@/api/component'
   import { movefileTo, copyFileTo, renameFile } from '@/api/component'
   import { findExistLibFiles } from '@/api/library'
-  import { getSubLibFiles, uploadSubLibFiles, deleteSubLibFile, editSubLibFileInfo, setLibFileAuditors, applyForModify, modifySubLibFile, revokeModify, getFileHisVersion, versionReplace, getFailedFiles } from '@/api/sublibFiles'
-  import { allUser } from '@/api/getUsers'
+  import { getSubLibFiles, uploadSubLibFiles, deleteSubLibFile, editSubLibFileInfo, setLibFileAuditors, applyForModify, modifySubLibFile, revokeModify, getFileHisVersion, versionReplace, getFailedFiles, getSubHisFiles, getSubFilesByApplicant } from '@/api/sublibFiles'
+  import { allUser, getUserById } from '@/api/getUsers'
   import service from '@/utils/request'
   import SparkMD5 from 'spark-md5'
   import { hasMd5, mergeFile } from '@/api/componentFiles'
@@ -588,6 +678,7 @@
           productNo: null,
           fileNo: null
         },
+        userSecurity: null,
         secretClassOptions: [
           {
             label: '公开',
@@ -739,7 +830,17 @@
         switchVersion: '',
         switchVersionOptions: [],
         commitLoading: false,
-        targetEditFile: {}
+        targetEditFile: {},
+        historyFileDialog: false,
+        historyLoading: true,
+        historyFiles: [],
+        typeMap: {
+          0: '参数文件',
+          1: '模型文件',
+          2: '报告文件',
+          3: '实验数据'
+        },
+        showOnlyEdit: false
       }
     },
     created() {
@@ -753,9 +854,25 @@
       this.initData()
     },
     methods: {
+      checkUserInfo() {
+        if(this.userSecurity !== null) {
+          return
+        }
+        getUserById(this.userId).then(res => {
+          if(res.data.code === 0) {
+            this.userSecurity = res.data.data.secretClass
+          }
+        })
+      },
       refreshFileList() {
         getFailedFiles(this.componentId, this.userId).then((res) => {
           if(res.data.code === 0) {
+            // let listA = res.data.data
+            // getSubFilesByApplicant(this.componentId, this.userId).then((res) => {
+            //   if(res.data.code === 0) {
+            //     this.list = listA.concat(res.data.data)
+            //   }
+            // })
             this.list = res.data.data
           }
         })
@@ -811,6 +928,13 @@
         this.listLoading = true
         getFailedFiles(this.componentId, this.userId).then((res) => {
           if(res.data.code === 0) {
+            // let listA = res.data.data
+            // getSubFilesByApplicant(this.componentId, this.userId).then((res) => {
+            //   if(res.data.code === 0) {
+            //     this.list = listA.concat(res.data.data)
+            //     this.listLoading = false
+            //   }
+            // })
             this.list = res.data.data
             this.listLoading = false
           }
@@ -840,6 +964,7 @@
       },
       handleuploadFile() {
         this.uploadType = 'normal'
+        this.repeatFiles = []
         this.uploadDialog = true
         this.hiddenClose = false
         this.$nextTick(() => {
@@ -855,8 +980,10 @@
         })
       },
       handleEditFile(row, editType) {
+        this.repeatFiles = []
         this.selectedFileId = row.id
         this.uploadType = editType
+        this.showOnlyEdit = true
         this.currentVersion = row.version
         this.targetEditFile = row
         this.uploadDialog = true
@@ -888,10 +1015,12 @@
       // 上传文件的几个方法
       // 添加文件时触发
       checkMd5 (fileAdded, fileList) {
+        this.showOnlyEdit = false
         // console.log(this.$refs.uploader.uploader.files)
         // 在普通的上传文件模式下
         // 在修改模式下，上传的新文件与目标修改文件文件信息不一致时
         // 需要对所选文件进行去重  >>>
+        this.repeatFiles = []
         if(this.uploadType === 'normal' || (this.uploadType !== 'normal' && !this.checkFileIfSame(fileAdded[0]))) {
           // 防止用户上传文件名称相同的文件，在上传前就去除名称重复的文件
           /*this.repeatFiles = []
@@ -1239,7 +1368,6 @@
               window.open(href, '_blank')
             }
             if(res.data.data.fileType === 'office') {
-              // let href = 'http://192.168.31.69:8080/preview/viewer/document/' + res.data.data.pathId
               let href = service.defaults.baseURL + '/preview/viewer/document/' + res.data.data.pathId
               window.open(href, '_blank')
             }
@@ -1252,6 +1380,16 @@
             })
           }
         })
+      },
+      checkFileVersion(row) {
+        this.historyLoading = true
+        getSubHisFiles(row.id).then((res) => {
+          if(res.data.code === 0) {
+            this.historyFiles = res.data.data
+            this.historyLoading = false
+          }
+        })
+        this.historyFileDialog = true
       },
       exportFile(row) {
         let url = service.defaults.baseURL + '/sublibraryFiles/' + row.id + '/user/' + this.userId + '/export'
@@ -1437,7 +1575,12 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          applyForModify(row.id).then((res) => {
+          let data = {
+            userId: this.userId
+          }
+          let qs = require('qs')
+          let dataPost = qs.stringify(data)
+          applyForModify(row.id, dataPost).then((res) => {
             if(res.data.code === 0) {
               this.$notify({
                 title: '成功',
@@ -1546,6 +1689,61 @@
             duration: 2000
           })
         })
+      },
+      onlyModifyFileInfo() {
+        this.$confirm('确认仅修改文件信息吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let infoData = {
+            fileId: this.targetEditFile.files.id,
+            MD5: this.targetEditFile.files.md5,
+            name: this.targetEditFile.name,
+            relativePath: '/' + this.targetEditFile.name + '.' + this.targetEditFile.postfix,
+            secretClass: this.fileUpInfo.secretClass,
+            type: this.fileUpInfo.type,
+            productNo: this.fileUpInfo.productNo,
+            fileNo: this.fileUpInfo.fileNo,
+            sublibraryId: this.targetEditFile.subDepot.id,
+          }
+          if (this.uploadType === 'edit') {
+            infoData.ifDirectModify = true // 直接修改：true， 二次修改：false
+            infoData.ifBackToStart = this.fileModify.ifToStart
+            infoData.version = ''
+          }
+          if (this.uploadType === 'secondEdit') {
+            item.ifDirectModify = false // 直接修改：true， 二次修改：false
+            item.ifBackToStart = true
+            item.version = this.fileModify.version
+          }
+          let editData = JSON.stringify(infoData)
+          modifySubLibFile(this.selectedFileId, editData).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '文件信息修改并提交成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+            this.uploadDialog = false
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: '文件信息修改失败',
+              type: 'error',
+              duration: 2000
+            })
+          })
+        })
       }
     },
     computed: {
@@ -1598,6 +1796,20 @@
           }
         }
       },
+      computeSecretOptions() {
+        let options = this.secretClassOptions
+        let userSecurity = this.userSecurity
+        if(this.userSecurity !== null) {
+          return options.filter(function (item) {
+            return item.value <= userSecurity;
+          })
+        } else {
+          return [{
+            label: '公开',
+            value: 0
+          }]
+        }
+      },
       fileInfoListLength() {
         return this.fileInfoList.length
       },
@@ -1615,7 +1827,7 @@
           if(row.auditMode === 0 && row.state === 0) {
             return '未提交'
           }
-          if((row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false) || row.state === 1) {
+          if((row.auditMode !== 0 && row.ifApprove === false && row.ifReject === false && row.state !== 8) || row.state === 1) {
             return '审批中'
           }
           if(row.ifApprove === true && row.state === 6) {
@@ -1631,7 +1843,10 @@
             return '二次修改中'
           }
           if(row.state === 9) {
-            return '二次修改且提交'
+            return '二次修改中'
+          }
+          if(row.state === 10) {
+            return '二次修改审核中'
           }
         }
       },
@@ -1670,17 +1885,33 @@
               }
             } else {
               versionNum = parseInt(this.currentVersion.substring(1, this.currentVersion.length))
-              if(versionState === 'M') {
-                optionComputed = [{value: 'M' + versionNum}]
-              }
-              if(versionState === 'C') {
-                optionComputed = [{value: 'C' + versionNum}]
-              }
-              if(versionState === 'S') {
-                optionComputed = [{value: 'S' + versionNum}]
-              }
-              if(versionState === 'D') {
-                optionComputed = [{value: 'D' + versionNum}]
+              if(this.targetEditFile.ifModifyApprove === true) {
+                versionNum = versionNum + 1
+                if(versionState === 'M') {
+                  optionComputed = [{value: 'M' + versionNum},{value: 'C1'}]
+                }
+                if(versionState === 'C') {
+                  optionComputed = [{value: 'C' + versionNum},{value: 'S1'}]
+                }
+                if(versionState === 'S') {
+                  optionComputed = [{value: 'S' + versionNum},{value: 'D1'}]
+                }
+                if(versionState === 'D') {
+                  optionComputed = [{value: 'D' + versionNum}]
+                }
+              } else {
+                if(versionState === 'M') {
+                  optionComputed = [{value: 'M' + versionNum}]
+                }
+                if(versionState === 'C') {
+                  optionComputed = [{value: 'C' + versionNum}]
+                }
+                if(versionState === 'S') {
+                  optionComputed = [{value: 'S' + versionNum}]
+                }
+                if(versionState === 'D') {
+                  optionComputed = [{value: 'D' + versionNum}]
+                }
               }
             }
             return optionComputed
@@ -1862,6 +2093,7 @@
               item.version = ''
             })
             let editData = JSON.stringify(this.fileInfoList[0])
+            console.log(editData)
             modifySubLibFile(this.selectedFileId, editData).then((res) => {
               if(res.data.code === 0) {
                 this.$notify({

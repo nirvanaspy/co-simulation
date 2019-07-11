@@ -111,7 +111,7 @@
             },
             "draggingTool.dragsLink": true,
             "draggingTool.isGridSnapEnabled": true,
-            "linkingTool.isUnconnectedLinkValid": true,
+            // "linkingTool.isUnconnectedLinkValid": true,
             "linkingTool.portGravity": 20,
             "relinkingTool.isUnconnectedLinkValid": true,
             "relinkingTool.portGravity": 20,
@@ -406,10 +406,10 @@
                 {text: "电磁仿真", size: "100 50", figure: "subtask"},
                 {text: "???", figure: "Diamond", fill: "lightskyblue"}
 
-              ], [
+              ]/*, [
                 // the Palette also has a disconnected Link, which the user can drag-and-drop
-                {points: new go.List(/*go.Point*/).addAll([new go.Point(0, 0), new go.Point(30, 0), new go.Point(30, 40), new go.Point(60, 40)])}
-              ])
+                {points: new go.List(/!*go.Point*!/).addAll([new go.Point(0, 0), new go.Point(30, 0), new go.Point(30, 40), new go.Point(60, 40)])}
+              ]*/)
             });
 
       },
@@ -523,7 +523,7 @@
           // 拿到节点id后，开始建立连接
           if(res.data.code === 0) {
             let nodeData = res.data.data
-            console.log(linkArr)
+            // console.log(linkArr)
             /*return*/
             for(let j = 0; j < linkArr.length; j++) {
               let pId = nodeData.find(item => item.selfSign == linkArr[j].from).id  // 父节点id
@@ -603,7 +603,7 @@
         this.originValue.nodeDataArray = nodeArr.slice()
         this.originValue.linkDataArray = linkArr.slice()
         this.originLink = linkArr.slice()
-        console.log(linkArr)
+        // console.log(linkArr)
         this.init()
         this.myDiagram.model = this.go.Model.fromJson(this.originValue)
       }
