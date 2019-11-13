@@ -91,10 +91,10 @@
         </el-dropdown-menu>
       </el-dropdown>-->
     </div>
-    <div class="title-container">
+    <!--<div class="title-container">
       <h3 class="title" style="margin-bottom:30px">
       </h3>
-    </div>
+    </div>-->
     <el-row :gutter="20" style="height: 100%;overflow-y: scroll;margin-right: -14px;">
       <!--结构树-->
       <el-col :span="6">
@@ -110,15 +110,15 @@
         </div>
       </el-col>
       <!--项目详情-->
-      <el-col :span="12">
-        <el-tabs tab-position="top" style="height: calc(100% - 200px);" @tab-click="handleTabClick">
-          <el-tab-pane label="所有项目">
+      <el-col :span="12" style="height: calc(100% - 60px);">
+        <el-tabs tab-position="top" style="height: 100%;margin-top: 20px" @tab-click="handleTabClick">
+          <el-tab-pane label="所有项目" style="height: calc(100% - 40px)">
             <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document" style="padding-left: 10px;"></i></span>
             <div class="project-list" v-loading="listLoading">
               <div v-if="listA.length === 0" class="no-project-container">
-              <span class="no-project-icon">
-                <svg-icon icon-class="工程"></svg-icon>
-              </span>
+                <span class="no-project-icon">
+                  <svg-icon icon-class="工程"></svg-icon>
+                </span>
                 <div class="no-project-desc">
                   暂无项目
                 </div>
@@ -1788,6 +1788,8 @@
 
     .project-list {
       width: 60%;
+      height: 80%;
+      overflow-y: scroll;
       min-width: 600px;
       max-width: 800px;
       margin: 20px auto;

@@ -770,7 +770,7 @@
     user-select: none;
   }
   .project-container {
-    position: fixed;
+    /*position: fixed;*/
     height: 100%;
     width: 100%;
     background-color: $bg;

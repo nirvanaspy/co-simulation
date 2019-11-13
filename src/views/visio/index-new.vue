@@ -1,9 +1,11 @@
 <template>
   <div id="sample" style="height: 100%">
     <div class="operationBar" style="margin-bottom: 10px" v-if="editable">
-      <span class="operation-btn" @click="saveMyDiagram">保存</span>
-      <span class="operation-btn" @click="undoMyDiagram">撤销</span>
-      <span class="operation-btn" @click="redoMyDiagram">恢复</span>
+<!--      <span class="operation-btn" @click="saveMyDiagram">保存</span>-->
+<!--      <span class="operation-btn" @click="undoMyDiagram">撤销</span>-->
+<!--      <span class="operation-btn" @click="redoMyDiagram">恢复</span>-->
+      <el-button @click="undoMyDiagram" type="primary" size="mini">撤销</el-button>
+      <el-button @click="redoMyDiagram" type="primary" size="mini">恢复</el-button>
       <el-button @click="createFromTemp" type="primary" size="mini">保存</el-button>
     </div>
     <div style="width: 100%; display: flex; justify-content: space-between;height:calc(100% - 40px);">
@@ -541,6 +543,12 @@
             // 根据节点和已有的连线关系建立流程图
             createProcessLinks(this.proId, linkPost).then((res) => {
               if(res.data.code === 0) {
+                this.$notify({
+                  title: '成功',
+                  message: '保存成功',
+                  type: 'success',
+                  duration: 2000
+                })
                 this.$emit('refreshList')
                 this.$emit('hideVisio')
               }
