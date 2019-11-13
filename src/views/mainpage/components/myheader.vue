@@ -622,9 +622,10 @@
     top: 0;
     left: 50%;
     margin-left: -70px;
-    background: linear-gradient(to right, #5786e8, #2961d2);
-    -webkit-background-clip: text;
-    color: transparent;
+    /*background: linear-gradient(to right, #5786e8, #2961d2);*/
+    /*-webkit-background-clip: text;*/
+    /*color: transparent;*/
+    color: white;
   }
   .my-menu-icon {
     color: #fff;

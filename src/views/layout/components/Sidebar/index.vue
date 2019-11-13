@@ -65,9 +65,9 @@ export default {
     height: 40px;
     line-height: 40px;
     font-weight: 700;
-    background: linear-gradient(to right, #5983e8, #00e4d0);
-    -webkit-background-clip: text;
-    color: transparent;
+    /*background: linear-gradient(to right, #5983e8, #00e4d0);*/
+    /*-webkit-background-clip: text;*/
+    /*color: transparent;*/
     .svg-icon {
       margin-right: 0!important;
     }
