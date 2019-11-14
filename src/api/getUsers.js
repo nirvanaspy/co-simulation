@@ -111,3 +111,11 @@ export function ifIncharge(data) {
     data
   })
 }
+
+export function importUserFile(data) {
+  return request({
+    url: '/users/import',
+    method: 'post',
+    data
+  })
+}

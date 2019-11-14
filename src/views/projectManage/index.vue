@@ -1012,6 +1012,7 @@
           let proDataPost = qs.stringify(proData)
           ifProHasProcessNode(proDataPost).then((res) => {
             if(res.data.code === 0) {
+              console.log(res.data.data)
               if(res.data.data === true) {
                 this.$confirm('当前项目有正在进行的流程，确定删除吗？', '提示', {
                   confirmButtonText: '确定',
@@ -1058,6 +1059,13 @@
                     type: 'info',
                     message: '已取消删除'
                   })
+                })
+              }else {
+                this.$notify({
+                  title: '失败',
+                  message: '无权删除',
+                  type: 'error',
+                  duration: 2000
                 })
               }
             }

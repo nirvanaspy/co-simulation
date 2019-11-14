@@ -51,7 +51,8 @@
           <svg-icon icon-class="search"/>
         </span>
         <span calss="userName" style="position: relative;top: -12px;color: #fff;font-size: 14px;">{{userName}}</span>
-        <el-dropdown class="avatar-container right-menu-item" trigger="click">
+<!--        trigger="click"-->
+        <el-dropdown class="avatar-container right-menu-item" >
           <div class="avatar-wrapper">
             <pan-thumb class="proImg" width="40px" height="40px" image="./2/png">
             </pan-thumb>
