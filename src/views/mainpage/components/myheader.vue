@@ -51,7 +51,8 @@
           <svg-icon icon-class="search"/>
         </span>
         <span calss="userName" style="position: relative;top: -12px;color: #fff;font-size: 14px;">{{userName}}</span>
-        <el-dropdown class="avatar-container right-menu-item" trigger="click">
+<!--        trigger="click"-->
+        <el-dropdown class="avatar-container right-menu-item" >
           <div class="avatar-wrapper">
             <pan-thumb class="proImg" width="40px" height="40px" image="./2/png">
             </pan-thumb>
@@ -622,9 +623,10 @@
     top: 0;
     left: 50%;
     margin-left: -70px;
-    background: linear-gradient(to right, #5786e8, #2961d2);
-    -webkit-background-clip: text;
-    color: transparent;
+    /*background: linear-gradient(to right, #5786e8, #2961d2);*/
+    /*-webkit-background-clip: text;*/
+    /*color: transparent;*/
+    color: white;
   }
   .my-menu-icon {
     color: #fff;

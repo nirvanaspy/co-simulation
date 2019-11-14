@@ -6,6 +6,27 @@
     <span class="editor-create" @click="handlAddRole()" v-if="nowTabs == 1">
         <svg-icon icon-class="create"></svg-icon>
     </span>
+    <div style="position: absolute; top: 32px;right: 70px;z-index: 1000">
+<!--        <el-button type="text" style="padding: 0" @click="importingUsers">导入</el-button>-->
+        <el-tooltip content="导入用户信息" placement="bottom" effect="light">
+<!--          <i class="el-icon-share"></i>-->
+          <el-button type="text" style="padding: 0;height: 40px" @click="importingUsers">导入</el-button>
+        </el-tooltip>
+      <input id="files" type="file" style="display: none" accept="application/vnd.ms-excel" @change="beforeAvatarUpload">
+    </div>
+    <div style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 10000;
+          width: 100%;
+          height: 100%;"
+         v-loading="loading"
+         element-loading-text="用户信息导入中"
+         element-loading-spinner="el-icon-loading"
+         element-loading-background="rgba(0, 0, 0, 0.8)"
+         v-show="loading"
+    ></div>
     <el-row style="height: 100%;">
       <el-col :xs="24" :sm="24" :md="24">
         <el-tabs type="border-card" v-model="nowTabs">
@@ -20,89 +41,103 @@
                   </div>
                 </div>
               </div>
-              <div v-for="item in userListA" class="user-item" v-if="item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor'">
-                <div class="editor-box">
-                  <!--<span class="editor-item editor-edit" @click="handleEnableSelect(item)">
-                    <el-tooltip content="修改角色" placement="top">
-                      <svg-icon icon-class="switchrole"></svg-icon>
-                    </el-tooltip>
-                  </span>-->
-                  <!--<span class="editor-item editor-edit" @click="handleEditDepa(item)">
-                    <el-tooltip content="修改部门" placement="top">
-                      <svg-icon icon-class="edit"></svg-icon>
-                    </el-tooltip>
-                  </span>-->
-                  <span v-if="item.enabled" class="editor-item editor-disable" @click="handleDisableUser(item)">
+              <div>
+                <div v-for="item in newUserList" class="user-item" v-if="item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor'">
+                  <div class="editor-box">
+                    <!--<span class="editor-item editor-edit" @click="handleEnableSelect(item)">
+                      <el-tooltip content="修改角色" placement="top">
+                        <svg-icon icon-class="switchrole"></svg-icon>
+                      </el-tooltip>
+                    </span>-->
+                    <!--<span class="editor-item editor-edit" @click="handleEditDepa(item)">
+                      <el-tooltip content="修改部门" placement="top">
+                        <svg-icon icon-class="edit"></svg-icon>
+                      </el-tooltip>
+                    </span>-->
+                    <span v-if="item.enabled" class="editor-item editor-disable" @click="handleDisableUser(item)">
                     <el-tooltip content="禁用用户" placement="top">
                       <svg-icon icon-class="disable"></svg-icon>
                     </el-tooltip>
                   </span>
-                  <span v-if="!item.enabled" class="editor-item editor-enable" @click="handleEnableUser(item)">
+                    <span v-if="!item.enabled" class="editor-item editor-enable" @click="handleEnableUser(item)">
                     <el-tooltip content="解除禁用" placement="top">
                       <svg-icon icon-class="enable"></svg-icon>
                     </el-tooltip>
                   </span>
-                  <span class="editor-item editor-delete" @click="handleDeleteUser(item)">
+                    <span class="editor-item editor-delete" @click="handleDeleteUser(item)">
                     <el-tooltip content="删除用户" placement="top">
                       <svg-icon icon-class="delete"></svg-icon>
                     </el-tooltip>
                   </span>
-                </div>
-                <div class="avatarCont">
+                  </div>
+                  <div class="avatarCont">
                   <span class="user-avatar">
                     <!--<img :src="genenrateAvatar(item.id)" alt="">-->
                     <svg-icon :icon-class="item.enabled === true ? 'user-1' : 'user-disable'"></svg-icon>
                   </span>
-                </div>
-                <div class="userMesCont">
-                  <div class="userName">
-                    <span class="username-title">用户名:</span>
-                    <span class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</span>
                   </div>
-                  <div class="userName">
-                    <span class="username-title">姓名:</span>
-                    <span class="username-text link-type" @click="handleEditUser(item)">{{item.realName}}</span>
-                  </div>
-                  <div class="userSecret">
-                    <span class="username-title">部门:</span>
-                    <span class="secret-text link-type" @click="handleEditDepa(item)">{{item.department.name}}</span>
-                  </div>
-                  <div class="userSecret">
-                    <span class="username-title">密级:</span>
-                    <span class="secret-text link-type" @click="handleEditSecretClass(item)">{{computedSecret(item.secretClass)}}</span>
-                  </div>
-                  <div class="userMes">
-                    <div class="user-role name" v-if="item.roleEntities">
-                      <span class="role-text">角色:</span>
-                      <!--<span v-for="role in item.roleEntities" style="margin-left: 6px;">{{role.name}}-{{role.description}}</span>
-                      <el-dropdown placement="bottom-start" trigger="click" @command="handleSelectRole">
-                        <span class="switchrole" @click="handleSelectUser(item)">
-                          <el-tooltip content="修改角色" placement="top">
-                            <svg-icon icon-class="switchrole"></svg-icon>
-                          </el-tooltip>
-                        </span>
-                        <el-dropdown-menu slot="dropdown">
-                          <el-dropdown-item v-for="item in roleList" :key="item.id" :command="item.id">{{item.description}}</el-dropdown-item>
-                        </el-dropdown-menu>
-                      </el-dropdown>-->
-                      <el-select
-                        class="role-select"
-                        v-model="item.roleEntities"
-                        value-key="id"
-                        multiple
-                        style="margin-left: 52px;width:calc(100% - 200px);min-width: 300px;"
-                        @change="handleSelectRole(item, item.roleEntities)"
-                        placeholder="请选择">
-                        <el-option
-                          v-for="role in roleList"
-                          :key="role.id"
-                          :label="role.description"
-                          :value="role">
-                        </el-option>
-                      </el-select>
+                  <div class="userMesCont">
+                    <div class="userName">
+                      <span class="username-title">用户名:</span>
+                      <span class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</span>
+                    </div>
+                    <div class="userName">
+                      <span class="username-title">姓名:</span>
+                      <span class="username-text link-type" @click="handleEditUser(item)">{{item.realName}}</span>
+                    </div>
+                    <div class="userSecret">
+                      <span class="username-title">部门:</span>
+                      <span class="secret-text link-type" @click="handleEditDepa(item)" v-if="item.department">{{item.department.name}}</span>
+                      <span class="secret-text link-type" @click="handleEditDepa(item)" v-else>选择部门</span>
+                    </div>
+                    <div class="userSecret">
+                      <span class="username-title">密级:</span>
+                      <span class="secret-text link-type" @click="handleEditSecretClass(item)">{{computedSecret(item.secretClass)}}</span>
+                    </div>
+                    <div class="userMes">
+                      <div class="user-role name" v-if="item.roleEntities">
+                        <span class="role-text">角色:</span>
+                        <!--<span v-for="role in item.roleEntities" style="margin-left: 6px;">{{role.name}}-{{role.description}}</span>
+                        <el-dropdown placement="bottom-start" trigger="click" @command="handleSelectRole">
+                          <span class="switchrole" @click="handleSelectUser(item)">
+                            <el-tooltip content="修改角色" placement="top">
+                              <svg-icon icon-class="switchrole"></svg-icon>
+                            </el-tooltip>
+                          </span>
+                          <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item v-for="item in roleList" :key="item.id" :command="item.id">{{item.description}}</el-dropdown-item>
+                          </el-dropdown-menu>
+                        </el-dropdown>-->
+                        <el-select
+                          class="role-select"
+                          v-model="item.roleEntities"
+                          value-key="id"
+                          multiple
+                          style="margin-left: 52px;width:calc(100% - 200px);min-width: 300px;"
+                          @change="handleSelectRole(item, item.roleEntities)"
+                          placeholder="请选择">
+                          <el-option
+                            v-for="role in roleList"
+                            :key="role.id"
+                            :label="role.description"
+                            :value="role">
+                          </el-option>
+                        </el-select>
+                      </div>
                     </div>
                   </div>
                 </div>
+               <div>
+                 <el-pagination
+                   style="margin: 15px 0;text-align: center"
+                   background
+                   layout="total,prev, pager, next"
+                   @current-change="userListApaging"
+                   :current-page="currentPage"
+                   :total="userListA.length">
+                 </el-pagination>
+
+               </div>
               </div>
             </div>
           </el-tab-pane>
@@ -324,10 +359,11 @@
 <script>
   /*eslint-disable*/
   import { isvalidUsername, isvalidPwd } from '@/utils/validate'
-  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole, updatePassword, updateSecretClass, updateUserDepartment, ifIncharge } from '@/api/getUsers'
+  import { UserList, updateUser, deleteUser, addUser, disableUser, distributeUserRole, updatePassword, updateSecretClass, updateUserDepartment, ifIncharge, importUserFile } from '@/api/getUsers'
   import { getDepartment } from '@/api/department'
   import { roleList, deleteRole, addRole, updateRole } from '@/api/roles'
   import store from '../../store'
+  import qs from 'qs'
 
   export default {
     name: 'usermanange',
@@ -405,7 +441,10 @@
         editPassDialog: false,
         editDepaDialog: false,
         addUserLoading: false,
-        searchQuery: ''
+        searchQuery: '',
+        newUserList: [],
+        currentPage: 1,
+        loading: false
       }
     },
     created() {
@@ -417,13 +456,47 @@
     mounted() {
     },
     methods: {
+      importingUsers(){
+        let files = document.getElementById('files')
+        files.click()
+      },
+      beforeAvatarUpload() {
+        this.loading = true
+        let _this = this
+        let file  = document.getElementById("files").files[0];
+        let dataPost = new FormData()
+        dataPost.append('type', 'EXCEL')
+        dataPost.append('file', file)
+        importUserFile(dataPost).then(res => {
+          _this.loading = false
+          if(res.data.code === 0) {
+            this.getUserList()
+            this.$notify({
+              title: '成功',
+              message: '用户导入成功',
+              type: 'success',
+              duration: 2000
+            })
+          }
+        }).catch(error => {
+          _this.loading = false
+          _this.$notify({
+            title: '失败',
+            message: '用户导入失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
       getUserList() {
         UserList(this.listQuery).then((res) => {
           if(res.data.code === 0) {
+            this.currentPage = 1
             this.userList = res.data.data
             this.userList.forEach((item) => {
               item.originRoleEntities = item.roleEntities
             })
+            this.newUserList = this.userListA.slice((this.currentPage-1) * 10,this.currentPage * 10)
           } else {
             this.$notify({
               title: '失败',
@@ -947,10 +1020,18 @@
             })
           }
         })
-      }
+      },
+      userListApaging(val){
+        this.currentPage = val
+        this.newUserList = this.userListA.slice((val-1) * 10,val * 10)
+      },
+    },
+    beforeMount(){
+      console.log(this.userListA)
+
     },
     computed: {
-      userListA: function () {
+        userListA: function () {
         let self = this;
         return self.userList.filter(function (item) {
           return item.username.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
@@ -979,6 +1060,7 @@
         }
       }
     },
+
     watch: {
       listenNowTabs: function() {
       }
