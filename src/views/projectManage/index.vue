@@ -1012,7 +1012,6 @@
           let proDataPost = qs.stringify(proData)
           ifProHasProcessNode(proDataPost).then((res) => {
             if(res.data.code === 0) {
-              console.log(res.data.data)
               if(res.data.data === true) {
                 this.$confirm('当前项目有正在进行的流程，确定删除吗？', '提示', {
                   confirmButtonText: '确定',
@@ -1061,12 +1060,40 @@
                   })
                 })
               }else {
-                this.$notify({
-                  title: '失败',
-                  message: '无权删除',
-                  type: 'error',
-                  duration: 2000
-                })
+                  let data = {
+                      'userId': this.userId
+                  };
+                  let dataPost = qs.stringify(data)
+                  deleteProject(id, dataPost).then((res) => {
+                      if(res.data.code === 0) {
+                          row.delLoading = false
+                          this.$notify({
+                              title: '成功',
+                              message: '删除成功',
+                              type: 'success',
+                              duration: 2000
+                          })
+                          this.getList()
+                          this.getTrees()
+                      } else {
+                          row.delLoading = false
+                          this.$notify({
+                              title: '失败',
+                              message: res.data.msg,
+                              type: 'error',
+                              duration: 2000
+                          })
+                      }
+                  }).catch(() => {
+                      // this.delLoading = false
+                      row.delLoading = false
+                      this.$notify({
+                          title: '失败',
+                          message: '删除失败',
+                          type: 'error',
+                          duration: 2000
+                      })
+                  })
               }
             }
           })
