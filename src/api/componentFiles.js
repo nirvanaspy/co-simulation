@@ -17,6 +17,7 @@ export function mergeFile(data) {
   return request({
     url: '/files/chunks/merge',
     method: 'post',
+    timeout: 1000 * 60 * 30,
     headers: {
       'content-type': 'application/x-www-form-urlencoded'
     },
@@ -24,13 +25,25 @@ export function mergeFile(data) {
   })
 }
 
-export function uploadFiles(compId, parentId, data) {
+export function uploadFiles(compId, proId, data) {
   return request({
     url: '/subtasks/' + compId + '/uploadfiles',
     method: 'post',
     headers: {
       'content-type': 'application/json;charset=utf-8',
-      'parentNodeId': parentId
+      'projectId': proId
+    },
+    data
+  })
+}
+
+export function modifyFiles(compId, proId, data) {
+  return request({
+    url: '/subtaskFiles/' + compId + '/modifySubtaskFiles',
+    method: 'post',
+    headers: {
+      'content-type': 'application/json;charset=utf-8',
+      'projectId': proId
     },
     data
   })

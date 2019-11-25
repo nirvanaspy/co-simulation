@@ -12,9 +12,9 @@
         <span class="user-name">
           {{userName}}
         </span>
-        <span class="role-info">
+        <!--<span class="role-info">
           用户角色
-        </span>
+        </span>-->
       </div>
     </div>
     <el-menu
@@ -65,9 +65,9 @@ export default {
     height: 40px;
     line-height: 40px;
     font-weight: 700;
-    background: linear-gradient(to right, #5983e8, #00e4d0);
-    -webkit-background-clip: text;
-    color: transparent;
+    /*background: linear-gradient(to right, #5983e8, #00e4d0);*/
+    /*-webkit-background-clip: text;*/
+    /*color: transparent;*/
     .svg-icon {
       margin-right: 0!important;
     }

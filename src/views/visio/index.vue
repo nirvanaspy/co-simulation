@@ -1,13 +1,13 @@
 <template>
   <div id="sample" style="height: 100%">
-    <div class="operationBar" style="margin-bottom: 10px">
+    <div class="operationBar" style="margin-bottom: 10px" v-if="editable">
       <span class="operation-btn" @click="saveMyDiagram">保存</span>
       <span class="operation-btn" @click="undoMyDiagram">撤销</span>
       <span class="operation-btn" @click="redoMyDiagram">恢复</span>
       <el-button @click="createFromTemp" type="primary" size="mini">保存</el-button>
     </div>
     <div style="width: 100%; display: flex; justify-content: space-between;height:calc(100% - 40px);">
-      <div id="myPaletteDiv" style="width: 200px; margin-right: 2px; background-color: whitesmoke; border: solid 1px black"></div>
+      <div id="myPaletteDiv" style="width: 200px; margin-right: 2px; background-color: whitesmoke; border: solid 1px black" :class="{'hide': editable === false}"></div>
       <div id="myDiagramDiv" style="flex-grow: 1; height: 100%; border: solid 1px black"></div>
     </div>
     <div id="myOverviewDIV"></div>
@@ -39,7 +39,7 @@
 
 <script>
   /*eslint-disable*/
-  import { createProcessNodes } from '@/api/pro-design-link'
+  import { createProcessNodes, getSubtaskDetail } from '@/api/pro-design-link'
   export default {
     name: "visio",
     props: {
@@ -50,6 +50,10 @@
       processNodes: {
         type: Array,
         default: []
+      },
+      editable: {
+        type: Boolean,
+        default: false
       }
     },
     data() {
@@ -60,19 +64,28 @@
           "linkFromPortIdProperty": "fromPort",
           "linkToPortIdProperty": "toPort",
           "nodeDataArray": [
-            {figure: "subtask", key: -1, loc: "-60 130", size: "111 50", text: "结构体建模"},
-            {figure: "subtask", key: -2, loc: "-60 440", size: "94 45", text: "装配仿真"},
-            {figure: "subtask", key: -3, loc: "-60 240", size: "102 48", text: "结构仿真"},
-            {figure: "subtask", key: -4, loc: "-60 340", size: "99 50", text: "力学仿真"},
-            {figure: "subtask", key: -5, loc: "-60 540", size: "93 45", text: "电路仿真"}
+            {figure: "subtask", key: -1, loc: "-60 130", size: "150 70", text: "结构体建模"},
+            {figure: "subtask", key: -2, loc: "-60 440", size: "150 70", text: "装配仿真"},
+            {figure: "subtask", key: -3, loc: "-60 240", size: "150 70", text: "结构仿真"},
+            {figure: "subtask", key: -4, loc: "-60 340", size: "150 70", text: "力学仿真"},
+            {figure: "subtask", key: -5, loc: "-60 540", size: "150 70", text: "热学仿真"},
+            {figure: "subtask", key: -6, loc: "-60 540", size: "150 70", text: "力学仿真"},
+            {figure: "subtask", key: -7, loc: "-60 540", size: "150 70", text: "热仿真"},
+            {figure: "subtask", key: -8, loc: "-60 540", size: "150 70", text: "电磁仿真"},
+            {figure: "subtask", key: -9, loc: "60 540", size: "150 70", text: "电路建模"},
+            {figure: "subtask", key: -10, loc: "-60 540", size: "150 70", text: "电路仿真"},
+            {figure: "subtask", key: -11, loc: "-60 540", size: "150 70", text: "电磁仿真"},
+            // {figure: "subtask", key: 'aaaa', loc: "-60 700", size: "150 70", text: "ceshi"},
           ],
           "linkDataArray": [
             {"from":-1, "to":-3, "fromPort":"B", "toPort":"T", "points":[]},
             {"from":-3, "to":-4, "fromPort":"B", "toPort":"T", "points":[]},
             {"from":-4, "to":-2, "fromPort":"B", "toPort":"T", "points":[]},
-            {"from":-2, "to":-5, "fromPort":"B", "toPort":"T", "points":[]}
+            {"from":-2, "to":-5, "fromPort":"B", "toPort":"T", "points":[]},
+            // {"from":-5, "to":'aaaa', "fromPort":"B", "toPort":"T", "points":[]},
           ]
-        }
+        },
+        originLink: []
       }
     },
     methods: {
@@ -81,13 +94,28 @@
         let myCanvas = go.GraphObject.make
         this.myDiagram = myCanvas(go.Diagram, "myDiagramDiv",  // must name or refer to the DIV HTML element
           {
-            // isReadOnly: true,
+            isReadOnly: !this.editable,
             grid: myCanvas(go.Panel, "Grid",
               myCanvas(go.Shape, "LineH", {stroke: "lightgray", strokeWidth: 0.5}),
               myCanvas(go.Shape, "LineH", {stroke: "gray", strokeWidth: 0.5, interval: 10}),
               myCanvas(go.Shape, "LineV", {stroke: "lightgray", strokeWidth: 0.5}),
               myCanvas(go.Shape, "LineV", {stroke: "gray", strokeWidth: 0.5, interval: 10})
             ),
+            // 限制已完成节点的修改
+            "InitialLayoutCompleted": function(e) {
+              e.diagram.nodes.each(function(n) {
+                if(n.data.pass === true) {
+                  n.deletable = false;
+                  n.textEditable = false;
+                }
+              });
+              e.diagram.links.each(function(l) {
+                if(l.data.pass === true) {
+                  l.deletable = false;
+                  l.textEditable = false;
+                }
+              });
+            },
             "draggingTool.dragsLink": true,
             "draggingTool.isGridSnapEnabled": true,
             "linkingTool.isUnconnectedLinkValid": true,
@@ -123,29 +151,6 @@
             "undoManager.isEnabled": true
           })
 
-        /*this.myDiagram.addDiagramListener("Modified", function (e) {
-            var button = document.getElementById("SaveButton");
-            if (button) button.disabled = !this.myDiagram.isModified;
-            var idx = document.title.indexOf("*");
-            if (this.myDiagram.isModified) {
-                if (idx < 0) document.title += "*";
-            } else {
-                if (idx >= 0) document.title = document.title.substr(0, idx);
-            }
-        });*/
-
-        this.myDiagram.addDiagramListener("SelectionDeleting", function(e) {
-          e.subject.each(function(n) {
-            //n为删除节点或线的对象
-            console.log(n.data.key);
-            return
-            /*if (n.data.key == "5.1") {
-              //不允许删除，给e.cancel赋值
-              e.cancel = true;
-            }*/
-            // alert('已进行流程不允许操作！')
-          })
-        })
         function makePort(name, spot, output, input) {
           // the port is basically just a small transparent square
           return myCanvas(go.Shape, "Circle",
@@ -394,21 +399,21 @@
                     {toArrow: "Standard", stroke: null})
                 ),
               model: new go.GraphLinksModel([  // specify the contents of the Palette
-                {text: "Start", figure: "Circle", fill: "#00AD5F"},
-                {text: "Step", figure: "subtask"},
-                {text: "结构体建模", figure: "subtask"},
-                {text: "电路建模", figure: "subtask"},
-                {text: "装配仿真", figure: "subtask"},
-                {text: "结构仿真", figure: "subtask"},
-                {text: "电路仿真", figure: "subtask"},
-                {text: "力学仿真", figure: "subtask"},
-                {text: "热学仿真", figure: "subtask"},
-                {text: "热仿真", figure: "subtask"},
-                {text: "电磁仿真", figure: "subtask"},
+                /*{text: "Start", figure: "Circle", fill: "#00AD5F"},
+                {text: "Step", figure: "subtask"},*/
+                {text: "结构体建模", size: "100 50",figure: "subtask"},
+                {text: "电路建模", size: "100 50", figure: "subtask"},
+                {text: "装配仿真", size: "100 50", figure: "subtask"},
+                {text: "结构仿真", size: "100 50", figure: "subtask"},
+                {text: "电路仿真", size: "100 50", figure: "subtask"},
+                {text: "力学仿真", size: "100 50", figure: "subtask"},
+                {text: "热学仿真", size: "100 50", figure: "subtask"},
+                {text: "热仿真", size: "100 50", figure: "subtask"},
+                {text: "电磁仿真", size: "100 50", figure: "subtask"},
                 /*{text: "DB", figure: "Database", fill: "lightgray"},*/
                 {text: "???", figure: "Diamond", fill: "lightskyblue"},
-                {text: "End", figure: "Circle", fill: "#CE0620"},
-                {text: "Comment", figure: "RoundedRectangle", fill: "lightyellow"},
+                /*{text: "End", figure: "Circle", fill: "#CE0620"},
+                {text: "Comment", figure: "RoundedRectangle", fill: "lightyellow"},*/
               ], [
                 // the Palette also has a disconnected Link, which the user can drag-and-drop
                 {points: new go.List(/*go.Point*/).addAll([new go.Point(0, 0), new go.Point(30, 0), new go.Point(30, 40), new go.Point(60, 40)])}
@@ -432,7 +437,9 @@
         let arrRes = []
         let nodeArr = this.myDiagram.model.Gc
         let linkArr = this.myDiagram.model.Pc
-
+        /*console.log(nodeArr)
+        console.log(linkArr)
+        return*/
         if(nodeArr.length < 2 || linkArr.length < 1) {
           this.$notify({
             title: '提示',
@@ -473,6 +480,7 @@
 
         for(let i = 0; i < nodeArr.length; i++) {
           let ifHasTo = false
+          // let ifHasFrom = false
           for(let j = 0; j < linkArr.length; j++) {
             // 判断节点是否闭合
             if(!linkArr[j].to || !linkArr[j].from) {
@@ -484,6 +492,17 @@
               })
               return
             }
+            // 判断是否至少有一个建模和仿真
+            if((nodeArr.findIndex(target => target.text.indexOf('建模') >= 0) == -1) || (nodeArr.findIndex(target => target.text.indexOf('仿真') >= 0) == -1)) {
+              this.$notify({
+                title: '提示',
+                message: '必须至少包含一个建模和仿真流程',
+                type: 'error',
+                duration: 2000
+              })
+              return
+            }
+
             for(let k = 1; k < linkArr.length; k++) {
               // 判断节点间的引用错误
               // 两个节点间的循环引用 || 两个节点间存在重复引用关系
@@ -499,28 +518,96 @@
                 }
               }
             }
+
+            // 判断关系是不是新增的
+            linkArr[j].origin = false
+            for(let m = 0; m < this.originLink.length; m++) {
+              if(linkArr[j].to == this.originLink[m].to && linkArr[j].from == this.originLink[m].from) {
+                linkArr[j].origin = true
+                break
+              }
+            }
             // 存入节点及父节点到此节点到指向信息
             if(nodeArr[i].key === linkArr[j].to) {
               ifHasTo = true
-              arrRes.push({
-                nodeName: nodeArr[i].text,
-                location: nodeArr[i].loc,
-                selfSign: nodeArr[i].key,
-                figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
-                nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
-                parentSign: linkArr[j].from,
-                toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
-                fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL'
-              })
+              if(linkArr[j].origin === false) {
+                /*arrRes.push({
+                  nodeName: nodeArr[i].text,
+                  location: nodeArr[i].loc,
+                  selfSign: nodeArr[i].key,
+                  figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
+                  nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
+                  subtaskId: null,
+                  parentSign: linkArr[j].from,
+                  toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
+                  fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL'
+                })*/
+                // if(nodeArr.findIndex(target => target.key == linkArr[j].to) > -1) {
+                if(nodeArr[i].subtask) {
+                  arrRes.push({
+                    nodeName: nodeArr[i].text,
+                    location: nodeArr[i].loc,
+                    selfSign: nodeArr[i].key,
+                    figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
+                    nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
+                    subtaskId: nodeArr[i].subtask ? nodeArr[i].subtask.id : null,
+                    parentSign: linkArr[j].from,
+                    toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
+                    fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
+                    ifNew: true
+                  })
+                } else {
+                  arrRes.push({
+                    nodeName: nodeArr[i].text,
+                    location: nodeArr[i].loc,
+                    selfSign: nodeArr[i].key,
+                    figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
+                    nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
+                    subtaskId: null,
+                    parentSign: linkArr[j].from,
+                    toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
+                    fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
+                    ifNew: true
+                  })
+                }
+
+              } else if(linkArr[j].origin === true){
+                arrRes.push({
+                  nodeName: nodeArr[i].text,
+                  location: nodeArr[i].loc,
+                  selfSign: nodeArr[i].key,
+                  figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
+                  nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
+                  subtaskId: nodeArr[i].subtask ? nodeArr[i].subtask.id : null,
+                  parentSign: linkArr[j].from,
+                  toPort: linkArr[j].toPort ? linkArr[j].toPort : 'NULL',
+                  fromPort: linkArr[j].fromPort ? linkArr[j].fromPort : 'NULL',
+                  ifNew: false
+                })
+              }
             }
 
+            // 判断是否有节点未连线
+            /*if(nodeArr[i].key == linkArr[j].from) {
+              ifHasFrom === true
+            }
+            if(ifHasFrom === false && ifHasTo === false) {
+              console.log(nodeArr[i])
+              this.$notify({
+                title: '提示',
+                message: '节点未闭合，请检查！',
+                type: 'error',
+                duration: 2000
+              })
+              return
+            }*/
+
           }
+
           // 存入起点信息
           if(!ifHasTo){
             // 初始节点必须为建模
             if(nodeArr[i].text.indexOf('建模') < 0) {
-              console.log(i)
-              console.log(nodeArr[i])
               this.$notify({
                 title: '提示',
                 message: '初始流程必须为建模！',
@@ -535,9 +622,11 @@
               selfSign: nodeArr[i].key,
               figure: nodeArr[i].figure ? nodeArr[i].figure : 'NULL',
               nodeSize: nodeArr[i].size ? nodeArr[i].size : '150 70',
+              subtaskId: nodeArr[i].subtask ? nodeArr[i].subtask.id : null,
               parentSign: 'NULL',
               toPort: 'NULL',
-              fromPort: 'NULL'
+              fromPort: 'NULL',
+              ifNew: nodeArr[i].subtask ? false : true
               /*parentSign: null,
               toPort: null,
               fromPort: null*/
@@ -563,6 +652,7 @@
               duration: 2000
             })
           }
+          this.$emit('hideVisio')
         }).catch(() => {
           this.$notify({
             title: '失败',
@@ -570,14 +660,17 @@
             type: 'error',
             duration: 2000
           })
+          this.$emit('hideVisio')
         })
       }
     },
     mounted() {
-      this.init()
+
       // 实例化之后再进行传值刷新列表
       if(this.processNodes.length === 0) {
+        this.init()
         this.myDiagram.model = this.go.Model.fromJson(this.originValue)
+        this.originLink = this.originValue.linkDataArray.slice()
       } else {
         let nodeArr = []
         let linkArr = []
@@ -590,35 +683,49 @@
               loc: this.processNodes[i].location,
               size: this.processNodes[i].nodeSize,
               text: this.processNodes[i].nodeName,
-              subTaskEntity: this.processNodes[i].subtaskEntity
+              subtask: this.processNodes[i].subtask
             }
-            if(this.processNodes[i].subtaskEntity.state === 1) {
+            if(this.processNodes[i].subtask.ifApprove === true) {
               arrItem.fill = '#2ac06d'
+              arrItem.pass = true
             }
             // 需要对节点信息进行去重
             nodeArr.push(arrItem)
             myObj[this.processNodes[i].selfSign] = true
           }
           if(this.processNodes[i].parentSign) {
-            linkArr.push({
+            let linkItem = {
               from: this.processNodes[i].parentSign,
               to: this.processNodes[i].selfSign,
               toPort: this.processNodes[i].toPort,
               fromPort: this.processNodes[i].fromPort,
               points: []
-            })
+            }
+            // 判断已完成的子任务的连接关系
+            if(this.processNodes[i].subtask.ifApprove === true) {
+              linkItem.pass = true
+            }
+            linkArr.push(linkItem)
           }
         }
-        this.originValue.nodeDataArray = nodeArr
-        this.originValue.linkDataArray = linkArr
+        this.originValue.nodeDataArray = nodeArr.slice()
+        this.originValue.linkDataArray = linkArr.slice()
+        this.originLink = linkArr.slice()
+        console.log(linkArr)
+        this.init()
         this.myDiagram.model = this.go.Model.fromJson(this.originValue)
       }
       // 导航
       // new this.go.Overview("myOverviewDIV").observed = this.myDiagram;
+    },
+    destroyed() {
+      console.log('destroyed')
     }
   }
 </script>
 
 <style scoped>
-
+.hide {
+  display: none;
+}
 </style>

@@ -42,7 +42,7 @@ export function addUser(data, roleName) {
     url: '/users',
     method: 'post',
     headers: {
-      'Content-Type': 'application/json',
+      // 'Content-Type': 'application/json',
       'roleName': roleName
     },
     data
@@ -85,6 +85,37 @@ export function updateSecretClass(id, data) {
   return request({
     url: '/users/' + id + '/secretClass',
     method: 'patch',
+    data
+  })
+}
+
+export function getUserById(id) {
+  return request({
+    url: '/users/' + id,
+    method: 'get'
+  })
+}
+
+export function updateUserDepartment(id, data) {
+  return request({
+    url: '/users/' + id + '/department',
+    method: 'patch',
+    data
+  })
+}
+
+export function ifIncharge(data) {
+  return request({
+    url: '/subtasks/ifIncharge',
+    method: 'post',
+    data
+  })
+}
+
+export function importUserFile(data) {
+  return request({
+    url: '/users/import',
+    method: 'post',
     data
   })
 }

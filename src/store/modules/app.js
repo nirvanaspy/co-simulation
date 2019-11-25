@@ -7,10 +7,11 @@ const app = {
     },
     language: Cookies.get('language') || 'en',
     projectNum: Cookies.get('projectNum'),
-    /*projectName: Cookies.get('projectName')*/
+    /* projectName: Cookies.get('projectName')*/
     projectExist: Cookies.get('projectExist'),
-    projectId: Cookies.get('projectId')
-   },
+    projectId: Cookies.get('projectId'),
+    ifSearch: false
+  },
   mutations: {
     TOGGLE_SIDEBAR: state => {
       if (state.sidebar.opened) {
@@ -39,6 +40,14 @@ const app = {
     SET_PROJECTID: (state, projectId) => {
       state.projectId = projectId
       Cookies.set('projectId', projectId)
+    },
+    SET_SERACH: (state) => {
+      /* if (state.ifSearch) {
+        Cookies.set('ifSearch', 1)
+      } else {
+        Cookies.set('ifSearch', 0)
+      }*/
+      state.ifSearch = !state.ifSearch
     }
   },
   actions: {
@@ -48,14 +57,17 @@ const app = {
     setLanguage({ commit }, language) {
       commit('SET_LANGUAGE', language)
     },
-    setProjectNum: ({ commit }, projectNum)  => {
+    setProjectNum: ({ commit }, projectNum) => {
       commit('SET_PROJECTNUM', projectNum)
     },
-    setProjectName: ({ commit }, projectName)  => {
+    setProjectName: ({ commit }, projectName) => {
       commit('SET_PROJECTNAME', projectName)
     },
     setProjectExist: ({ commit }, projectExist) => {
       commit('SET_PROJECTEXIST', projectExist)
+    },
+    setIfSearch: ({ commit }) => {
+      commit('SET_SERACH')
     }
   }
 }

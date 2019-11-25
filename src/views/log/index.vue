@@ -1,348 +1,91 @@
 <template>
-  <div class="app-container calendar-list-container">
-    <div class="filter-container">
-      <el-input style="width: 240px;" class="filter-item" placeholder="输入部署设计名称" v-model="searchQuery">
-      </el-input>
+  <div class="app-container calendar-list-container download-log-container">
+    <div v-if="list.length === 0" style="width: 100%;font-size: 24px;color: #999;text-align: center;margin-top: 100px">
+      暂无数据
     </div>
-
-    <el-table :key='tableKey' :data="list" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
-              style="width: 100%">
-      <el-table-column width="200px" align="center" label="类型">
-        <template slot-scope="scope">
-          <span>部署设计</span>
-        </template>
-      </el-table-column>
-      <el-table-column min-width="140px" align="center" sortable label="部署时间" prop="tag">
-         <template slot-scope="scope">
-           <span>{{computedTimeTag(scope.row.startTime)}}</span>
-         </template>
-       </el-table-column>
-      <el-table-column min-width="140px" align="center" label="结果">
-        <template slot-scope="scope">
-          <span v-if="scope.row.complete" style="color: limegreen;">{{scope.row.message}}</span>
-          <span v-else style="color: red;">{{scope.row.message}}</span>
-        </template>
-      </el-table-column>
-      <!--<el-table-column width="160px" align="center" label="部署详情">
-        <template slot-scope="scope">
-          <el-button type="primary" plain  @click="deployDetails(scope.row)">查看</el-button>
-        </template>
-      </el-table-column>-->
-    </el-table>
-    <div class="pagination-container" style="text-align: center;">
-      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
-                     :current-page="currentPage" :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit"
-                     layout="total, sizes, prev, pager, next, jumper" :total="total">
-      </el-pagination>
-    </div>
-    <el-dialog title="部署详情" :visible.sync="dialogTableVisible" width="60%">
-
-      <el-table :key='tableKey' :data="deployDetail" v-loading="listLoading" element-loading-text="给我一点时间" border fit highlight-current-row
-                style="width: 100%">
-        <el-table-column align="center" width="140px" label="主机IP">
-          <template slot-scope="scope">
-            <span>{{scope.row.hostName}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" min-width="160px" label="组件名称">
-          <template slot-scope="scope">
-            <span>{{scope.row.componentName}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" width="120px" label="组件版本">
-          <template slot-scope="scope">
-            <span>{{scope.row.componentVersion}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="left" min-width="220px" label="目标路径">
-          <template slot-scope="scope">
-            <span>{{scope.row.targetPath}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" width="120px" label="部署状态">
-          <template slot-scope="scope">
-            <span v-if="scope.row.complete" style="color: limegreen;">成功</span>
-            <span v-else  style="color: red;">失败</span>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-container" style="text-align: center;">
-        <el-pagination background @size-change="handleSizeChange2" @current-change="handleCurrentChange2"
-                       :current-page="currentPage2" :page-sizes="[10,20,30, 50]" :page-size="listQuery2.limit"
-                       layout="total, sizes, prev, pager, next, jumper" :total="total2">
-        </el-pagination>
+    <div>
+      <div v-for="item in list" class="log-container">
+        <div class="log-des-box">
+        <span class="icon">
+          <svg-icon icon-class="logs"></svg-icon>
+        </span>
+          <span class="des-text">
+          {{computeLogDes(item)}}
+        </span>
+        </div>
+        <div class="log-time-box">
+        <span class="icon" style="color: #777;">
+          <svg-icon icon-class="time"></svg-icon>
+        </span>
+          <span class="time-text">
+          下载时间:{{item.createTime}}
+        </span>
+        </div>
       </div>
-
-    </el-dialog>
-
+    </div>
   </div>
 </template>
 
 <script>
-  import { logList, logDetail, logSearchList } from '@/api/log'
-  import waves from '@/directive/waves' // 水波纹指令
-  import { parseTime } from '@/utils'
-
   /* eslint-disable */
+  import {logList} from '@/api/log'
   export default {
-    name: 'usermanage',
-    directives: {
-      waves
-    },
+    name: 'log',
     data() {
       return {
-        searchQuery: '',
-        tableKey: 0,
-        list: [],
-        deployDetail: [],
-        listLoading: true,
-        dialogTableVisible: false,
-        proId: '',
-        id: '',
-        listQuery: {
-          page: 0,
-          limit: 10
-        },
-        listQuery2: {
-          page: 0,
-          limit: 10
-        },
-        sortable: null,
-        total: 0,
-        pagesize:10,//每页的数据条数
-        currentPage:1,//默认开始页面
-        total2: 0,
-        pagesize2:20,//每页的数据条数
-        currentPage2:1,//默认开始页面
-        importanceOptions: [1, 2, 3],
-        depolyStatusOptions: ['部署成功', '进行中', '部署异常'],
-        sortOptions: [{ label: 'ID Ascending', key: '+id' }, { label: 'ID Descending', key: '-id' }],
-        statusOptions: ['published', 'draft', 'deleted'],
-        showReviewer: false,
-        temp: {
-          id: undefined,
-          importance: 1,
-          remark: '',
-          timestamp: new Date(),
-          title: '',
-          type: '',
-          status: 'published'
-        },
-        dialogFormVisible: false,
-        dialogStatus: '',
-        textMap: {
-          update: 'Edit',
-          create: 'Create'
-        },
-        dialogPvVisible: false,
-        downloadLoading: false,
-        /*pickerOptions2: {
-          shortcuts: [{
-            text: '最近一周',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-              picker.$emit('pick', [start, end])
-            }
-          }, {
-            text: '最近一个月',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
-              picker.$emit('pick', [start, end])
-            }
-          }, {
-            text: '最近三个月',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
-              picker.$emit('pick', [start, end])
-            }
-          }]
-        },
-        value4: '',
-        startTime: '', // 日期开始时间
-        startTimeTemp: '', // 查询时 日期开始时间戳
-        endTime: '', // 日期结束时间
-        endTimeTemp: '', // 查询时 日期结束时间戳
-        compName: '', // 查询时组件名
-        deviceIP: '', // 查询时设备IP
-        compSize: '', // 查询时大小
-        compState: '', // 查询时状态
-        showTimeResult: false, // 时间查询显示标志*/
-        selected: ""
+        list: []
       }
     },
-    filters: {
-      statusFilter(status) {
-        const statusMap = {
-          '成功': 'success',
-          '部署中': 'info',
-          '失败': 'danger'
-        }
-        return statusMap[status]
-      },
-      typeFilter(type) {
-        return calendarTypeKeyValue[type]
+    methods: {
+      getLogList() {
+        logList().then((res) => {
+          if(res.data.code === 0) {
+            this.list = res.data.data
+          }
+        })
       }
     },
     created() {
-      this.proId = this.getCookie('projectId')
-      this.getList()
-      // this.getRefresh_token()
-    },
-    methods: {
-      getList() {
-        this.listLoading = true
-        logList(this.proId, this.listQuery).then(response => {
-          this.list = response.data.data.content
-          console.log(this.list)
-          this.listLoading = false
-          this.listLength = response.data.data.length
-          this.total = response.data.data.totalElements
-        })
-      },
-      handleSizeChange(val) {
-        this.listQuery.limit = val
-        this.pagesize = val
-        this.getList()
-      },
-      handleCurrentChange(val) {
-        this.listQuery.page = val - 1
-        this.currentPage = val
-        this.getList()
-      },
-      handleSizeChange2(val) {
-        this.listQuery2.limit = val
-        this.pagesize2 = val
-        this.deployDetails()
-      },
-      handleCurrentChange2(val) {
-        this.listQuery2.page = val - 1
-        this.currentPage2 = val
-        this.deployDetails()
-      },
-      /*deployDetails: function (row) {
-        let ifexist = false;      //设备是否部署，false为未部署*!/
-        if(row !== undefined){
-          this.id = row.id;
-        }
-        let i = 0;
-        this.dialogTableVisible = true;
-        this.listLoading = true
-        logDetail(this.id, this.listQuery2).then(response => {
-          this.deployDetail = response.data.data.content
-          this.listLoading = false
-          this.listLength = response.data.data.length
-          this.total2 = response.data.data.totalElements
-        })
-      },*/
-      /*searchAll: function() {
-        if (this.value4.length != 0){
-          this.startTime = this.value4[0];
-          this.endTime = this.value4[1];
-
-          this.startTimeTemp = Math.floor(new Date(this.startTime).getTime() / 1000);
-          this.endTimeTemp = Math.floor(new Date(this.endTime).getTime() / 1000);
-
-          let start = parseInt(this.startTimeTemp);
-          let end = parseInt(this.endTimeTemp);
-        }
-
-        //  /deploylogs
-
-        let username = this.getCookie('username');
-        let password = this.getCookie('password');
-
-        this.deviceIP = $("input[id='search-deviceIP']").val();
-        this.compName = $("input[id='search-compName']").val();
-        this.compSize = $("input[id='search-compSize']").val();
-        //this.compState = $("input[id='search-compState']").val();
-
-
-        let state = this.selected;
-
-        if (state.length > 0) {
-          if (state == "部署异常") {
-            this.compState = 0;
-          } else if (state == "进行中") {
-            this.compState = 1;
-          } else if (state == "部署成功") {
-            this.compState = 2;
-          }
-        }
-
-        let formData = new FormData();
-
-        let searchObj = {};
-
-        if (this.deviceIP.length != 0) {
-          formData.append('ip', this.deviceIP);
-          searchObj.ip = this.deviceIP;
-        }
-
-        if (this.compName.length != 0 || this.compSize.length != 0) {
-          //searchObj.componentEntity = {};
-          if (this.compName.length != 0) {
-            formData.append('componentEntity.name', this.compName);
-            searchObj.componentName = this.compName;
-          }
-          if (this.compSize.length != 0) {
-            formData.append('componentEntity.size', this.compSize);
-            searchObj.componentEntity.size = this.compSize;
-          }
-        }
-
-        if (this.compState.length != 0) {
-          formData.append('state', this.compState);
-          searchObj.state = this.compState;
-        }
-        if (this.value4.length != 0) {
-          formData.append('createTime', this.startTimeTemp);
-          formData.append('finishTime', this.endTimeTemp);
-
-          //searchObj.createTime = this.startTimeTemp;
-          searchObj.startTime = new Date(this.startTime).getTime();
-          searchObj.endTime = new Date(this.endTime).getTime();
-        }
-
-        logSearchList(searchObj).then(response => {
-          this.list = response.data.data
-          this.listLoading = false
-        })
-
-      },*/
+      this.getLogList()
     },
     computed: {
-      /*listA: function () {
-        let self = this;
-        return self.list.filter(function (item) {
-          return item.createTime.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
-        })
-      },*/
-      computedTimeTag() {
-        return function (tag) {
-          let date = new Date(tag);
-          let Y = date.getFullYear() + '-';
-          let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
-          let D = date.getDate() < 10 ? '0'+ date.getDate() + ' ' : date.getDate() + ' '
-          let h = date.getHours() < 10 ? '0'+ date.getHours() + ':' : date.getHours() + ':'
-          let m = date.getMinutes() < 10 ? '0' + date.getMinutes() + ':' : date.getMinutes() + ':'
-          let s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
-          return Y+M+D+h+m+s
+      computeLogDes() {
+        return function (item) {
+          let downloadName = item.fileName
+          let operator = '用户' + item.users.realName
+          let des = operator + '下载了' + downloadName
+          return des
         }
       }
     }
   }
-/*  const this.prototype.startTime = function () {
-    const startTime = this.value4[0]
-    const endTime = this.value4[1]
-    const startTimeTemp = Math.floor(new Date(startTime).getTime() / 1000)
-    const endTimeTemp = Math.floor(new Date(endTime).getTime() / 1000)
-    return startTimeTemp
-  }*/
 </script>
+<style lang="scss" scoped>
+  .download-log-container {
+  }
+  .log-container {
+    width: 100%;
+    height: 80px;
+    background: #eaf4fb;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    .icon {
+      margin-right: 4px;
+    }
+    .log-des-box {
+      margin-bottom: 10px;
+      .des-text {
+        font-size: 20px;
+        color: #555;
+      }
+    }
+    .log-time-box {
+      .time-text {
+        font-size: 14px;
+        color: #999;
+      }
+    }
+  }
+
+</style>

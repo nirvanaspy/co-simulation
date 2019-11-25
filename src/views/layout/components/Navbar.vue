@@ -3,7 +3,44 @@
     <hamburger class="hamburger-container" :toggleClick="toggleSideBar" :isActive="sidebar.opened"></hamburger>
 
     <breadcrumb class="breadcrumb-container"></breadcrumb>
-
+    <myheader></myheader>
+    <!--<div class="proTitle">
+      <span><svg-icon icon-class="co-simulation"></svg-icon></span>
+      <span>CO-Simulation</span>
+      <el-dropdown style="position:absolute;top:-1px;right: 6px;" placement="bottom-start">
+        <span class="el-dropdown-link my-menu-icon">
+          <svg-icon icon-class="menu"></svg-icon>
+        </span>
+        <el-dropdown-menu slot="dropdown" class="my-menu-dropdown">
+          <div class="flex-menu-box">
+            <div class="flex-menu-item" @click="jumpToPro()">
+              <span class="icon-box">
+                <svg-icon icon-class="project"></svg-icon>
+              </span>
+              <span class="icon-text">项目管理</span>
+            </div>
+            <div class="flex-menu-item" @click="jumpToKonwledge()">
+              <span class="icon-box">
+                <svg-icon icon-class="knowledge"></svg-icon>
+              </span>
+              <span class="icon-text">我的库</span>
+            </div>
+            <div class="flex-menu-item" @click="jumpToAudit()">
+              <span class="icon-box" style="color: #3f9fe1;">
+                <svg-icon icon-class="audit"></svg-icon>
+              </span>
+              <span class="icon-text">任务审查</span>
+            </div>
+            <div class="flex-menu-item" @click="jumpToAuditSubLibFile()">
+              <span class="icon-box" style="color: #3f9fe1;">
+                <svg-icon icon-class="audit1"></svg-icon>
+              </span>
+              <span class="icon-text">文件审查</span>
+            </div>
+          </div>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
     <div class="right-menu">
 
       <el-tooltip effect="dark" :content="$t('navbar.screenfull')" placement="bottom">
@@ -17,7 +54,7 @@
       <el-dropdown class="avatar-container right-menu-item" trigger="click">
         <div class="avatar-wrapper">
           <span class="user-avatar"><svg-icon icon-class="useravata"></svg-icon></span>
-          <!--<img class="user-avatar" src="./2.jpg">-->
+          &lt;!&ndash;<img class="user-avatar" src="./2.jpg">&ndash;&gt;
           <i class="el-icon-caret-bottom"></i>
         </div>
         <el-dropdown-menu slot="dropdown">
@@ -26,13 +63,11 @@
               <span>首页</span>
             </el-dropdown-item>
           </router-link>
-          <!--<router-link to="/projectManage" @click="jumpToProManage">
-            <el-dropdown-item divided>
-              <span>项目管理</span>
-            </el-dropdown-item>
-          </router-link>-->
           <el-dropdown-item divided>
             <span @click="jumpToProManage">项目管理</span>
+          </el-dropdown-item>
+          <el-dropdown-item divided>
+            <span @click="routerToMyPro" style="display:block;">我的项目</span>
           </el-dropdown-item>
           <el-dropdown-item divided>
             <span v-if="role === 'ROLE_ADMIN'" style="display:block;">
@@ -45,12 +80,9 @@
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
-      <!--普通用户修改密码-->
+      &lt;!&ndash;普通用户修改密码&ndash;&gt;
       <el-dialog title="修改密码" :visible.sync="modifyPasswordVisible" width="40%">
         <el-form :model="form" ref="modifyPassForm" :rules="modifyRules" style="width: 80%; margin:0 auto;">
-          <!--<el-form-item label="原密码" :label-width="formLabelWidth">
-            <el-input type="password" v-model="form.passwordOld" auto-complete="off"></el-input>
-          </el-form-item>-->
           <el-form-item label="新密码" :label-width="formLabelWidth" prop="passwordNew">
             <el-input :type="passwordType" v-model="form.passwordNew" auto-complete="off"></el-input>
             <span class="show-pwd" @click="showPwd">
@@ -69,7 +101,7 @@
           <el-button :disabled="this.btnConfirm" type="primary" @click="modifyPassword">确 定</el-button>
         </div>
       </el-dialog>
-    </div>
+    </div>-->
   </el-menu>
 </template>
 
@@ -85,6 +117,7 @@
   import ThemePicker from '@/components/ThemePicker'
   import { projectList, createProject } from '@/api/project'
   import { updateUser } from '@/api/getUsers'
+  import myheader from '../../mainpage/components/myheader'
   /* eslint-disable */
   export default {
     components: {
@@ -94,7 +127,8 @@
       ErrorLog,
       Screenfull,
       LangSelect,
-      ThemePicker
+      ThemePicker,
+      myheader
     },
     data() {
       const validatePassword = (rule, value, callback) => {
@@ -172,7 +206,6 @@
       this.userData.username = this.getCookie('username')
       this.userData.password = this.getCookie('password')
       this.userId = this.getCookie('userId')
-      // this.selectedProName = decodeURI(this.getCookie('projectName'))
       this.taskSelectedName = decodeURI(this.getCookie('taskSelectedName'))
     },
     computed: {
@@ -220,6 +253,9 @@
         this.$router.replace('/projectManage')
         this.$store.dispatch('delAllViews')
       },
+      routerToMyPro() {
+        this.$router.push({ path: '/myProject' })
+      },
       handleModifyPassword() {
         this.resetModify()
         this.modifyPasswordVisible = true
@@ -262,7 +298,27 @@
             })
           }
         })
-      }
+      },
+      jumpToAudit() {
+        this.$router.push({
+          path: '/audit_task'
+        })
+      },
+      jumpToAuditSubLibFile() {
+        this.$router.push({
+          path: '/auditSubLibFiles'
+        })
+      },
+      jumpToKonwledge() {
+        this.$router.push({
+          path: '/library'
+        })
+      },
+      jumpToPro() {
+        this.$router.push({
+          path: '/projectManage'
+        })
+      },
     }
   }
 </script>
@@ -347,6 +403,54 @@
             font-size: 12px;
           }
         }
+      }
+    }
+  }
+  .proTitle {
+    position: absolute;
+    width: 160px;
+    top: 0;
+    left: 50%;
+    margin-left: -70px;
+    background: linear-gradient(to right, #5786e8, #2961d2);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  .my-menu-icon {
+    color: #fff;
+    font-size: 26px;
+    /*position: absolute;
+    top: -1px;
+    right: 4px;*/
+    cursor: pointer;
+  }
+  .flex-menu-box {
+    display: flex;
+    width: 320px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    // justify-content: flex-start;
+    justify-content: space-around;
+    padding: 24px;
+    .flex-menu-item {
+      align-items: center;
+      display: block;
+      width: 60px;
+      // height: 60px;
+      font-size: 42px;
+      text-align: center;
+      line-height: 60px;
+      cursor: pointer;
+      color: #383838;
+      .icon-box {
+        display: block;
+        width: 100%;
+      }
+      .icon-text {
+        display: block;
+        height: 20px;
+        line-height: 20px;
+        font-size: 14px;
       }
     }
   }

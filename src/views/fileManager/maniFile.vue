@@ -197,16 +197,7 @@
         fileClearData: [],          //文件需要清空的内容数组
         fileAll: [],
         searchQuery: '',
-        CheckedComps: [],
-        listQuery: {
-          page: 0,
-          limit: 10,
-          importance: undefined,
-          title: undefined,
-          type: undefined,
-          sort: '+id',
-          deviceName: undefined
-        }
+        CheckedComps: []
       }
     },
     created() {

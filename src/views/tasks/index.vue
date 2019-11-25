@@ -1,6 +1,6 @@
 <template>
-  <div class="tasks-container">
-    <el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
+  <div class="tasks-container" v-loading="listLoading">
+    <!--<el-header style="background: linear-gradient(120deg, #00e4d0, #5983e8);line-height: 63px;height: 63px;">
       <div class="searchContainer" style="display: inline-block;margin-bottom:16px;">
         <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
         <el-input style="width: 160px;" class="filter-item" placeholder="任务名" v-model="searchQuery">
@@ -31,18 +31,22 @@
           </el-dropdown-menu>
         </el-dropdown>
       </div>
-    </el-header>
+    </el-header>-->
     <div style="padding: 10px 0 0 40px;">
-      <el-button type="success" @click="handleSelectTemplate" size="mini">选择模版</el-button>
-      <el-button type="primary" @click="handleBackToPro" size="mini">返回项目</el-button>
+      <span>
+        <el-button type="success" @click="handleSelectTemplate" size="mini" v-if="roles.includes('ROLE_PROJECT_MANAGER') || editable === true">选择模版</el-button>
+        <el-button type="success" @click="handleCheckTemplate" size="mini" v-else>查看流程</el-button>
+        <el-button type="primary" @click="handleStartPro" size="mini" v-if="startAble">启动项目</el-button>
+      </span>
+      <!--<el-button type="primary" @click="handleBackToPro" size="mini">项目管理</el-button>-->
     </div>
     <div class="board">
-      <Kanban :key="1" :list="list" :options="options" :taskType="undo" class="kanban todo" header-text="待处理" @onNewTask="refreshList"/>
-      <Kanban :key="2" :list="listWorking" :options="options" class="kanban working" header-text="进行中"/>
-      <Kanban :key="3" :list="listDone" :options="options" class="kanban done" header-text="已完成"/>
+      <Kanban :key="1" :list="listUndo" :options="options" :taskType="undo" class="kanban todo" header-text="待处理" @onNewTask="refreshList"/>
+      <Kanban :key="2" :list="listWorking" :options="options" class="kanban working" header-text="进行中" @onNewTask="refreshList"/>
+      <Kanban :key="3" :list="listDone" :options="options" class="kanban done" header-text="已完成" @onNewTask="refreshList"/>
     </div>
     <el-dialog :visible.sync="templateDialog" width="80%" class="visio-dialog">
-      <visio :proId="proId" @refreshList="getLinkList" :processNodes="processNodeList"></visio>
+      <visio :proId="proId" @refreshList="refreshVisio" @hideVisio="hideVisioDialog" :processNodes="processNodeList" :editable="editable" v-if="templateDialog && completeFlag"></visio>
     </el-dialog>
   </div>
 </template>
@@ -51,8 +55,10 @@
   /*eslint-disable*/
   import PanThumb from '@/components/PanThumb'
   import Kanban from '@/components/kanban'
-  import visio from '@/views/visio/index'
+  import visio from '@/views/visio/index-new'
   import { getLinks, getProcessNodes } from '@/api/pro-design-link'
+  import { getProjectById, startPro } from '@/api/project'
+
   export default {
     name: 'task_manage',
     components: {
@@ -64,14 +70,13 @@
       return {
         undo: 'undo',
         userId: '',
+        roles: '',
         proId: '',
         proName: '',
         userName: '',
         selectedId: '',
         tableKey: 0,
         list: [],
-        listWorking: [],
-        listDone: [],
         processNodeList: [],
         taskInfo: {
           name: '',
@@ -94,27 +99,63 @@
           finishTime: '',
           designLink: null
         },
-        templateDialog: false
+        listLoading: false,
+        templateDialog: false,
+        editable: false,
+        completeFlag: false,
+        proInfo: {},
+        startAble: false
       }
     },
     created() {
+      this.completeFlag = false
+      this.roles = this.$store.getters.roles
       this.proId = this.$route.query.id
       this.proName = this.$route.query.name
+      this.getProDetail()
       this.getLinkList()
       this.getProcessList()
     },
     methods: {
+      getProDetail() {
+        getProjectById(this.proId).then((res) => {
+          if(res.data.code === 0) {
+            this.proInfo = res.data.data
+            if(this.proInfo.state === 0 && this.proInfo.pic.id === this.getCookie('userId')) {
+              this.startAble = true
+            } else {
+              this.startAble = false
+            }
+            if(res.data.data.pic.id === this.getCookie('userId')) {
+              this.editable = true
+            }
+          }
+        })
+      },
       getLinkList() {
+        this.listLoading = true
         getLinks(this.proId).then((res) => {
           if(res.data.code === 0) {
             this.list = res.data.data
           }
+          this.listLoading = false
+        }).catch(() => {
+          this.listLoading = false
         })
       },
+      hideVisioDialog() {
+        this.templateDialog = false
+      },
+      refreshVisio() {
+        this.getLinkList()
+        this.getProcessList()
+      },
       getProcessList() {
+        this.completeFlag = false
         getProcessNodes(this.proId).then((res) => {
           if(res.data.code === 0) {
             this.processNodeList = res.data.data
+            this.completeFlag = true
           }
         })
       },
@@ -128,30 +169,59 @@
       },
       handleSelectTemplate() {
         this.templateDialog = true
+        this.editable = true
+      },
+      handleCheckTemplate() {
+        this.templateDialog = true
+        this.editable = false
       },
       handleBackToPro() {
         this.$router.push({ path: '/projectManage' })
+      },
+      handleStartPro() {
+        startPro(this.proId).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '项目启动成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.startAble = false
+            this.getProDetail()
+            this.getLinkList()
+            this.getProcessList()
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
       }
     },
     computed: {
-      /*list1: function() {
+      listUndo: function() {
         let self = this;
         return self.list.filter(function (item) {
           return item.state === 0;
         })
       },
-      list2: function() {
+      listWorking: function() {
         let self = this;
         return self.list.filter(function (item) {
-          return item.state === 1;
+          /*return (item.state > 0 && ;*/
+          return (item.state > 0 && item.ifApprove === false)
         })
       },
-      list3: function() {
+      listDone: function() {
         let self = this;
         return self.list.filter(function (item) {
-          return item.state === 2;
+          return item.ifApprove === true;
         })
-      }*/
+      }
     }
   }
 </script>

@@ -1,5 +1,15 @@
 <template>
   <div class="login-container">
+    <div class="page-login--layer page-login--layer-area">
+      <ul class="circles">
+        <li v-for="n in 10" :key="n"></li>
+      </ul>
+    </div>
+    <div
+      class="page-login--layer page-login--layer-time"
+      flex="main:center cross:center">
+      {{time}}
+    </div>
     <el-form class="login-form" autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left">
       <div class="title-container">
         <!--<div class="sys-title">co-simulation</div>-->
@@ -24,24 +34,26 @@
         </el-form-item>
 
         <el-button type="primary" style="width:100%;margin-bottom:20px;" :loading="loading" @click.native.prevent="handleLogin">{{$t('login.logIn')}}</el-button>
-        <div class="register-container">
+        <!--<div class="register-container">
           <span class="register-tips">没有账号？</span>
           <span class="register-btn" @click="jumpToRegister">注册</span>
-        </div>
+        </div>-->
       </div>
     </el-form>
   </div>
 </template>
 
 <script>
-import { isvalidUsername } from '@/utils/validate'
+// import { isvalidUsername } from '@/utils/validate'
 import { mapMutations } from 'vuex'
+import dayjs from 'dayjs'
 /* eslint-disable */
 export default {
   name: 'login',
   data() {
     const validateUsername = (rule, value, callback) => {
-      if (!isvalidUsername(value)) {
+      // if (!isvalidUsername(value)) {
+      if (value.length < 1) {
         callback(new Error('请输入正确的用户名！'))
       } else {
         callback()
@@ -55,6 +67,8 @@ export default {
       }
     }
     return {
+      timeInterval: null,
+      time: dayjs().format('HH:mm:ss'),
       loginForm: {
         username: '',
         password: '',
@@ -104,8 +118,9 @@ export default {
             this.loading = false
 
             // if(this.$store.getters.roles.includes('ROLE_ADMIN')) {
-            if(this.loginForm.username === 'admin') {
-              this.$router.push({ path: '/user_manage/index' })
+            if(this.loginForm.username === 'admin' || this.loginForm.username === 'securityGuard') {
+              // this.$router.push({ path: '/user_manage/index' })
+              this.$router.push({ path: '/department/index' })
             } else {
               this.$router.push({ path: '/projectManage' })
             }
@@ -125,6 +140,9 @@ export default {
         }
       })
     },
+    refreshTime () {
+      this.time = dayjs().format('HH:mm:ss')
+    },
     ...mapMutations({
       setToken: 'SET_TOKEN',
       setRoles: 'SET_ROLES',
@@ -138,6 +156,14 @@ export default {
     if(this.getCookie('username')) {
       this.loginForm.username = this.getCookie('username')
     }
+  },
+  mounted () {
+    this.timeInterval = setInterval(() => {
+      this.refreshTime()
+    }, 1000)
+  },
+  beforeDestroy () {
+    clearInterval(this.timeInterval)
   }
 }
 </script>
@@ -267,5 +293,117 @@ $light_gray:#eee;
     cursor: pointer;
     user-select: none;
   }
+}
+// 背景
+.circles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    li {
+      position: absolute;
+      display: block;
+      list-style: none;
+      width: 20px;
+      height: 20px;
+      background: #FFF;
+      animation: animate 25s linear infinite;
+      bottom: -200px;
+      @keyframes animate {
+        0%{
+          transform: translateY(0) rotate(0deg);
+          opacity: 1;
+          border-radius: 0;
+        }
+        100%{
+          transform: translateY(-1000px) rotate(720deg);
+          opacity: 0;
+          border-radius: 50%;
+        }
+      }
+      &:nth-child(1) {
+        left: 15%;
+        width: 80px;
+        height: 80px;
+        animation-delay: 0s;
+      }
+      &:nth-child(2) {
+        left: 5%;
+        width: 20px;
+        height: 20px;
+        animation-delay: 2s;
+        animation-duration: 12s;
+      }
+      &:nth-child(3) {
+        left: 70%;
+        width: 20px;
+        height: 20px;
+        animation-delay: 4s;
+      }
+      &:nth-child(4) {
+        left: 40%;
+        width: 60px;
+        height: 60px;
+        animation-delay: 0s;
+        animation-duration: 18s;
+      }
+      &:nth-child(5) {
+        left: 65%;
+        width: 20px;
+        height: 20px;
+        animation-delay: 0s;
+      }
+      &:nth-child(6) {
+        left: 75%;
+        width: 150px;
+        height: 150px;
+        animation-delay: 3s;
+      }
+      &:nth-child(7) {
+        left: 35%;
+        width: 200px;
+        height: 200px;
+        animation-delay: 7s;
+      }
+      &:nth-child(8) {
+        left: 50%;
+        width: 25px;
+        height: 25px;
+        animation-delay: 15s;
+        animation-duration: 45s;
+      }
+      &:nth-child(9) {
+        left: 20%;
+        width: 15px;
+        height: 15px;
+        animation-delay: 2s;
+        animation-duration: 35s;
+      }
+      &:nth-child(10) {
+        left: 85%;
+        width: 150px;
+        height: 150px;
+        animation-delay: 0s;
+        animation-duration: 11s;
+      }
+    }
+  }
+// 层
+.page-login--layer {
+  // @extend %full;
+  overflow: auto;
+}
+.page-login--layer-area {
+  overflow: hidden;
+}
+// 时间
+.page-login--layer-time {
+  text-align: center;
+  font-size: 3em;
+  font-weight: bold;
+  color: rgba(64, 64, 64, 0.05);
+  overflow: hidden;
 }
 </style>

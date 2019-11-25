@@ -75,9 +75,9 @@
     </el-header>-->
     <div class="searchContainer my-search-box">
       <span class="icon-search"><svg-icon icon-class="search"></svg-icon></span>
-      <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="项目名" v-model="searchQuery">
+      <el-input style="width: 160px;margin-right: 12px;" class="filter-item" placeholder="关键字" v-model="searchQuery">
       </el-input>
-      <el-dropdown trigger="click" placement="bottom-start">
+      <!--<el-dropdown trigger="click" placement="bottom-start">
           <span class="add-item">
             <svg-icon icon-class="add"></svg-icon>
           </span>
@@ -89,35 +89,41 @@
             <span @click="handleMangeDesignLinks"><svg-icon icon-class="tree-task" class="add-item-icon"></svg-icon>设计环节</span>
           </el-dropdown-item>
         </el-dropdown-menu>
-      </el-dropdown>
+      </el-dropdown>-->
     </div>
-    <div class="title-container">
+    <!--<div class="title-container">
       <h3 class="title" style="margin-bottom:30px">
       </h3>
-    </div>
-    <el-row :gutter="20">
+    </div>-->
+    <el-row :gutter="20" style="height: 100%;overflow-y: scroll;margin-right: -14px;">
       <!--结构树-->
       <el-col :span="6">
         <div style="width: 300px;margin: 60px auto;">
-          <el-tree v-if="!isHistory" class="filter-tree" :data="listTree" :props="defaultProps" :default-expand-all="false" :render-content="renderContent">ref="tree2">
+          <el-tree v-if="!isHistory" class="filter-tree" :data="listTree"
+                   :props="defaultProps"
+                   :default-expand-all="false"
+                   :render-content="renderContent"
+                   :filter-node-method="filterNode"
+                   @node-contextmenu = "rightClick"
+                   ref="tree2">
           </el-tree>
         </div>
       </el-col>
       <!--项目详情-->
-      <el-col :span="12">
-        <el-tabs tab-position="top" style="height: calc(100% - 200px);" @tab-click="handleTabClick">
-          <el-tab-pane label="所有项目">
+      <el-col :span="12" style="height: calc(100% - 60px);">
+        <el-tabs tab-position="top" style="height: 100%;margin-top: 20px" @tab-click="handleTabClick">
+          <el-tab-pane label="所有项目" style="height: calc(100% - 40px)">
             <span class="tab-name" slot="label" style="font-size: 16px;">所有项目<i class="el-icon-document" style="padding-left: 10px;"></i></span>
-            <div class="project-list">
+            <div class="project-list" v-loading="listLoading">
               <div v-if="listA.length === 0" class="no-project-container">
-            <span class="no-project-icon">
-              <svg-icon icon-class="工程"></svg-icon>
-            </span>
+                <span class="no-project-icon">
+                  <svg-icon icon-class="工程"></svg-icon>
+                </span>
                 <div class="no-project-desc">
                   暂无项目
                 </div>
               </div>
-              <div v-for="item in listA" v-if="!item.deleted" class="project-item">
+              <div v-for="item in listA" v-if="!item.deleted" class="project-item" @dblclick="handleSelect(item)" v-loading="item.loading">
                 <div class="project-star project-detail">
                   <span class="star-container" @click="toggleStar(item)">
                     <svg-icon v-if="item.hasStar" icon-class="star-light"></svg-icon>
@@ -125,11 +131,14 @@
                   </span>
                 </div>
                 <div class="project-info project-detail">
-                  <div class="info-detail info-name"><span @click="handleSelect(item)">{{item.name}}</span></div>
-                  <div class="info-detail info-secretClass">密级：{{computeSecretClass(item.secretClass)}}</div>
+                  <div class="info-detail info-name"><span>{{item.name}}</span></div>
+                  <div class="info-detail info-secretClass">
+                    密级：<span class="link-type" @click="handleUpSecret(item)">{{computeSecretClass(item.secretClass)}}</span>
+                    <span style="margin-left: 10px;">当前状态：<span :class="stateClassMap[item.state]">{{stateMap[item.state]}}</span></span>
+                  </div>
                   <!--<div class="info-detail info-description">{{item.description}}</div>-->
                 </div>
-                <div class="project-operation project-detail">
+                <div class="project-operation project-detail" v-if="userName !== 'securityGuard'">
                   <span class="icons icons-setting" @click="handleStartPro(item)">
                     <el-tooltip content="启动项目" placement="top">
                       <svg-icon icon-class="startup"></svg-icon>
@@ -164,7 +173,7 @@
                 <div class="project-operation project-detail"></div>
               </div>
             </div>
-            <el-pagination
+            <!--<el-pagination
               v-if="listA.length"
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -176,7 +185,7 @@
               background
               style="text-align: center;margin-top:20px;width: 100%;"
             >
-            </el-pagination>
+            </el-pagination>-->
           </el-tab-pane>
           <el-tab-pane label="回收站">
             <span slot="label" class="tab-name" style="font-size: 16px;">回收站<i class="el-icon-delete" style="padding-left: 10px;"></i></span>
@@ -214,7 +223,7 @@
                 </div>
               </div>
             </div>
-            <el-pagination
+            <!--<el-pagination
               v-if="listA.length"
               @size-change="handleSizeChange1"
               @current-change="handleCurrentChange1"
@@ -226,7 +235,7 @@
               background
               style="text-align: center;margin-top:20px;width: 100%;"
             >
-            </el-pagination>
+            </el-pagination>-->
           </el-tab-pane>
         </el-tabs>
       </el-col>
@@ -234,7 +243,7 @@
       <el-col :span="6"><div class="grid-content bg-purple"></div></el-col>
     </el-row>
     <!--创建或者修改项目-->
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%" class="limit-width-dialog">
+    <el-dialog :close-on-click-modal="false" :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" append-to-body width="40%" class="limit-width-dialog">
       <div class="img-container"></div>
       <div class="text-container">为不同的产品建立各自的项目</div>
       <el-form :rules="rules" ref="dataForm" :model="temp" style='width: 100%; margin:0 auto;' label-width="70px">
@@ -257,7 +266,7 @@
               :loading="getMaLoading"
               v-for="item in proManagerOptions"
               :key="item.id"
-              :label="item.username"
+              :label="item.realName"
               :value="item.id">
             </el-option>
           </el-select>
@@ -277,7 +286,6 @@
     </el-dialog>
     <!--普通用户修改密码-->
     <el-dialog title="修改密码" :visible.sync="modifyPasswordVisible" append-to-body width="40%" class="limit-width-dialog">
-
       <el-form :model="form" ref="modifyPassForm" :rules="modifyRules" style="width: 80%; margin:0 auto;">
         <el-form-item label="新密码" :label-width="formLabelWidth" prop="passwordNew">
           <el-input :type="passwordType" v-model="form.passwordNew" auto-complete="off"></el-input>
@@ -313,7 +321,7 @@
               <el-input v-model="temp.description" :disabled="!hasPermission" type="textarea"></el-input>
             </el-form-item>
             <el-form-item label="项目负责人" :label-width="formLabelWidth">
-              <span v-if="temp.pic">{{temp.pic.username}}</span>
+              <span v-if="temp.pic">{{temp.pic.realName}}</span>
               <el-dropdown placement="bottom-start" trigger="click" @click.native="getAbleUser" @command="setPersonInC" v-if="hasPermission">
                 <span class="switPic">
                   <el-tooltip content="修改负责人" placement="top">
@@ -324,7 +332,7 @@
                   <el-dropdown-item v-for="(item, index) in proManagerOptions"
                                     :key="index"
                                     :loading="getMaLoading"
-                                    :command="item">{{item.username}}</el-dropdown-item>
+                                    :command="item">{{item.realName}}</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-form-item>
@@ -334,7 +342,7 @@
         <!--<el-tab-pane label="任务管理">
           <span class="tab-name" slot="label"><i class="el-icon-setting" style="padding-right: 10px;"></i>配置管理</span>
           <div>
-            &lt;!&ndash;<el-select v-model="temp.proDesignLinkEntitySet" multiple placeholder="请选择" @focus="getDesignLinks" style="width: 100%;" @change="setProDesignLink">
+            &lt;!&ndash;<el-select v-model="temp.prodesignLinkSet" multiple placeholder="请选择" @focus="getDesignLinks" style="width: 100%;" @change="setProDesignLink">
               <el-option
                 v-for="item in designLinks"
                 :key="item.id"
@@ -342,11 +350,11 @@
                 :value="item.id">
               </el-option>
             </el-select>&ndash;&gt;
-            <div v-for="item in temp.proDesignLinkEntitySet"></div>
+            <div v-for="item in temp.prodesignLinkSet"></div>
           </div>
         </el-tab-pane>-->
-        <el-tab-pane label="日程设置">
-          <span class="tab-name" slot="label"><i class="el-icon-date" style="padding-right: 10px;"></i>日程设置</span>
+        <el-tab-pane label="项目设置">
+          <span class="tab-name" slot="label"><i class="el-icon-date" style="padding-right: 10px;"></i>项目设置</span>
           <div>
             <!--<div>
               <span>项目令号与节点</span>
@@ -371,6 +379,7 @@
                     type="date"
                     placeholder="选择日期"
                     format="yyyy 年 MM 月 dd 日"
+                    :picker-options="pickerOptions"
                     value-format="timestamp">
                   </el-date-picker>
                 </div>
@@ -380,6 +389,7 @@
                     type="date"
                     placeholder="选择日期"
                     format="yyyy 年 MM 月 dd 日"
+                    :picker-options="pickerOptions"
                     value-format="timestamp">
                   </el-date-picker>
                   <!--<el-button type="primary" size="mini" @click="updateFinishTimeAndOrder">修改</el-button>-->
@@ -398,10 +408,31 @@
     <el-dialog title="设计环节管理" :visible.sync="designLinkVisible" append-to-body width="40%" class="limit-width-dialog">
       <designLink v-if="designLinkVisible"></designLink>
     </el-dialog>
+    <!--修改项目密级-->
+    <el-dialog title="修改密级" :visible.sync="updateSecretVisible" append-to-body width="40%" class="limit-width-dialog">
+      <el-form :model="temp" ref="modifyPassForm" :rules="rules" style="width: 80%; margin:0 auto;">
+        <el-form-item label="密级" prop="secretClass" >
+          <el-select v-model="temp.secretClass" placeholder="请选择项目密级" @change="clearPicOption">
+            <el-option
+              v-for="item in secretClassOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="updateSecretVisible = false">取 消</el-button>
+        <el-button type="primary" @click="modifySec" :loading="modSecLoading">确 定
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+  /*eslint-disable*/
   import PanThumb from '@/components/PanThumb'
   import { isvalidPwd } from '@/utils/validate'
   import {
@@ -418,13 +449,15 @@
     starPro,
     arrangePro,
     startPro,
-    getProjectAuth
+    getProjectAuth,
+    getProjectBySecretClass,
+    updateProSec
   } from '@/api/project'
-  import { updatePassword, allUser } from '@/api/getUsers'
+  import { updatePassword, allUser, getUserById } from '@/api/getUsers'
   import { getLinks } from '@/api/designLinks'
   import store from '../../store'
   import designLink from '@/views/designLinks/index'
-  /*eslint-disable*/
+  import { getProjectsTree, ifProHasProcessNode } from '@/api/pro-design-link'
   export default {
     components: {PanThumb,designLink},
     name: 'login',
@@ -461,12 +494,18 @@
         }
       }
       return {
+        pickerOptions: {
+          disabledDate(time) {
+            return time.getTime() < Date.now() - 8.64e7;
+          },
+        },
         userId: '',
         userName: '',
         selectedId: '',
         hasPermission: false,
         tableKey: 0,
         list: [],
+        proTreeList: [],
         proManagerOptions: [],
         listQuery: {
           page: 0,
@@ -492,6 +531,7 @@
         proSettingVisible: false,
         designLinkVisible: false,
         modPasLoading: false,
+        updateSecretVisible: false,
         passwordType: 'password',
         passwordTypeAgain: 'password',
         btnConfirm: false,
@@ -502,8 +542,8 @@
           {
             label: '公开',
             value: 0
-          },
-          {
+          }
+          /*{
             label: '内部',
             value: 1
           },
@@ -515,7 +555,7 @@
             label: '机密',
             value: 3
           },
-          /*{
+          {
             label: '绝密',
             value: 4
           }*/
@@ -524,7 +564,9 @@
           id: '',
           name: '',
           description: '',
-          secretClass: 0
+          secretClass: 0,
+          finishTime: null,
+          orderNum: null
         },
         saveTemp: {
 
@@ -555,6 +597,7 @@
         getMaLoading: false,
         delLoading: false,
         showDialog: false,
+        modSecLoading: false,
         userData: {
           username: '',
           password: ''
@@ -570,18 +613,100 @@
         },
         finishTime: '',
         orderNum: '',
-        designLinks: []
+        designLinks: [],
+        userSecretClass: 0,
+        currentNode: {},
+        menuVisible: false,
+        stateMap: {
+          0: '未开始',
+          1: '进行中',
+          2: '已完成',
+          3: '已超时',
+        },
+        stateClassMap: {
+          0: 'notStart',
+          1: 'started',
+          2: 'finished',
+          3: 'overTime',
+        }
       }
     },
     created() {
       this.role = store.getters.roles[0]
       this.userId = this.getCookie('userId')
       this.userName = this.getCookie('username')
+      this.getUserSecretClass()
       this.getList()
+      this.getTrees()
     },
     mounted() {
     },
     methods: {
+      getUserSecretClass() {
+        getUserById(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            this.userSecretClass = res.data.data.secretClass
+            let options = [{
+              label: '公开',
+              value: 0
+            },
+              {
+                label: '内部',
+                value: 1
+              },
+              {
+                label: '秘密',
+                value: 2
+              },
+              {
+                label: '机密',
+                value: 3
+              }]
+            this.secretClassOptions = options.filter(item => item.value <= this.userSecretClass)
+          }
+        })
+      },
+      // 查询树数据
+      getTrees() {
+        getUserById(this.userId).then((res) => {
+          if(res.data.code === 0) {
+            let secretClass = res.data.data.secretClass
+            getProjectsTree(secretClass).then((res) => {
+              this.proTreeList = res.data.data
+              this.proTreeList.forEach((item) => {
+                item.name = item.project.name
+                item.icon = 'tree-pro'
+                /*item.children = [{
+                  name: '仿真任务1',
+                  icon: 'tree-task'
+                }, {
+                  name: '仿真任务2',
+                  icon: 'tree-task'
+                }]*/
+                item.subtask.forEach((child) => {
+                  child.icon = 'tree-task'
+                })
+                item.children = item.subtask
+              })
+            })
+          }
+        })
+      },
+      // 树节点搜索
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.name.indexOf(value) !== -1;
+      },
+      // 树节点右键
+      rightClick(event, data, node, self) {
+        // this.currentNode.data = node.data
+        // console.log(node)
+        if(node.data.subtask) {
+          this.handleSelect(node.data.project)
+        } else {
+          return
+        }
+      },
       handleTabClick(tab, event) {
         if (tab.label === '回收站') {
           this.showHistory()
@@ -610,10 +735,12 @@
       },
       getList() {
         this.listLoading = true
-        projectList(this.listQuery).then(response => {
+        //projectList(this.listQuery).then(response => {
+        let ifDelete = false
+        getProjectBySecretClass(this.userId, ifDelete).then((response) => {
           if(response.data.code === 0) {
             this.list = response.data.data
-            this.list.forEach((item) => {
+            /*this.list.forEach((item) => {
               item.icon = 'tree-pro'
               item.children = [{
                 name: '仿真任务1',
@@ -622,10 +749,14 @@
                 name: '仿真任务2',
                 icon: 'tree-task'
               }]
-            })
+            })*/
             this.listLoading = false
             this.total = response.data.data.totalElements
+          } else {
+            this.listLoading = false
           }
+        }).catch(() => {
+          this.listLoading = false
         })
         /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
@@ -734,6 +865,7 @@
                   duration: 2000
                 })
                 this.getList()
+                this.getTrees()
               } else {
                 this.creProLoading = false
                 this.errorMessage = '操作失败！'
@@ -769,13 +901,52 @@
           this.$refs['dataForm'].clearValidate()
         })*/
       },
+      handleUpSecret(row) {
+        if (this.userName === 'securityGuard'){
+          return
+        }
+        this.selectedId = row.id;
+        this.temp = Object.assign({}, row)
+        this.updateSecretVisible = true
+      },
+      modifySec() {
+        let qs = require('qs')
+        this.modSecLoading = true
+        let data = {
+          secretClass: this.temp.secretClass
+        }
+        let postData = qs.stringify(data)
+        updateProSec(this.selectedId, postData).then((res) => {
+          if(res.data.code === 0) {
+            this.$notify({
+              title: '成功',
+              message: '更新成功',
+              type: 'success',
+              duration: 2000
+            })
+            this.getList()
+          } else {
+            this.$notify({
+              title: '失败',
+              message: res.data.msg,
+              type: 'success',
+              duration: 2000
+            })
+          }
+          this.modSecLoading = false
+          this.updateSecretVisible = false
+        }).catch(() => {
+          this.modSecLoading = false
+          this.updateSecretVisible = false
+        })
+      },
       updateData() {
         /*this.$refs['dataForm'].validate((valid) => {
             if (valid) {
 
             }
         })*/
-        let qs = require('qs');
+        let qs = require('qs')
         this.creProLoading = true
         let data = {
           'name': this.temp.name,
@@ -835,38 +1006,69 @@
           type: 'warning'
         }).then(() => {
           let qs = require('qs')
-          let data = {
-            'userId': this.userId
-          };
-          let dataPost = qs.stringify(data)
-          deleteProject(id, dataPost).then((res) => {
+          let proData = {
+            projectId: row.id
+          }
+          let proDataPost = qs.stringify(proData)
+          ifProHasProcessNode(proDataPost).then((res) => {
             if(res.data.code === 0) {
-              row.delLoading = false
-              this.$notify({
-                title: '成功',
-                message: '删除成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
-            } else {
-              row.delLoading = false
-              this.$notify({
-                title: '失败',
-                message: res.data.msg,
-                type: 'error',
-                duration: 2000
-              })
+              console.log(res.data.data)
+              if(res.data.data === true) {
+                this.$confirm('当前项目有正在进行的流程，确定删除吗？', '提示', {
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                }).then(() => {
+                  let data = {
+                    'userId': this.userId
+                  };
+                  let dataPost = qs.stringify(data)
+                  deleteProject(id, dataPost).then((res) => {
+                    if(res.data.code === 0) {
+                      row.delLoading = false
+                      this.$notify({
+                        title: '成功',
+                        message: '删除成功',
+                        type: 'success',
+                        duration: 2000
+                      })
+                      this.getList()
+                      this.getTrees()
+                    } else {
+                      row.delLoading = false
+                      this.$notify({
+                        title: '失败',
+                        message: res.data.msg,
+                        type: 'error',
+                        duration: 2000
+                      })
+                    }
+                  }).catch(() => {
+                    // this.delLoading = false
+                    row.delLoading = false
+                    this.$notify({
+                      title: '失败',
+                      message: '删除失败',
+                      type: 'error',
+                      duration: 2000
+                    })
+                  })
+                }).catch(() => {
+                  row.delLoading = false
+                  this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                  })
+                })
+              }else {
+                this.$notify({
+                  title: '失败',
+                  message: '无权删除',
+                  type: 'error',
+                  duration: 2000
+                })
+              }
             }
-          }).catch(() => {
-            // this.delLoading = false
-            row.delLoading = false
-            this.$notify({
-              title: '失败',
-              message: '删除失败',
-              type: 'error',
-              duration: 2000
-            })
           })
         }).catch(() => {
           row.delLoading = false
@@ -881,33 +1083,42 @@
         if(item.creator.id === this.userId || item.pic.id === this.userId) {
           this.hasPermission = true
         }
-        this.proSettingVisible = true
         this.temp = Object.assign({}, item)
         this.saveTemp = {
           name: this.temp.name,
           description: this.temp.description
         }
-
+        this.proSettingVisible = true
       },
       // 启动项目
       handleStartPro(row) {
-        startPro(row.id).then((res) => {
-          if(res.data.code === 0) {
-            this.$notify({
-              title: '成功',
-              message: '项目启动成功',
-              type: 'success',
-              duration: 2000
-            })
-          } else {
-            this.$notify({
-              title: '失败',
-              message: res.data.msg,
-              type: 'error',
-              duration: 2000
-            })
-          }
-        })
+        if(row.state === 0) {
+          startPro(row.id).then((res) => {
+            if(res.data.code === 0) {
+              this.$notify({
+                title: '成功',
+                message: '项目启动成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+            } else {
+              this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        } else {
+          this.$notify({
+            title: '失败',
+            message: '项目已启动，请勿重复操作！',
+            type: 'error',
+            duration: 2000
+          })
+        }
       },
       // 切换项目负责人
       setPersonInC(pic) {
@@ -931,8 +1142,6 @@
                 duration: 2000
               })
               this.temp.pic.username = pic.username
-              console.log(this.temp)
-              console.log(this.saveTemp)
               this.getList()
             } else {
               this.$notify({
@@ -999,19 +1208,20 @@
         })
       },
       handleSelect(row) {
+        if(row.finishTime === null || row.orderNum === null) {
+          this.$notify({
+            title: '失败',
+            message: '对不起，该项目还未设置令号和节点时间，请先在项目设置中进行设置！',
+            type: 'error',
+            duration: '2000'
+          })
+          return
+        }
         this.$store.commit('SET_PROJECTID', row.id)
         // let proName = URLEncoder.encode(row.name, 'utf-8')
         this.$store.commit('SET_PROJECTNAME', row.name)
-        // this.$router.push({path: '/dashboard/dashboard'})
-        this.$router.push({
-          path: '/task_manage',
-          name: 'task_manage',
-          query: {
-            name: row.name,
-            id: row.id
-          }
-        })
         // 验证用户密级是否足够
+        row.loading = true
         getProjectAuth(row.id, this.userId).then((res) => {
           if(res.data.code === 0) {
             if(res.data.data === true) {
@@ -1028,7 +1238,7 @@
                 title: '失败',
                 message: '对不起，您没有无权限查看此项目！',
                 type: 'error',
-                duration: '2000'
+                duration: '6000'
               })
             }
           } else {
@@ -1039,6 +1249,7 @@
               duration: '2000'
             })
           }
+          row.loading = false
         }).catch(() => {
           this.$notify({
             title: '失败',
@@ -1046,6 +1257,7 @@
             type: 'error',
             duration: '2000'
           })
+          row.loading = false
         })
       },
       handleSizeChange(val) {
@@ -1071,7 +1283,25 @@
       showHistory: function () {
         this.listLoading = true
         this.hisBtnLoading = true
-        if (this.role == 'ROLE_PROJECT_MANAGER') {
+        let ifDelete = true
+        getProjectBySecretClass(this.userId, ifDelete).then((response) => {
+          if(response.data.code === 0) {
+            this.isHistory = true
+            this.list = response.data.data
+          }
+          this.listLoading = false
+          this.hisBtnLoading = false
+        }).catch(() => {
+          this.listLoading = false
+          this.hisBtnLoading = false
+          this.$notify({
+            title: '失败',
+            message: '操作失败！',
+            type: 'error',
+            duration: '2000'
+          })
+        })
+        /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectListHis(this.listQuery).then(response => {
             if(response.data.code === 0) {
               this.isHistory = true
@@ -1107,12 +1337,41 @@
               duration: '2000'
             })
           })
-        }
+        }*/
       },
       showNow: function () {
         this.listLoading = true
         this.hisBtnLoading = true
-        if (this.role == 'ROLE_PROJECT_MANAGER') {
+        let ifDelete = false
+        getProjectBySecretClass(this.userId, ifDelete).then((response) => {
+          if(response.data.code === 0) {
+            this.list = response.data.data
+            this.list.forEach((item) => {
+              item.icon = 'tree-pro'
+              item.children = [{
+                name: '仿真任务1',
+                icon: 'tree-task'
+              }, {
+                name: '仿真任务2',
+                icon: 'tree-task'
+              }]
+            })
+          }
+          this.listLoading = false
+          this.hisBtnLoading = false
+          this.isHistory = false
+        }).catch(() => {
+          this.listLoading = false
+          this.hisBtnLoading = false
+          this.$notify({
+            title: '失败',
+            message: '操作失败！',
+            type: 'error',
+            duration: '2000'
+          })
+        })
+        this.getTrees()
+        /*if (this.role == 'ROLE_PROJECT_MANAGER') {
           projectList(this.listQuery).then(response => {
             if(response.data.code === 0) {
               this.list = response.data.data
@@ -1167,7 +1426,7 @@
               duration: '2000'
             })
           })
-        }
+        }*/
       },
       handleDelHisPro(row) {
         this.$confirm('确认彻底删除此工程吗？', '提示', {
@@ -1267,7 +1526,6 @@
             </span>
           )
         }
-
       },
       handleMangeDesignLinks() {
         this.designLinkVisible = true
@@ -1275,7 +1533,7 @@
       setFinishTimeAndOrder() {
         let qs = require('qs')
         let data = {
-          finishTime: this.finishTime.toString(),
+          finishTime: (parseInt(this.finishTime) + 24*3600000 - 1000).toString(),
           orderNum: this.orderNum,
           userId: this.userId
         }
@@ -1290,6 +1548,8 @@
             })
             this.temp.finishTime = this.finishTime
             this.temp.orderNum = this.orderNum
+            this.proSettingVisible = false
+            this.getList()
           } else {
             this.$notify({
               title: '失败',
@@ -1343,7 +1603,7 @@
         }
         let qs = require('qs');
         let data = {
-          finishTime: this.temp.finishTime.toString(),
+          finishTime: (parseInt(this.temp.finishTime) + 24*3600000 -1000).toString(),
           orderNum: this.temp.orderNum,
           userId: this.userId
         }
@@ -1357,6 +1617,8 @@
               type: 'success',
               duration: 2000
             })
+            this.proSettingVisible = false
+            this.getList()
           } else {
             this.$notify({
               title: '失败',
@@ -1395,8 +1657,8 @@
       },
       listTree: function() {
         let self = this
-        return self.list.filter(function (item) {
-          return item.deleted === false
+        return self.proTreeList.filter(function (item) {
+          return item.project.deleted === false
         })
       },
       computeSecretClass() {
@@ -1413,6 +1675,11 @@
             return '绝密'
           }
         }
+      }
+    },
+    watch: {
+      searchQuery(val) {
+        this.$refs.tree2.filter(val);
       }
     },
     mounted() {
@@ -1529,6 +1796,8 @@
 
     .project-list {
       width: 60%;
+      height: 80%;
+      overflow-y: scroll;
       min-width: 600px;
       max-width: 800px;
       margin: 20px auto;
@@ -1548,7 +1817,18 @@
           float: left;
           height: 100%;
         }
-
+        .notStart {
+          color: #909399;
+        }
+        .started {
+          color: #E6A23C;
+        }
+        .finished {
+          color: #67C23A;
+        }
+        .overTime {
+          color: #F56C6C;
+        }
         .project-star {
           width: 40px;
           text-align: center;
@@ -1680,7 +1960,6 @@
 
     .title-container {
       position: relative;
-
       .title {
         font-size: 26px;
         font-weight: 400;

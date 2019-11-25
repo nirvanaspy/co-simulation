@@ -134,3 +134,43 @@ export function getProjectAuth(ProId, uId) {
     }
   })
 }
+
+// 查询项目详情
+export function getProjectById(ProId) {
+  return request({
+    url: 'projects/' + ProId,
+    method: 'get'
+  })
+}
+
+// 搜索项目
+export function searchProject(data) {
+  return request({
+    url: '/projects/multiInquire',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    data
+  })
+}
+
+// 根据用户密级查询项目
+export function getProjectBySecretClass(id, ifDeleted) {
+  return request({
+    url: '/projects/byUserSecretClass/' + id,
+    method: 'get',
+    params: {
+      deleted: ifDeleted
+    }
+  })
+}
+
+// 更新项目密级
+export function updateProSec(id, data) {
+  return request({
+    url: '/projects/' + id + '/secretClass',
+    method: 'patch',
+    data
+  })
+}

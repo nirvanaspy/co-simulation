@@ -13,11 +13,13 @@ const getters = {
   setting: state => state.user.setting,
   permission_routers: state => state.permission.routers,
   addRouters: state => state.permission.addRouters,
+  // libRouters: state => state.permission.libRouters,
   errorLogs: state => state.errorLog.logs,
   ipconfig: state => state.user.ipconfig,
   port: state => state.user.port,
   loginname: state => state.user.loginname,
   projectNum: state => state.app.projectNum,
-  projectId: state => state.app.projectId
+  projectId: state => state.app.projectId,
+  ifSearch: state => state.app.ifSearch
 }
 export default getters

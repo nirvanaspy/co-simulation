@@ -37,6 +37,19 @@ export const constantRouterMap = [
   { path: '/401', component: _import('errorPage/401'), hidden: true },
   {
     path: '',
+    component: MainPage,
+    redirect: 'projectManage',
+    hidden: true,
+    meta: { allowBack: false },
+    children: [{
+      path: 'projectManage',
+      component: _import('projectManage/index'),
+      name: 'projectManage',
+      meta: { title: 'projectManage', noCache: true }
+    }]
+  }
+  /* {
+    path: '',
     component: Layout,
     redirect: 'dashboard',
     children: [
@@ -47,7 +60,7 @@ export const constantRouterMap = [
         meta: { title: 'dashboard', icon: 'dashboard', noCache: true, affix: true }
       }
     ]
-  }
+  }*/
 ]
 
 export default new Router({
@@ -60,38 +73,104 @@ export const asyncRouterMap = [
 
   { path: '*', redirect: '/404', hidden: true },
   {
+    path: '/mySublibrary/module',
+    component: Layout,
+    children: [{ path: '', component: _import('subLibrary/mySubLibrary'), name: 'moduleLib', meta: { title: '模型库', icon: '模型库' }}]
+  },
+  {
+    path: '/mySublibrary/config',
+    component: Layout,
+    children: [{ path: '', component: _import('subLibrary/mySubLibrary'), name: 'configLib', meta: { title: '参数库', icon: '参数库' }}]
+  },
+  {
+    path: '/mySublibrary/sim',
+    component: Layout,
+    children: [{ path: '', component: _import('subLibrary/mySubLibrary'), name: 'simLib', meta: { title: '仿真库', icon: '仿真库' }}]
+  },
+  {
+    path: '/mySublibrary/knowledge',
+    component: Layout,
+    children: [{ path: '', component: _import('subLibrary/mySubLibrary'), name: 'knowledgeLib', meta: { title: '知识库', icon: '知识库' }}]
+  },
+  {
     path: '/projectManage',
     component: MainPage,
     children: [{ path: '', component: _import('projectManage/index'), name: 'project_manage', meta: { title: '项目管理', icon: 'user' }}],
     hidden: true
   },
   {
-    path: '/knowledgeBase',
+    path: '/myProject',
     component: MainPage,
-    children: [{ path: '', component: _import('knowledgeBase/index'), name: 'knowledge', meta: { title: '知识库管理', icon: 'user' }}],
+    children: [{ path: '', component: _import('projectManage/myProject'), name: 'my_project_manage', meta: { title: '项目管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
+    path: '/library',
+    component: MainPage,
+    children: [{ path: '', component: _import('library/index'), name: 'knowledge', meta: { title: '库管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
+    path: '/sublibrary',
+    component: MainPage,
+    children: [{ path: 'sublibrary/:id', component: _import('subLibrary/index'), name: 'subLibrary', meta: { title: '子库管理', icon: 'user' }}],
+    hidden: true
+  },
+  {
+    path: '/sublibFiles',
+    component: MainPage,
+    children: [{ path: 'sublibFiles/:id', component: _import('subLibFiles/index'), name: 'subLibFiles', meta: { title: '子库文件管理', icon: 'user' }}],
     hidden: true
   },
   {
     path: '/audit_task',
     component: MainPage,
-    children: [{ path: '', component: _import('auditTask/index'),name: 'auditTask', meta: { title: '我的审核', icon: 'audit' },}],
+    children: [{ path: '', component: _import('auditTask/index'), name: 'auditTask', meta: { title: '我的审核', icon: 'audit' }}],
+    hidden: true
+  },
+  {
+    path: '/auditSubLibFiles',
+    component: MainPage,
+    children: [{ path: '', component: _import('subLibFileAudit/index'), name: 'subLibFileAudit', meta: { title: '我的审核', icon: 'audit' }}],
     hidden: true
   },
   { path: '/user_manage',
     component: Layout,
-    children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'user' }}],
+    children: [{ path: 'index', component: _import('user_manage/index'), name: 'user_manage', meta: { title: '用户管理', icon: 'user-icon' }}],
+    meta: {
+      roles: ['ROLE_ADMIN']
+    }
+  },
+  { path: '/user_manage_guard',
+    component: Layout,
+    children: [{ path: 'index', component: _import('user_manage/security'), name: 'user_manage', meta: { title: '用户管理', icon: 'user-icon' }}],
+    meta: {
+      roles: ['ROLE_SECURITY_GUARD']
+    }
+  },
+  {
+    path: '/department',
+    component: Layout,
+    children: [{
+      path: 'index',
+      name: 'department',
+      component: _import('department/index'),
+      meta: {
+        title: '部门管理',
+        icon: 'department'
+      }
+    }],
     meta: {
       roles: ['ROLE_ADMIN', 'ROLE_SECURITY_GUARD']
     }
   },
   { path: '/task_manage',
-    component: _import('tasks/index'),
-    name: 'task_manage',
-    meta: { title: '任务管理', icon: 'components1' },
+    component: MainPage,
+    children: [{ path: '', component: _import('tasks/index'), name: 'task_manage', meta: { title: '任务管理', icon: 'components1' }}],
     hidden: true
   },
   { path: '/visio',
-    component: _import('visio/index-back'),
+    component: _import('visio/index-new'),
     name: 'visio',
     meta: { title: 'template', icon: 'components1' },
     hidden: true
@@ -99,11 +178,42 @@ export const asyncRouterMap = [
   {
     path: '/taskFiles',
     component: Layout,
-    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '任务文件', icon: 'documentation' }}]
+    children: [{ path: 'taskFiles/:id', component: _import('taskFiles/index'), name: 'taskFiles', meta: { title: '当前任务', icon: 'documentation-icon' }}]
+  },
+  {
+    path: '/device',
+    component: Layout,
+    hidden: true,
+    children: [{ path: 'device/:id', component: _import('device/index'), name: 'device', meta: { title: 'device', icon: 'computer-icon' }}]
   },
   {
     path: '/audit_tasks',
     component: Layout,
-    children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: '我的审核', icon: 'audit' }}]
+    children: [{ path: 'index', component: _import('auditTask/index'), name: 'auditTasks', meta: { title: ' 任务审核', icon: 'audit2' }}]
+  },
+  {
+    path: '/audit_subLibFile',
+    component: Layout,
+    children: [{ path: 'index', component: _import('subLibFileAudit/index'), name: 'subLibFileAudits', meta: { title: ' 文件审核', icon: 'audit2' }}]
+  },
+  {
+    path: '/audit_apply',
+    component: Layout,
+    children: [{ path: 'index', component: _import('auditApply/index'), name: 'auditApply', meta: { title: '二次修改申请', icon: 'audit2' }}]
+    /* meta: {
+      roles: ['ROLE_ADMIN']
+    }*/
+  },
+  {
+    path: '/preview',
+    component: _import('auditTask/preview'),
+    // children: [{ path: 'index', component: _import('auditTask/preview'), name: 'preview', meta: { title: '申请', icon: 'audit' }}],
+    hidden: true
+  },
+  // 下载日志
+  {
+    path: '/downloadLogs',
+    component: Layout,
+    children: [{ path: 'index', component: _import('log/index'), name: 'downloadLog', meta: { title: '下载日志', icon: 'logs' }}]
   }
 ]

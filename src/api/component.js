@@ -276,13 +276,24 @@ export function getHisCompFiles(id, parent) {
   })
 }
 
-// 预览文件
-export function previewFiles(id, parent) {
+// 预览子任务文件
+export function previewFiles(id) {
   return request({
-    url: '/previewFile',
+    url: '/preview/previewFile',
     method: 'get',
     params: {
       subtaskFileId: id
+    }
+  })
+}
+
+// 预览子库文件
+export function previewSublibFiles(id) {
+  return request({
+    url: '/preview/previewSublibraryFile',
+    method: 'get',
+    params: {
+      sublibraryFileId: id
     }
   })
 }

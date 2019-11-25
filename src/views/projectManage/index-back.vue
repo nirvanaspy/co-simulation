@@ -353,7 +353,6 @@
       },
       handleUpdate(row) {
         this.selectedId = row.id;
-        console.log(this.selectedId);
         this.temp = Object.assign({}, row) // copy obj
         this.dialogStatus = 'update'
         this.dialogFormVisible = true
@@ -527,7 +526,6 @@
         this.hisBtnLoading = true
         if(this.role == 'admin') {
           projectListHis(this.listQuery).then(response => {
-            console.log(this.listQuery)
             this.isHistory = true
             this.list = response.data.data.content
             this.total = response.data.total
@@ -772,7 +770,7 @@
     user-select: none;
   }
   .project-container {
-    position: fixed;
+    /*position: fixed;*/
     height: 100%;
     width: 100%;
     background-color: $bg;
