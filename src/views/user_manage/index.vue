@@ -477,6 +477,13 @@
               type: 'success',
               duration: 2000
             })
+          } else {
+              this.$notify({
+                  title: '失败',
+                  message: '用户导入失败',
+                  type: 'error',
+                  duration: 2000
+              })
           }
         }).catch(error => {
           _this.loading = false
