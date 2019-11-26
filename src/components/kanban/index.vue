@@ -57,11 +57,11 @@
             <svg-icon icon-class="people"></svg-icon>
             执行者
           </label>
-          <el-select v-model="taskInfo.users" value-key="id" :loading="getMaLoading" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
+          <el-select v-model="taskInfo.users" filterable value-key="id" :loading="getMaLoading" @focus="getAbleUser" placeholder="请选择" style="width: 100%">
             <el-option
               v-for="item in taskPicOptions"
               :key="item.id"
-              :label="item.realName"
+              :label="`${item.realName} (${item.username}  ${item.department ? item.department.description : ''})`"
               :value="item">
             </el-option>
           </el-select>
