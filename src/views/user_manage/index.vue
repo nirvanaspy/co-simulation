@@ -41,7 +41,72 @@
                   </div>
                 </div>
               </div>
-              <div>
+              <div v-if="searchQuery.length > 0">
+                <div v-for="item in userListA" class="user-item" v-if="item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor'">
+                  <div class="editor-box">
+                    <span v-if="item.enabled" class="editor-item editor-disable" @click="handleDisableUser(item)">
+                    <el-tooltip content="禁用用户" placement="top">
+                      <svg-icon icon-class="disable"></svg-icon>
+                    </el-tooltip>
+                  </span>
+                    <span v-if="!item.enabled" class="editor-item editor-enable" @click="handleEnableUser(item)">
+                    <el-tooltip content="解除禁用" placement="top">
+                      <svg-icon icon-class="enable"></svg-icon>
+                    </el-tooltip>
+                  </span>
+                    <span class="editor-item editor-delete" @click="handleDeleteUser(item)">
+                    <el-tooltip content="删除用户" placement="top">
+                      <svg-icon icon-class="delete"></svg-icon>
+                    </el-tooltip>
+                  </span>
+                  </div>
+                  <div class="avatarCont">
+                  <span class="user-avatar">
+                    <svg-icon :icon-class="item.enabled === true ? 'user-1' : 'user-disable'"></svg-icon>
+                  </span>
+                  </div>
+                  <div class="userMesCont">
+                    <div class="userName">
+                      <span class="username-title">用户名:</span>
+                      <span class="username-text link-type" @click="handleEditUser(item)">{{item.username}}</span>
+                    </div>
+                    <div class="userName">
+                      <span class="username-title">姓名:</span>
+                      <span class="username-text link-type" @click="handleEditUser(item)">{{item.realName}}</span>
+                    </div>
+                    <div class="userSecret">
+                      <span class="username-title">部门:</span>
+                      <span class="secret-text link-type" @click="handleEditDepa(item)" v-if="item.department">{{item.department.name}}</span>
+                      <span class="secret-text link-type" @click="handleEditDepa(item)" v-else>选择部门</span>
+                    </div>
+                    <div class="userSecret">
+                      <span class="username-title">密级:</span>
+                      <span class="secret-text link-type" @click="handleEditSecretClass(item)">{{computedSecret(item.secretClass)}}</span>
+                    </div>
+                    <div class="userMes">
+                      <div class="user-role name" v-if="item.roleEntities">
+                        <span class="role-text">角色:</span>
+                        <el-select
+                          class="role-select"
+                          v-model="item.roleEntities"
+                          value-key="id"
+                          multiple
+                          style="margin-left: 52px;width:calc(100% - 200px);min-width: 300px;"
+                          @change="handleSelectRole(item, item.roleEntities)"
+                          placeholder="请选择">
+                          <el-option
+                            v-for="role in roleList"
+                            :key="role.id"
+                            :label="role.description"
+                            :value="role">
+                          </el-option>
+                        </el-select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="searchQuery.length == 0">
                 <div v-for="item in newUserList" class="user-item" v-if="item.username !== 'admin' && item.username !== 'securityGuard' && item.username !== 'securityAuditor'">
                   <div class="editor-box">
                     <!--<span class="editor-item editor-edit" @click="handleEnableSelect(item)">
@@ -127,17 +192,16 @@
                     </div>
                   </div>
                 </div>
-               <div>
-                 <el-pagination
-                   style="margin: 15px 0;text-align: center"
-                   background
-                   layout="total,prev, pager, next"
-                   @current-change="userListApaging"
-                   :current-page="currentPage"
-                   :total="userListA.length">
-                 </el-pagination>
-
-               </div>
+                <div>
+                  <el-pagination
+                    style="margin: 15px 0;text-align: center"
+                    background
+                    layout="total,prev, pager, next"
+                    @current-change="userListApaging"
+                    :current-page="currentPage"
+                    :total="userList.length">
+                  </el-pagination>
+                </div>
               </div>
             </div>
           </el-tab-pane>
@@ -503,7 +567,7 @@
             this.userList.forEach((item) => {
               item.originRoleEntities = item.roleEntities
             })
-            this.newUserList = this.userListA.slice((this.currentPage-1) * 10,this.currentPage * 10)
+            this.newUserList = this.userList.slice((this.currentPage-1) * 10,this.currentPage * 10)
           } else {
             this.$notify({
               title: '失败',
@@ -1037,7 +1101,7 @@
       },
       userListApaging(val){
         this.currentPage = val
-        this.newUserList = this.userListA.slice((val-1) * 10,val * 10)
+        this.newUserList = this.userList.slice((val-1) * 10,val * 10)
       },
     },
     beforeMount(){
@@ -1046,7 +1110,7 @@
       userListA: function () {
         let self = this;
         return self.userList.filter(function (item) {
-          return item.username.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
+          return item.realName.indexOf(self.searchQuery.toLowerCase()) !== -1;
         })
       },
       listenNowTabs() {
