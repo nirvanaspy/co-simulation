@@ -514,7 +514,160 @@
       </span>
     </el-dialog>
     <!--选择审核人-->
-    <el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="60%" class="limit-width-dialog audit-dialog">
+    <el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="80%" class="audit-dialog">
+      <div>
+        <el-radio-group v-model="signType" style="float: left;">
+          <el-radio :label="1">无会签</el-radio>
+          <el-radio :label="2">一人会签通过</el-radio>
+          <el-radio :label="3">多人会签通过</el-radio>
+        </el-radio-group>
+        <div style="position: absolute; top:54px; right: 30px;">
+          <el-input v-model="searchQuery" placeholder="请输入用户姓名" style="width: 200px;"></el-input>
+        </div>
+      </div>
+      <el-collapse v-model="activeNames" accordion class="audit-collapse">
+        <el-collapse-item title="选择校对人" name="1">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="userListA"
+              tooltip-effect="dark"
+              height="300"
+              style="width: 100%"
+              :row-key="getRowKey"
+              @selection-change="handleVerifySelectionChange">
+              <el-table-column
+                :reserve-selection="true"
+                type="selection"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+        <el-collapse-item title="选择审核人" name="2">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="userListA"
+              tooltip-effect="dark"
+              height="300"
+              :row-key="getRowKey"
+              style="width: 100%"
+              @selection-change="handleAuditSelectionChange">
+              <el-table-column
+                type="selection"
+                :reserve-selection="true"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+        <el-collapse-item title="选择会签人" name="3" v-if="signType === 2 || signType === 3">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="computeList"
+              tooltip-effect="dark"
+              height="300"
+              :row-key="getRowKey"
+              style="width: 100%"
+              @selection-change="handleSignSelectionChange">
+              <el-table-column
+                type="selection"
+                :reserve-selection="true"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+        <el-collapse-item title="选择批准人" name="4">
+          <div>
+            <el-table
+              v-loading="getMaLoading"
+              ref="multipleTable"
+              :data="userListA"
+              tooltip-effect="dark"
+              height="300"
+              :row-key="getRowKey"
+              style="width: 100%"
+              @selection-change="handleApproveSelectionChange">
+              <el-table-column
+                type="selection"
+                :reserve-selection="true"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+      <div style="text-align: right" slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="commitToAuditor" style="margin-top: 10px;" :loading="commitLoading">确定</el-button>
+      </div>
+    </el-dialog>
+    <<!--el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="60%" class="limit-width-dialog audit-dialog">
       <el-radio-group v-model="signType">
         <el-radio :label="1">无会签</el-radio>
         <el-radio :label="2">一人会签通过</el-radio>
@@ -609,7 +762,7 @@
       <div style="text-align: right" slot="footer" class="dialog-footer">
         <el-button type="primary" @click="commitToAuditor" style="margin-top: 10px;" :loading="commitLoading">确定</el-button>
       </div>
-    </el-dialog>
+    </el-dialog>-->
     <!--二次修改撤销选择版本-->
     <el-dialog
       class="selectVersion"
@@ -667,6 +820,7 @@
     },
     data() {
       return {
+        searchQuery: '',
         username: '',
         showUploadBtn: false,
         ip: '',
@@ -1639,6 +1793,12 @@
       }
     },
     computed: {
+      userListA: function () {
+        let self = this
+        return self.userList.filter(function (item) {
+            return item.realName.indexOf(self.searchQuery.toLowerCase()) !== -1;
+        })
+      },
       classifyIcon () {
         return function (row) {
           let iconType = ''
@@ -1696,7 +1856,7 @@
         if(this.signType === 3) {
           list = this.countersignList
         } else {
-          list = this.userList
+          list = this.userListA
         }
         return list
       },

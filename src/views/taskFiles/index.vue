@@ -41,7 +41,7 @@
         <el-button type="primary" @click="applyForEdit" style="margin-top: 10px;">确定</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="60%" class="limit-width-dialog audit-dialog">
+    <el-dialog title="选择审核人" :visible.sync="commitDialog" append-to-body width="80%" class="audit-dialog">
       <el-form label-position="left" label-width="80px">
         <el-form-item label="审批流程" v-if="commitType === 'editCommit'">
           <el-select v-model="ifBackToStart" placeholder="请选择提交的目标审批流程" style="width: 100%">
@@ -61,24 +61,40 @@
           </el-radio-group>
         </el-form-item>
       </el-form>
+      <div style="position: absolute; top:68px; right: 30px;">
+        <el-input v-model="searchQuery" placeholder="请输入用户姓名" style="width: 200px;"></el-input>
+      </div>
       <el-collapse v-model="activeNames" accordion class="audit-collapse" v-if="!(commitType === 'editCommit' && ifBackToStart === false)">
         <el-collapse-item title="选择校对人" name="1">
           <div>
             <el-table
               v-loading="getMaLoading"
               ref="multipleTable"
-              :data="userList"
+              :data="userListA"
               tooltip-effect="dark"
+              height="300"
               style="width: 100%"
+              :row-key="getRowKey"
               @selection-change="handleVerifySelectionChange">
               <el-table-column
+                :reserve-selection="true"
                 type="selection"
                 width="55">
               </el-table-column>
               <el-table-column
                 label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
                 min-width="120">
                 <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -88,18 +104,31 @@
             <el-table
               v-loading="getMaLoading"
               ref="multipleTable"
-              :data="userList"
+              :data="userListA"
               tooltip-effect="dark"
+              height="300"
+              :row-key="getRowKey"
               style="width: 100%"
               @selection-change="handleAuditSelectionChange">
               <el-table-column
                 type="selection"
+                :reserve-selection="true"
                 width="55">
               </el-table-column>
               <el-table-column
                 label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
                 min-width="120">
                 <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -111,16 +140,29 @@
               ref="multipleTable"
               :data="computeList"
               tooltip-effect="dark"
+              height="300"
+              :row-key="getRowKey"
               style="width: 100%"
               @selection-change="handleSignSelectionChange">
               <el-table-column
                 type="selection"
+                :reserve-selection="true"
                 width="55">
               </el-table-column>
               <el-table-column
                 label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
                 min-width="120">
                 <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -130,18 +172,31 @@
             <el-table
               v-loading="getMaLoading"
               ref="multipleTable"
-              :data="userList"
+              :data="userListA"
               tooltip-effect="dark"
+              height="300"
+              :row-key="getRowKey"
               style="width: 100%"
               @selection-change="handleApproveSelectionChange">
               <el-table-column
                 type="selection"
+                :reserve-selection="true"
                 width="55">
               </el-table-column>
               <el-table-column
                 label="用户名"
+                min-width="200">
+                <template slot-scope="scope">{{ scope.row.username }}</template>
+              </el-table-column>
+              <el-table-column
+                label="真实姓名"
                 min-width="120">
                 <template slot-scope="scope">{{ scope.row.realName }}</template>
+              </el-table-column>
+              <el-table-column
+                label="部门名称"
+                min-width="120">
+                <template slot-scope="scope">{{ scope.row.department ? scope.row.department.name : '--' }}</template>
               </el-table-column>
             </el-table>
           </div>
@@ -164,6 +219,7 @@
     name: 'taskFiles',
     data() {
       return {
+        searchQuery: '',
         signType: 0,
         selectedId: '',
         userId: '',
@@ -445,7 +501,7 @@
         let countersignIds = (myCountersignIds + '').replace(/\[|]/g, '')
         let approveIds = (myApproveIds + '').replace(/\[|]/g, '')
 
-        var qs = require('qs')
+        let qs = require('qs')
         let data = {
           'proofreadUserIds': collatorIds,
           'auditUserIds': auditIds,
@@ -561,15 +617,24 @@
             })
           }
         })
+      },
+      getRowKey(row) {
+          return row.id
       }
     },
     computed: {
+      userListA: function () {
+        let self = this
+        return self.userList.filter(function (item) {
+            return item.realName.indexOf(self.searchQuery.toLowerCase()) !== -1;
+        })
+      },
       computeList() {
         let list = []
         if(this.signType === 3) {
           list = this.countersignList
         } else {
-          list = this.userList
+          list = this.userListA
         }
         return list
       },

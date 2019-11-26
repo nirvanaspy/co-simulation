@@ -1041,11 +1041,9 @@
       },
     },
     beforeMount(){
-      console.log(this.userListA)
-
     },
     computed: {
-        userListA: function () {
+      userListA: function () {
         let self = this;
         return self.userList.filter(function (item) {
           return item.username.toLowerCase().indexOf(self.searchQuery.toLowerCase()) !== -1;
