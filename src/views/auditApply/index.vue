@@ -150,6 +150,8 @@
 
 <style scoped>
   .applyContainer {
+    height: calc(100% - 60px) !important;
+    overflow: auto;
     padding: 20px;
   }
 </style>

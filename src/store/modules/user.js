@@ -18,7 +18,8 @@ const user = {
     loginname: '',
     setting: {
       articlePlatform: []
-    }
+    },
+    userInfo: {}
   },
 
   mutations: {
@@ -57,6 +58,9 @@ const user = {
     },
     SET_LOGINNAME: (state, loginname) => {
       state.loginname = loginname
+    },
+    SET_USER_INFO: (state, info) => {
+      state.userInfo = info
     }
   },
   /* eslint-disable */

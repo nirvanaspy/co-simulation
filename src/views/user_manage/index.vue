@@ -153,11 +153,11 @@
                     <div class="role-description">角色描述: {{item.description}}</div>
                     <div class="bottom clearfix role-edit-box">
                       <span @click="handleEditRole(item)"
-                            v-if="item.name !== 'user' && item.name !== 'admin'"
+                            v-if="item.name !== 'user' && item.name !== 'admin' && item.name !== 'project_manager' && item.name !== 'file_auditor' && item.name != 'normal_designer'"
                             class="role-edit">
                         <svg-icon icon-class="edit"></svg-icon>
                       </span>
-                      <span @click="handleDeleteRole(item.id)" v-if="item.name !== 'user' && item.name !== 'admin'"
+                      <span @click="handleDeleteRole(item)" v-if="item.name !== 'user' && item.name !== 'admin' && item.name !== 'project_manager' && item.name !== 'file_auditor' && item.name != 'normal_designer'"
                             class="role-delete">
                         <svg-icon icon-class="delete"></svg-icon>
                       </span>
@@ -701,7 +701,11 @@
           })
         })
       },
-      handleDeleteRole(id) {
+      handleDeleteRole(item) {
+        if(item.name == 'user' || item.name == 'admin' || item.name == 'project_manager' || item.name == 'file_auditor' || item.name == 'normal_designer') {
+            return
+        }
+        let id = item.id
         this.$confirm('确认删除吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -738,6 +742,9 @@
         this.createRoleDialog = true
       },
       handleEditRole(item) {
+        if(item.name == 'user' || item.name == 'admin' || item.name == 'project_manager' || item.name == 'file_auditor' || item.name == 'normal_designer') {
+            return
+        }
         this.editRoleDialog = true
         this.roleInfo = Object.assign({}, item)
       },

@@ -150,7 +150,6 @@
                   style="width: 100%"
                   class="fileList"
                   @selection-change="handleSelectionChange"
-                  height="700px"
                   :row-key="getRowKey"
         >
           <el-table-column

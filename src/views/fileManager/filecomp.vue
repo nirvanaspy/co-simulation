@@ -21,7 +21,6 @@
               highlight-current-row
               style="width: 100%"
               class="fileList"
-              height="700px"
               :row-key="getRowKey"
               @selection-change="handleSelectionChange"
     >
@@ -1793,6 +1792,10 @@
 </script>
 
 <style scoped>
+  /*.fileComp {
+    height: calc(100% - 60px);
+    overflow: auto;
+  }*/
   .warningText {
     color: #e6a23c;
   }

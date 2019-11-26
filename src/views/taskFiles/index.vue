@@ -3,7 +3,7 @@
     <div v-if="!selectedId" style="text-align: center;color: #555;font-size: 18px;">
       还没有选择子任务,请进入项目管理页面进行选择！
     </div>
-    <div v-else>
+    <div v-else class="task-files-container">
       <div class="task-text">
         <span class="text">{{taskName}}</span>
         <span class="text" style="color: #67C23A" v-if="computeCurrentState === '审批结束 已通过'">{{computeCurrentState}}</span>
@@ -14,11 +14,11 @@
         <span class="text">{{taskName}}</span>
         <span class="text" style="color: #e6a23c;font-size: 12px;">{{computeCurrentState}}</span>
       </div>-->
-      <el-button type="primary" size="mini" @click="handleCommit" :disabled="!ableToCommit">提交审核</el-button>
-      <el-button type="primary" size="mini" @click="handleApplySecondEdit" v-if="showSecondEditApply">申请二次修改</el-button>
-      <el-button type="success" size="mini" @click="routerToDevice" v-if="taskState > 0">预定设备</el-button>
-        <!--<el-button type="primary" size="small">直接修改</el-button>-->
-    </span>
+        <el-button type="primary" size="mini" @click="handleCommit" :disabled="!ableToCommit">提交审核</el-button>
+        <el-button type="primary" size="mini" @click="handleApplySecondEdit" v-if="showSecondEditApply">申请二次修改</el-button>
+        <el-button type="success" size="mini" @click="routerToDevice" v-if="taskState > 0">预定设备</el-button>
+          <!--<el-button type="primary" size="small">直接修改</el-button>-->
+      </span>
       <div style="height: 100%;overflow: auto;width: 100%;padding:5px 0 10px 10px;">
         <comFileManage :selectCompId="selectedId" :selectCompName="selectdName" :proClass="proSecretClass" :taskInfo="currentSubtask" ref="fileComp"></comFileManage>
       </div>
@@ -695,6 +695,10 @@
 </script>
 
 <style scoped>
+  #components {
+    height: calc(100% - 100px) !important;
+    overflow: auto;
+  }
   .el-button+.el-button {
     margin-left: 0;
   }
@@ -745,4 +749,8 @@
     margin-right: 10px;
     display: inline-block;
   }
+  /*.task-files-container {
+    height: calc(100% - 60px);
+    overflow: auto;
+  }*/
 </style>

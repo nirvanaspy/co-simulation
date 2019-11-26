@@ -10,11 +10,12 @@
       </div>
       <div class="userInfo-container">
         <span class="user-name">
-          {{userName}}
+          {{userInfo.username}}
         </span>
-        <!--<span class="role-info">
-          用户角色
-        </span>-->
+        <span class="user-name">
+          {{userInfo.realName}}
+        </span>
+
       </div>
     </div>
     <el-menu
@@ -48,7 +49,8 @@ export default {
   computed: {
     ...mapGetters([
       'permission_routers',
-      'sidebar'
+      'sidebar',
+      'userInfo'
     ]),
     isCollapse() {
       return !this.sidebar.opened
@@ -89,14 +91,18 @@ export default {
       }
     }
     .userInfo-container {
-      margin: 4px 0 0 18px;
+      margin: 4px 0 0 6px;
       float: left;
-      font-size: 14px;
-      font-weight: 400;
+      font-size: 12px;
       .user-name, .role-info {
         display: block;
         height: 20px;
         line-height: 20px;
+        width: 100px;
+        font-weight: 400;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
       .user-name {
         font-size: 13px;

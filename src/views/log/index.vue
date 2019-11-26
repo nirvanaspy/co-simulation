@@ -62,6 +62,7 @@
 </script>
 <style lang="scss" scoped>
   .download-log-container {
+    overflow: auto;
   }
   .log-container {
     width: 100%;

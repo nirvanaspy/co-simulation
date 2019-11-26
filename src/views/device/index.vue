@@ -96,10 +96,10 @@
               <!--<el-dropdown-item divided>-->
                 <!--<span style="display:inline-block;padding:0 10px;" @click="copyDevice(scope.row)">复制</span>-->
               <!--</el-dropdown-item>-->
-              <el-dropdown-item>
+              <el-dropdown-item v-if="scope.row.users">
                 <span style="display:inline-block;padding:0 10px;" @click="checkBooking(scope.row)">查看预约详情</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <el-dropdown-item divided  v-if="scope.row.users">
                 <span style="display:inline-block;padding:0 10px;" @click="deleteDevice(scope.row)" v-if="userId === scope.row.users.id">取消预约</span>
               </el-dropdown-item>
             </el-dropdown-menu>

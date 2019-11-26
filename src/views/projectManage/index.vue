@@ -261,12 +261,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="负责人" prop="manager" >
-          <el-select v-model="temp.manager" @focus="getAbleUser" placeholder="请选择项目负责人" style="width: 100%">
+          <el-select v-model="temp.manager" @focus="getAbleUser" filterable placeholder="请选择项目负责人" style="width: 100%">
             <el-option
               :loading="getMaLoading"
               v-for="item in proManagerOptions"
               :key="item.id"
-              :label="item.realName"
+              :label="`${item.realName} (${item.username}  ${item.department ? item.department.description : ''})`"
               :value="item.id">
             </el-option>
           </el-select>
@@ -814,11 +814,16 @@
             this.proManagerOptions = []
             res.data.data.forEach((item) => {
               if(item.secretClass >= this.temp.secretClass) {
+                let ableRole = null
                 item.roleEntities.some(role => {
                   if(role.name === 'project_manager' || role.name === 'normal_designer') {
-                    this.proManagerOptions.push(item)
+                    ableRole = role
+                    return role
                   }
                 })
+                if(ableRole) {
+                  this.proManagerOptions.push(item)
+                }
               }
             })
             this.getMaLoading = false
@@ -1824,7 +1829,7 @@
     .project-list {
       width: 60%;
       height: 80%;
-      overflow-y: scroll;
+      overflow-y: auto;
       min-width: 600px;
       max-width: 800px;
       margin: 20px auto;

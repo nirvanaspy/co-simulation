@@ -50,8 +50,25 @@
         <span @click="toogleSearch" class="searchBox">
           <svg-icon icon-class="search"/>
         </span>
-        <span calss="userName" style="position: relative;top: -12px;color: #fff;font-size: 14px;">{{userName}}</span>
-<!--        trigger="click"-->
+        <el-popover
+          placement="bottom"
+          trigger="click">
+          <div v-if="userInfo">
+            <div class="user-info-item"><span class="info-item-title">用户: </span>{{userInfo.username}}</div>
+            <div class="user-info-item"><span class="info-item-title">姓名: </span>{{userInfo.realName}}</div>
+            <div class="user-info-item"><span class="info-item-title">部门: </span>{{userInfo.department ? userInfo.department.name : '暂无'}}</div>
+            <div class="user-info-item"><span class="info-item-title">秘级: </span>{{secretClassMap[userInfo.secretClass]}}</div>
+            <div class="user-info-item">
+              <div class="info-item-title" style="float: left"><span>角色: </span></div>
+              <div style="float: left;padding-left: 4px;">
+                <div v-for="(role, index) in userInfo.roleEntities" :key="index">{{role.description}}</div>
+              </div>
+            </div>
+          </div>
+          <div v-else>暂无信息···</div>
+          <span calss="userName" slot="reference" style="position: relative;top: -12px;color: #fff;font-size: 14px;">{{realName}}</span>
+        </el-popover>
+
         <el-dropdown class="avatar-container right-menu-item" >
           <div class="avatar-wrapper">
             <pan-thumb class="proImg" width="40px" height="40px" image="./2/png">
@@ -192,10 +209,12 @@
 
 <script>
   /*eslint-disable*/
+  import { mapMutations } from 'vuex'
   import PanThumb from '@/components/PanThumb'
   import { isvalidPwd } from '@/utils/validate'
   import { updatePassword } from '@/api/getUsers'
   import { getMesByUser, readAllMes, readMes, clearAllRead, getMessages, findMesByIfRead } from '@/api/message'
+  import { getUserById } from '@/api/getUsers'
   import service from '@/utils/request'
   import Stomp from 'stompjs'
   import SockJS from 'sockjs-client'
@@ -238,7 +257,9 @@
         }
       }
       return {
-        userName: '你好 ',
+        userName: '',
+        realName: '',
+        userInfo: null,
         userId: '',
         role: '',
         modifyPasswordVisible: false,
@@ -276,6 +297,12 @@
           3: '子任务',
           4: '子库文件'
         },
+        secretClassMap: {
+          0: '公开',
+          1: '内部',
+          2: '秘密',
+          3: '机密',
+        },
         selectedMesObj: null,
         readingMes: false,
         hasChecked: false,
@@ -283,15 +310,24 @@
       }
     },
     created() {
-      // this.role = this.$store.getters.roles[0]
       this.role = this.$store.getters.roles
-      this.userName += this.getCookie('username')
+      this.userName = this.getCookie('username')
       this.userId = this.getCookie('userId')
+        getUserById(this.userId).then(res => {
+          if(res.data.code === 0) {
+            this.realName = res.data.data.realName
+            this.userInfo = res.data.data
+            this.setUserInfo(this.userInfo)
+          }
+        })
       // this.subscribeNotice()
       this.getAllMes()
       this.getUnreadMes()
     },
     methods: {
+      ...mapMutations({
+        setUserInfo: 'SET_USER_INFO'
+      }),
       jumpToAudit() {
         this.$router.push({
           path: '/audit_task'
@@ -798,6 +834,16 @@
       margin-right: 4px;
       position: relative;
       top: 1px;
+    }
+  }
+  .user-info-item {
+    height: 24px;
+    line-height: 24px;
+    // color: #5983e8;
+    .info-item-title {
+      // color: #5983e8;
+      color: #777;
+      font-weight: 700;
     }
   }
   /*// 蒙层

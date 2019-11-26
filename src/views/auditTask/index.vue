@@ -719,6 +719,8 @@
 
 <style scoped>
   .taskContainer {
+    height: calc(100% - 60px) !important;
+    overflow: auto;
     padding: 20px;
   }
   #testscop{
