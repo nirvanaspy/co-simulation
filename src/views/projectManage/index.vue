@@ -322,7 +322,12 @@
             </el-form-item>
             <el-form-item label="项目负责人" :label-width="formLabelWidth">
               <span v-if="temp.pic">{{temp.pic.realName}}</span>
-              <el-dropdown placement="bottom-start" trigger="click" @click.native="getAbleUser" @command="setPersonInC" v-if="hasPermission">
+              <span class="switPic" v-if="hasPermission" @click="showSwitchPic">
+                <el-tooltip content="修改负责人" placement="top">
+                  <svg-icon icon-class="switch"></svg-icon>
+                </el-tooltip>
+              </span>
+              <!--<el-dropdown placement="bottom-start" trigger="click" @click.native="getAbleUser" @command="setPersonInC" v-if="hasPermission">
                 <span class="switPic">
                   <el-tooltip content="修改负责人" placement="top">
                     <svg-icon icon-class="switch"></svg-icon>
@@ -334,7 +339,7 @@
                                     :loading="getMaLoading"
                                     :command="item">{{item.realName}}</el-dropdown-item>
                 </el-dropdown-menu>
-              </el-dropdown>
+              </el-dropdown>-->
             </el-form-item>
           </el-form>
           <el-button type="primary" style="float: right;" @click="updateData" :disabled="!hasPermission || (temp.name === saveTemp.name && temp.description === saveTemp.description) || (temp.description === '' && saveTemp.description === null && temp.name === saveTemp.name)">保 存</el-button>
@@ -425,6 +430,27 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="updateSecretVisible = false">取 消</el-button>
         <el-button type="primary" @click="modifySec" :loading="modSecLoading">确 定
+        </el-button>
+      </div>
+    </el-dialog>
+    <!--修改负责人-->
+    <el-dialog title="修改负责人" :visible.sync="showSwitchPicDialog" append-to-body width="40%" class="limit-width-dialog">
+      <el-form style="width: 80%; margin:0 auto;">
+        <el-form-item label="负责人" prop="secretClass" >
+          <el-select v-model="picInfo" value-key="id" @focus="getAbleUser" filterable placeholder="请选择项目负责人" style="width: 240px;">
+            <el-option
+              :loading="getMaLoading"
+              v-for="item in proManagerOptions"
+              :key="item.id"
+              :label="`${item.realName} (${item.username}  ${item.department ? item.department.description : ''})`"
+              :value="item">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="showSwitchPicDialog = false">关闭</el-button>
+        <el-button type="primary" @click="switchPic">确 定
         </el-button>
       </div>
     </el-dialog>
@@ -532,6 +558,7 @@
         designLinkVisible: false,
         modPasLoading: false,
         updateSecretVisible: false,
+        showSwitchPicDialog: false,
         passwordType: 'password',
         passwordTypeAgain: 'password',
         btnConfirm: false,
@@ -568,6 +595,7 @@
           finishTime: null,
           orderNum: null
         },
+        picInfo: null,
         saveTemp: {
 
         },
@@ -1678,6 +1706,51 @@
       },
       clearPicOption() {
         this.temp.manager = ''
+      },
+      showSwitchPic() {
+        this.picInfo = null
+        this.showSwitchPicDialog = true
+      },
+      switchPic() {
+          // let pic = this.temp.picInfo
+          let pic = this.picInfo
+          this.$confirm('确认移交项目给' + pic.realName + '吗？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+          }).then(() => {
+              let qs = require('qs');
+              let data = {
+                  'picId': pic.id,
+                  'creatorId': this.userId
+              };
+              let postData = qs.stringify(data);
+              updateProPic(this.temp.id, postData).then((res) => {
+                  if(res.data.code === 0) {
+                      this.$notify({
+                          title: '成功',
+                          message: '项目移交成功',
+                          type: 'success',
+                          duration: 2000
+                      })
+                      this.temp.pic = this.picInfo
+                      this.showSwitchPicDialog = false
+                      this.getList()
+                  } else {
+                      this.$notify({
+                          title: '失败',
+                          message: res.data.msg,
+                          type: 'error',
+                          duration: 2000
+                      })
+                  }
+              })
+          }).catch(() => {
+              this.$message({
+                  type: 'info',
+                  message: '已取消操作'
+              })
+          })
       }
     },
     computed: {
