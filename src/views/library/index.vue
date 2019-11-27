@@ -121,10 +121,12 @@
   .tree-container {
     width: 300px;
     height: 600px;
-    overflow-y:scroll;
+    // overflow-y:scroll;
     position: absolute;
     left: 0;
-    top: 200px;
+    // top: 200px;
+    top: 50%;
+    margin-top: -300px;
     z-index: 10000;
     border-radius: 10px;
     padding: 10px;
@@ -136,6 +138,7 @@
     /*火狐下隐藏滚动条*/
     overflow:-moz-scrollbars-none;
     scrollbar-width: none;
+    overflow-y: auto;
   }
   .tree-container::-webkit-scrollbar{width:0px}
   .tree-bar {
@@ -155,7 +158,9 @@
   }
   .hide-tree-bar {
     position: absolute;
-    top: 470px;
+    // top: 470px;
+    top: 50%;
+    margin-top: -100px;
     .icon {
       font-size: 40px;
       cursor: pointer;

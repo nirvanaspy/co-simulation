@@ -7,11 +7,9 @@
         <svg-icon icon-class="create"></svg-icon>
     </span>
     <div style="position: absolute; top: 32px;right: 70px;z-index: 1000">
-<!--        <el-button type="text" style="padding: 0" @click="importingUsers">导入</el-button>-->
-        <el-tooltip content="导入用户信息" placement="bottom" effect="light">
-<!--          <i class="el-icon-share"></i>-->
-          <el-button type="text" style="padding: 0;height: 40px" @click="importingUsers">导入</el-button>
-        </el-tooltip>
+      <el-tooltip content="导入用户信息" placement="bottom" effect="light">
+        <el-button type="text" style="padding: 0;height: 40px" @click="importingUsers">导入</el-button>
+      </el-tooltip>
       <input id="files" type="file" style="display: none" accept="application/vnd.ms-excel" @change="beforeAvatarUpload">
     </div>
     <div style="
@@ -137,7 +135,6 @@
                   </div>
                   <div class="avatarCont">
                   <span class="user-avatar">
-                    <!--<img :src="genenrateAvatar(item.id)" alt="">-->
                     <svg-icon :icon-class="item.enabled === true ? 'user-1' : 'user-disable'"></svg-icon>
                   </span>
                   </div>
@@ -276,12 +273,6 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <!--<el-form-item label="密码">
-          <el-input v-model="createUserInfo.password" type="password"></el-input>
-        </el-form-item>
-        <el-form-item label="再次输入">
-          <el-input v-model="createUserInfo.passwordAgain" type="password"></el-input>
-        </el-form-item>-->
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="createDialogVisible = false">取 消</el-button>
@@ -442,7 +433,6 @@
           size:10,
           limit: 5,
         },
-        // roleList: null,
         roleList: [],
         departmentList: [],
         userInfo: {
@@ -457,7 +447,6 @@
         },
         createUserInfo: {
           username: '',
-          // secretClass: 0,
           realName: '',
           password: '',
           passwordAgain: '',
@@ -480,11 +469,7 @@
           {
             value: 3,
             name: '机密'
-          },
-          /*{
-            value: 4,
-            name: '绝密'
-          },*/
+          }
         ],
         roleInfo: {
           id: '',
@@ -1215,6 +1200,7 @@
   }
 
   .usermanageCont {
+    height: calc(100% - 40px) !important;
     /*隐藏滚动条，当IE下溢出，仍然可以滚动*/
     -ms-overflow-style: none;
     /*火狐下隐藏滚动条*/

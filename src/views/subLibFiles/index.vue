@@ -48,7 +48,7 @@
 
 <style lang="scss" scoped>
   .subLibFileCont {
-    height: calc(100% - 60px) !important;
+    height: calc(100% - 100px) !important;
     overflow-y: auto;
     padding: 20px;
   }

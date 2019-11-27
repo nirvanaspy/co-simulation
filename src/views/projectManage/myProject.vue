@@ -124,7 +124,7 @@
 <style lang="scss" scoped>
   .my-project-container {
     padding: 20px;
-    height: calc(100% - 60px) !important;
+    height: calc(100% - 100px) !important;
     overflow: scroll;
     .undo {
       color: #909399;

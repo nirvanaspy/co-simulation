@@ -678,7 +678,7 @@
 
 <style scoped>
   .taskContainer {
-    height: calc(100% - 60px) !important;
+    height: calc(100% - 100px) !important;
     overflow: auto;
     padding: 20px;
   }
