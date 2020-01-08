@@ -1146,7 +1146,7 @@
               let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
               let completeFlag = 0
               let that = this
-              for(var i = 0; i < fileAdded.length; i++) {
+              for(let i = 0; i < fileAdded.length; i++) {
                 let fileA = fileAdded[i]
                 this.resolveMd5(fileA, chunkSize).then(function (result) {
                   fileA.md5 = result
@@ -1217,7 +1217,7 @@
           let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
           let completeFlag = 0
           let that = this
-          for(var i = 0; i < fileAdded.length; i++) {
+          for(let i = 0; i < fileAdded.length; i++) {
             let fileA = fileAdded[i]
             this.resolveMd5(fileA, chunkSize).then(function (result) {
               console.log(result)
@@ -1306,8 +1306,8 @@
             }
 
             let load = () => {
-              var start = currentChunk * chunkSize
-              var end = start + chunkSize >= file.size ? file.size : start + chunkSize
+              let start = currentChunk * chunkSize
+              let end = start + chunkSize >= file.size ? file.size : start + chunkSize
               fileReader.readAsBinaryString(file.slice(start, end))
             }
             load()
@@ -1319,7 +1319,7 @@
         this.fileCompleteLength -=1
       },
       mergeFile (md5, chunkNum, totalSize, name, path) {
-        var qs = require('qs')
+        let qs = require('qs')
         let data = {
           'identifier': md5,
           'totalChunks': chunkNum,
@@ -1553,7 +1553,7 @@
         let countersignIds = (myCountersignIds + '').replace(/\[|]/g, '')
         let approveIds = (myApproveIds + '').replace(/\[|]/g, '')
         let fileIds = (myFileIds + '').replace(/\[|]/g, '')
-        var qs = require('qs')
+        let qs = require('qs')
         let data = {
           'sublibraryFileId': fileIds,
           'proofreadUserIds': collatorIds,

@@ -853,7 +853,7 @@
           let chunkSize = this.$refs.uploader.uploader.opts.chunkSize
           let completeFlag = 0
           let that = this
-          for(var i = 0; i < fileAdded.length; i++) {
+          for(let i = 0; i < fileAdded.length; i++) {
             let fileA = fileAdded[i]
             this.resolveMd5(fileA, chunkSize).then(function (result) {
               console.log(result)
@@ -943,8 +943,8 @@
             }
 
             let load = () => {
-              var start = currentChunk * chunkSize
-              var end = start + chunkSize >= file.size ? file.size : start + chunkSize
+              let start = currentChunk * chunkSize
+              let end = start + chunkSize >= file.size ? file.size : start + chunkSize
               fileReader.readAsBinaryString(file.slice(start, end))
             }
             load()
@@ -956,7 +956,7 @@
         this.fileCompleteLength -=1
       },
       mergeFile (md5, chunkNum, totalSize, name, path) {
-        var qs = require('qs')
+        let qs = require('qs')
         let data = {
           'identifier': md5,
           'totalChunks': chunkNum,
@@ -1239,7 +1239,7 @@
           'sublibraryId': this.fileUpInfo.subLibraryId
           // 'codeName': this.fileEditInfo.codeName
         }
-        var qs = require('qs');
+        let qs = require('qs');
         let datapost = qs.stringify(data)
         editFileInfo(this.selectFileId, datapost).then((res) => {
           if(res.data.code === 0) {
